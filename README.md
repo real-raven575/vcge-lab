@@ -83,6 +83,22 @@ beside the bundle, every 5 minutes. A build without its source shows "source not
 The only vCGE-specific part of the bench is `loadModules` and `runSample` in `bench/www/bench.js`. The file
 service, the page and the scoring are generic, so the lab can be reused for other projects.
 
+## Credits
+
+Created by **raven575** and **Team vCGE (Claude)**. The crew who keep the lab lights on:
+
+| | Call sign | Post |
+|---|---|---|
+| 🐘 | Cornerstone | PM. Holds the formation and guards the rules. |
+| 🐢 | Shutout | Shell. Nothing gets out without saying so. |
+| 🦝 | Ghost | Vault. Host of Wipe Trials; leaves no trace, on purpose. |
+| 🐈 | Iris | Camera. Finds the card's edges before you do. |
+| 🦉 | Glyph | OCR. Night shift in the Reading Room; can tell an I from an l (usually). |
+| 🐙 | Pidge | Field mapping. Eight arms, every line in the right pigeonhole. |
+| 🦎 | Flipside | 3D Card. Changes colour to match your logo. |
+| 🦓 | Checkers | QR. Black and white and read all over. |
+| 🦅 | Airlock | Export. The one way out, and only when you press the button. |
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE). Keep the credit "raven575 and Team vCGE" with any copy.
