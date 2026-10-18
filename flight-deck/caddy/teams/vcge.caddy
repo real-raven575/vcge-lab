@@ -1,7 +1,7 @@
-# Team vCGE (founding division): the vCGE lab at /vcge/, files in /srv/dataprojects/vcge/www, services on 8765-8799.
+# Team vCGE (founding division): the vCGE lab at /vcge/, files in /srv/lab/vcge/www, services on 8765-8799.
 redir /vcge /vcge/ 308
 handle_path /vcge/* {
-	root * /srv/dataprojects/vcge/www
+	root * /srv/lab/vcge/www
 	reverse_proxy /bench/api/* 127.0.0.1:8765
 	reverse_proxy /testing/api/* 127.0.0.1:8766
 	header /testing/* Cache-Control no-store

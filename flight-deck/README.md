@@ -3,10 +3,10 @@
 The lab's front page when one web server holds several teams' projects. Each team gets its own space and the
 Flight Deck links to all of them.
 
-| What | Where (raven575's lab) |
+| What | Where (example: every team under `/srv/lab`) |
 |---|---|
-| Flight Deck, one tile per team | `/` serves `/srv/dataprojects/portal/www` (static files from `www/`, no services) |
-| A team's pages | `/<team>/` serves `/srv/dataprojects/<team>/www`, e.g. `/vcge/` |
+| Flight Deck, one tile per team | `/` serves `/srv/lab/portal/www` (static files from `www/`, no services) |
+| A team's pages | `/<team>/` serves `/srv/lab/<team>/www`, e.g. `/vcge/` |
 | A team's web routes | one file per team, `/etc/caddy/teams/<team>.caddy`, imported by the Caddyfile |
 | A team's services | its own service user, its own block of ports, listening on 127.0.0.1 (see `PORTS.md.example`) |
 
