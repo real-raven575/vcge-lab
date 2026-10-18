@@ -1,0 +1,8 @@
+# vCGE lab settings. Copy to lab.conf (git ignores it) and change what differs on your lab machine.
+# The installers read it from the repo root, or from the file named in VCGE_LAB_CONF. Every value has a default.
+LAB_ROOT=/srv/vcge-lab            # holds www/ (served by Caddy), bin/, repo/ and milestones.txt
+LAB_USER=vcge                     # the unprivileged user the lab's services run as
+LAB_REPO=$LAB_ROOT/repo           # a git checkout of the app, used to publish each build's source for the bench
+BENCH_PORT=8765                   # OCR bench file service, 127.0.0.1 only
+TRIALS_PORT=8766                  # Wipe Trials save service, 127.0.0.1 only
+CADDYFILE=/etc/caddy/Caddyfile

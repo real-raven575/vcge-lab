@@ -1,0 +1,103 @@
+{
+  "id": "cross-browser-wipe",
+  "title": "Cross-browser wipe trial",
+  "subtitle": "Does anything a card leaves behind in one browser ever show up in another, or come back in the same one?",
+  "header": [
+    { "id": "tester", "label": "Tester", "placeholder": "Your name", "icon": "user" },
+    { "id": "device", "label": "Device", "placeholder": "iPad Air (5th gen)", "icon": "device" },
+    { "id": "os", "label": "OS and version", "placeholder": "iPadOS 26.0.1", "icon": "os" },
+    { "id": "browserA", "label": "Browser A and version", "placeholder": "Chrome 141", "icon": "browser" },
+    { "id": "browserB", "label": "Browser B and version", "placeholder": "Safari 26", "icon": "browser" },
+    { "id": "build", "label": "Build (version and commit)", "placeholder": "0.500.xx bb8485d, from the versions page", "icon": "build" },
+    { "id": "cardA", "label": "Card A (who is on it)", "placeholder": "Example Co., Jane Doe", "icon": "card" },
+    { "id": "cardB", "label": "Card B (a different card)", "placeholder": "Any other card, as different as possible", "icon": "card" }
+  ],
+  "scenarios": [
+    {
+      "id": "a-then-b",
+      "icon": "swap",
+      "title": "Browser A, back out, Browser B",
+      "intro": "The iPad case as remembered: a card read in Browser A, no wipe, then Browser B opened fresh.",
+      "steps": [
+        { "text": "In Browser A open the newest build from the versions page.", "expect": "Welcome page shows (it always does: nothing is remembered)." },
+        { "text": "Set a PIN, add biometrics if offered, press START.", "expect": "Lock is set; the camera card opens." },
+        { "text": "Photograph Card A and accept the OCR result.", "expect": "Fields show Card A's details, and only those." },
+        { "text": "Do NOT wipe. Go back to the lab page with the browser's back button and choose Leave.", "expect": "The Leave dialog appears; the lab versions page comes back." },
+        { "text": "Switch to Browser B and open the same build.", "expect": "Welcome page shows." },
+        { "text": "Set a PIN and biometrics, press START, photograph Card B.", "expect": "Camera works; a picture of Card B is taken." },
+        { "text": "Accept the OCR result and read every field slowly.", "expect": "Only Card B's details. Nothing from Card A (name, company, phone, email, address, logo)." },
+        { "text": "Open the Vault page and the 3D card: any logo, palette or Undo from Card A?", "expect": "No." }
+      ]
+    },
+    {
+      "id": "a-wipe-b",
+      "icon": "trash",
+      "title": "Browser A, wipe, Browser B",
+      "intro": "Same again, but Browser A is wiped properly before Browser B is opened.",
+      "steps": [
+        { "text": "In Browser A open the build, set PIN and biometrics, photograph Card A, accept the OCR.", "expect": "Card A's details fill the fields." },
+        { "text": "Press Wipe, hold Yes for 1.5 seconds. Leave the settings box unticked.", "expect": "Everything clears; the page reloads to the welcome page." },
+        { "text": "Switch to Browser B, open the build, set PIN and biometrics, photograph Card B, accept.", "expect": "Only Card B's details." },
+        { "text": "Back in Browser A later: reload the page.", "expect": "Welcome page, empty fields, no PIN remembered." }
+      ]
+    },
+    {
+      "id": "same-browser",
+      "icon": "door",
+      "title": "Same browser, leave and come back",
+      "intro": "Does anything survive inside one browser across leaving, closing the tab, or reloading?",
+      "steps": [
+        { "text": "In Browser A read Card A, then reload the page (pull down or the reload button).", "expect": "Welcome page, empty fields." },
+        { "text": "Read Card A again, then close the tab, then open the build in a new tab.", "expect": "Welcome page, empty fields." },
+        { "text": "Read Card A again, go back with the browser's back button, choose Leave, then press forward.", "expect": "A toast says everything was wiped when you left; fields empty." },
+        { "text": "Read Card A again, quit the browser app fully (swipe it away), reopen it and the tab.", "expect": "Welcome page, empty fields." }
+      ]
+    },
+    {
+      "id": "lock-timer",
+      "icon": "lock",
+      "title": "Lock, then the 7-minute wipe",
+      "intro": "Screen off or app switch locks the card. Seven minutes after the lock, everything is wiped.",
+      "steps": [
+        { "text": "Read Card A in Browser A, then press the home button or switch to another app for about 30 seconds and come back.", "expect": "The PIN screen (or fingerprint) asks before the card is shown again." },
+        { "text": "Unlock with the PIN.", "expect": "Card A's details are back." },
+        { "text": "Lock again and stay away for more than 7 minutes (set a timer), then come back.", "expect": "Everything was wiped: welcome page or empty capture card, no PIN." },
+        { "text": "Try the fingerprint or face unlock once, then enter a wrong PIN 5 times in a fresh session.", "expect": "Biometric opens the card; 5 wrong PINs wipe everything." }
+      ]
+    },
+    {
+      "id": "b-then-a",
+      "icon": "swap",
+      "title": "Browser B first, then Browser A",
+      "intro": "The reverse direction, without and with a wipe.",
+      "steps": [
+        { "text": "Read Card A in Browser B, back out without wiping, then read Card B in Browser A.", "expect": "Only Card B's details in Browser A." },
+        { "text": "Read Card A in Browser B, wipe, then read Card B in Browser A.", "expect": "Only Card B's details in Browser A." }
+      ]
+    },
+    {
+      "id": "control",
+      "icon": "scales",
+      "title": "The deciding control: Card A versus Card B",
+      "intro": "This is the one that settles the iPad case. Two different cards, two browsers, read letter by letter.",
+      "steps": [
+        { "text": "Browser A: read Card A, accept, write down the first name, company and email exactly as shown.", "expect": "Card A's details." },
+        { "text": "Without wiping, Browser B: read Card B, accept.", "expect": "Card B's details, letter for letter. Note any field that shows Card A." },
+        { "text": "Now in Browser B photograph Card A on purpose and accept.", "expect": "Card A's details appear, because Card A was just photographed. This is the harmless case that looks like a leak." },
+        { "text": "Was any Card A text ever shown in Browser B before Card A was photographed there?", "expect": "No. A Yes here is a real leak: write every field down in the notes." }
+      ]
+    },
+    {
+      "id": "settings",
+      "icon": "palette",
+      "title": "Settings cross-check",
+      "intro": "The one thing the app keeps is a tiny settings entry. It must stay inside one browser and survive a wipe unless asked to go.",
+      "steps": [
+        { "text": "In Browser A switch the theme to light and the hand to left, then open Browser B.", "expect": "Browser B is still dark and right-handed." },
+        { "text": "In Browser A wipe with the settings box unticked.", "expect": "Light theme and left hand are still there after the reload." },
+        { "text": "In Browser A wipe again, tick 'Also delete my saved settings', confirm 'Are you sure?'.", "expect": "Back to dark and right-handed." },
+        { "text": "Use the lab's 'Start fresh' button, then open the build.", "expect": "Defaults again; nothing else different from any other fresh visit." }
+      ]
+    }
+  ]
+}

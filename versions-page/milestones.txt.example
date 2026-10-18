@@ -1,0 +1,4 @@
+# Milestones: "<first commit of the milestone> <0.MMM>", oldest first. Version = 0.MMM.BB, BB counted from 01.
+# Copy to <LAB_ROOT>/milestones.txt and put your own commits here.
+abc1234 0.100
+def5678 0.200

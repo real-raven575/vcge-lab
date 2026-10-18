@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>vCGE Lab: The Reading Room</title>
+<link rel="icon" href="owl.svg" type="image/svg+xml">
+<link rel="stylesheet" href="bench.css">
+</head>
+<body>
+<svg class="sprite" width="0" height="0" aria-hidden="true">
+  <defs>
+    <!-- Tabler-style icons, stroke 2 -->
+    <symbol id="i-build" viewBox="0 0 24 24"><path d="M6 4h12l2 4-8 12L4 8z M4 8h16M10 8l2 12 2-12"/></symbol>
+    <symbol id="i-tray" viewBox="0 0 24 24"><path d="M4 13h4l2 3h4l2-3h4M4 13l2-8h12l2 8v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h4M7 14h7"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.8 2.8 0 0 0-4-4L4 16v4M13.5 6.5l4 4"/></symbol>
+    <symbol id="i-lamp" viewBox="0 0 24 24"><path d="M9 3h6l3 7H6zM12 10v8M8 21h8M12 18v3"/></symbol>
+    <symbol id="i-lens" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20M7.5 8.5a3 3 0 0 1 2-2"/></symbol>
+    <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M6 4h11a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM9 4v16M12 8h3M12 12h3"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 9l5-5 5 5M12 4v12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-feather" viewBox="0 0 24 24"><path d="M20 4C11 4 6 9 5 19M5 19l3-3M9 15h5M11 12h6M14 9h5M20 4c0 7-4 12-11 12" /></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <a class="back" href="../">&larr; Lab</a>
+  <div class="mast">
+    <img src="owl.svg" alt="" class="owl" width="60" height="60">
+    <div>
+      <h1>The Reading Room</h1>
+      <p class="tag">Glyph's OCR bench &middot; MOD04 OCR &middot; night shift at the Lost Letters Office</p>
+    </div>
+  </div>
+  <div class="scanner" aria-hidden="true"><span class="scan-a">I</span><span class="scan-q">?</span><span class="scan-b">l</span></div>
+</header>
+
+<main>
+<div class="speech" role="status" aria-live="polite">
+  <img src="owl.svg" alt="" width="34" height="34">
+  <p id="glyphSays">Lamp's on. Pick a build, fill the in-tray, and I'll read every card under the lens. I keep nothing but the score.</p>
+</div>
+
+<p class="lead">Runs one published build's own edge finder, reader and field mapper over every sample below, in this browser, offline from the lab. Correct what it got wrong, press Go, and the corrections are kept on the lab as that sample's truth and scored.</p>
+
+<section class="panel">
+  <h2><svg class="ic"><use href="#i-build"/></svg> <span class="step">1</span> Tonight's build</h2>
+  <div class="row">
+    <label class="field-inline">Build <select id="buildSelect"></select></label>
+    <span id="buildNote" class="note"></span>
+  </div>
+</section>
+
+<section class="panel">
+  <h2><svg class="ic"><use href="#i-tray"/></svg> <span class="step">2</span> The in-tray</h2>
+  <div class="sets">
+    <div class="set">
+      <h3><svg class="ic"><use href="#i-card"/></svg> Business cards <span id="countCards" class="count"></span></h3>
+      <label class="upload"><svg class="ic"><use href="#i-upload"/></svg> Add photos <input type="file" accept="image/*" multiple data-set="business-cards"></label>
+      <ul id="listCards" class="files"></ul>
+    </div>
+    <div class="set">
+      <h3><svg class="ic"><use href="#i-pen"/></svg> Handwriting samples <span id="countHand" class="count"></span></h3>
+      <label class="upload"><svg class="ic"><use href="#i-upload"/></svg> Add photos <input type="file" accept="image/*" multiple data-set="handwriting"></label>
+      <ul id="listHand" class="files"></ul>
+    </div>
+  </div>
+  <p class="note">Files can also be dropped straight into <code>bench/data/samples/business-cards</code> and <code>bench/data/samples/handwriting</code> on the lab server.</p>
+</section>
+
+<section class="panel">
+  <h2><svg class="ic"><use href="#i-lamp"/></svg> <span class="step">3</span> Read them all</h2>
+  <div class="row">
+    <label class="check"><input type="checkbox" id="runCards" checked> Business cards</label>
+    <label class="check"><input type="checkbox" id="runHand" checked> Handwriting</label>
+    <label class="check"><input type="checkbox" id="snapHand"> Also find edges on handwriting</label>
+  </div>
+  <div class="row actions">
+    <button id="runBtn" class="btn primary"><svg class="ic"><use href="#i-play"/></svg> Run all</button>
+    <button id="stopBtn" class="btn quiet" disabled><svg class="ic"><use href="#i-stop"/></svg> Stop</button>
+    <span id="runStatus" class="note mono"></span>
+  </div>
+  <div id="progress" class="progress hidden" aria-hidden="true"><div id="progressFill"></div></div>
+</section>
+
+<section id="results" class="hidden">
+  <h2 class="section-title"><svg class="ic"><use href="#i-lens"/></svg> <span class="step">4</span> Under the lens</h2>
+  <p class="note">Left: the photo with the edges the build found (green) and the crop it read. Middle: what it read and the fields it would fill. Right: correct any line, tick <em>drop</em> for noise, add missed lines with +. A sample with saved truth is prefilled from it and scored at once.</p>
+  <div id="rows"></div>
+  <div class="row sticky">
+    <button id="goBtn" class="btn primary"><svg class="ic"><use href="#i-check"/></svg> Go: save corrections and analyse</button>
+    <span id="goStatus" class="note"></span>
+  </div>
+</section>
+
+<section id="analysis" class="panel notebook hidden">
+  <h2><svg class="ic"><use href="#i-notebook"/></svg> <span class="step">5</span> Glyph's notebook</h2>
+  <div id="summary"></div>
+  <details><summary>Summary as text (for the module thread)</summary><textarea id="summaryMd" rows="14" readonly></textarea></details>
+  <p id="savedNote" class="note"></p>
+</section>
+
+<section class="panel quiet">
+  <h2><svg class="ic"><use href="#i-archive"/></svg> The archive</h2>
+  <table id="runsTable"><thead><tr><th>When (UTC)</th><th>Build</th><th>Samples</th><th>Char accuracy</th><th>Lines exact</th><th>Edges right</th><th></th></tr></thead><tbody></tbody></table>
+</section>
+</main>
+
+<footer class="foot"><svg class="ic"><use href="#i-feather"/></svg> Read everything, keep nothing. Lab only: nothing here touches the app or its storage, and the reading happens in this browser.</footer>
+<script type="module" src="bench.js"></script>
+</body>
+</html>

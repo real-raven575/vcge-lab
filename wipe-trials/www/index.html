@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<title>vCGE Lab: Trials</title>
+<link rel="icon" href="ghost.svg" type="image/svg+xml">
+<link rel="stylesheet" href="trials.css">
+</head>
+<body>
+<svg class="sprite" width="0" height="0" aria-hidden="true">
+  <defs>
+    <!-- Tabler-style icons, stroke 2 -->
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></symbol>
+    <symbol id="i-device" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-os" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v16M4 8h16"/></symbol>
+    <symbol id="i-browser" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></symbol>
+    <symbol id="i-build" viewBox="0 0 24 24"><path d="M6 4h12l2 4-8 12L4 8z M4 8h16M10 8l2 12 2-12"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h4M7 14h7"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M3 8h13l-3-3M21 16H8l3 3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+    <symbol id="i-door" viewBox="0 0 24 24"><path d="M14 12v.01M3 21h18M5 21V5a2 2 0 0 1 2-2h7.5M14 7h2l3 3-3 3h-2M14 3v18"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 16v.01"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.2M12 16v.01"/></symbol>
+    <symbol id="i-scales" viewBox="0 0 24 24"><path d="M12 3v18M4 21h16M5 7l7-2 7 2M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 1 0-18 9 8 0 0 1 9 8 4.5 4.5 0 0 1-4.5 4.5H15a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".8"/><circle cx="12" cy="7.5" r=".8"/><circle cx="16.5" cy="10.5" r=".8"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M4 5v14l12-7zM20 5v14"/></symbol>
+    <symbol id="i-new" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2zM12 11v6M9 14h6"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M10 14L21 3M21 3l-6.5 18a.55.55 0 0 1-1 0L10 14l-7-3.5a.55.55 0 0 1 0-1L21 3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+    <symbol id="i-paw" viewBox="0 0 24 24"><path d="M12 21c-3 0-5-1.6-5-4 0-1.8 1.6-3.2 3-4.4 1-.9 1.4-1.6 2-1.6s1 .7 2 1.6c1.4 1.2 3 2.6 3 4.4 0 2.4-2 4-5 4z" fill="currentColor" stroke="none"/><circle cx="6" cy="10" r="1.8" fill="currentColor" stroke="none"/><circle cx="9.5" cy="6.5" r="1.8" fill="currentColor" stroke="none"/><circle cx="14.5" cy="6.5" r="1.8" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1.8" fill="currentColor" stroke="none"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <a class="back" href="../">&larr; Lab</a>
+  <div class="mast">
+    <img src="ghost.svg" alt="" class="ghost" width="56" height="56">
+    <div>
+      <h1>Wipe Trials</h1>
+      <p class="tag">Ghost's test range &middot; MOD02 Vault &middot; <span id="trialTitle">loading trial&hellip;</span></p>
+    </div>
+  </div>
+  <div class="stamp" id="stampBox" aria-live="polite">
+    <svg class="ic"><use href="#i-clock"/></svg>
+    <span id="stampText">No report started</span>
+  </div>
+</header>
+
+<main id="app" class="hidden">
+  <section class="bar">
+    <button type="button" class="btn btn-new" id="newBtn"><svg class="ic"><use href="#i-new"/></svg> Start a new report</button>
+    <div class="progress" aria-label="Steps done">
+      <div class="paws" id="paws"></div>
+      <span class="count" id="count">0 / 0 steps</span>
+      <svg class="ic padlock" id="padlock" aria-hidden="true"><use href="#i-unlock"/></svg>
+    </div>
+    <span class="save" id="saveState">Fill the header, then work through each range.</span>
+  </section>
+
+  <p class="lead" id="trialSubtitle"></p>
+
+  <section class="panel">
+    <h2><svg class="ic"><use href="#i-user"/></svg> Who, what, where</h2>
+    <div class="grid" id="header"></div>
+  </section>
+
+  <nav class="tabs" id="tabs" aria-label="Scenarios"></nav>
+  <section id="scenarios"></section>
+
+  <section class="panel">
+    <h2><svg class="ic"><use href="#i-paw"/></svg> Verdict</h2>
+    <label class="field"><span>Did any contact data ever show where it should not have? Say exactly what, and where.</span>
+      <textarea id="verdict" rows="4" placeholder="Nothing crossed over. Or: Browser B showed Card A's email before Card A was photographed there..."></textarea></label>
+    <label class="field"><span>Anything else worth telling the pilots</span>
+      <textarea id="extra" rows="3" placeholder="Odd toasts, slow spots, things that felt wrong..."></textarea></label>
+  </section>
+
+  <section class="bar end">
+    <button type="button" class="btn btn-submit" id="submitBtn"><svg class="ic"><use href="#i-send"/></svg> Submit report</button>
+    <button type="button" class="btn btn-quiet" id="downloadBtn"><svg class="ic"><use href="#i-download"/></svg> Download instead</button>
+    <span class="save" id="submitState"></span>
+  </section>
+
+  <section class="panel quiet" id="pastBox">
+    <h2><svg class="ic"><use href="#i-card"/></svg> Past reports</h2>
+    <ul id="past" class="past"></ul>
+  </section>
+</main>
+
+<p class="hidden" id="loadError"></p>
+
+<dialog id="confirm">
+  <form method="dialog">
+    <img src="ghost.svg" alt="" width="48" height="48">
+    <h3 id="confirmTitle">Are you sure you want to clear all fields and start new?</h3>
+    <p id="confirmText">The time stamp is taken the moment you say yes.</p>
+    <div class="row">
+      <button type="submit" value="no" class="btn btn-quiet" autofocus>No, keep it</button>
+      <button type="submit" value="yes" class="btn btn-danger">Yes, start new</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="filed hidden" id="filed" aria-live="assertive">
+  <svg class="ic"><use href="#i-check"/></svg>
+  <span id="filedText">Report filed</span>
+</div>
+
+<footer class="foot">Lab only. Nothing here touches the app or its storage. Drafts are kept on the lab server, not in this browser.</footer>
+<script src="trials.js"></script>
+</body>
+</html>
