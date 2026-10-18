@@ -17,7 +17,7 @@
     'Reminder from the tower: nothing on this deck talks to the internet. Radio silence is the rule.',
     'Glyph reports the Reading Room lamp is lit. Ghost reports the Wipe Trials range is swept.',
     'Hangars 02 and 03 are reserved. Lights on, doors open, waiting for pilots.',
-    'Tower to Hangar 01: an elephant never forgets, but please still write your test results down.',
+    'Tower to Hangar 01: an elephant remembers everything, but please still write your test results down.',
     'Wind calm, visibility unlimited, zero data on the runway.',
     'Every hangar has its own folder, its own address and its own ports. No taxiing through someone else\'s bay.',
     'Tower here. You called? Everything is quiet. That is how we like it.',

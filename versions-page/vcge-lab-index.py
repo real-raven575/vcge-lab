@@ -73,7 +73,7 @@ def row(link, label, m):
             f'<td class="{cls}">{mark}{tests}</td><td><a href="v/{m["short"]}/build.log">log</a></td></tr>')
 
 # Cornerstone's theme: the versions page is "The Elephant's Memory", kept by Cornerstone (PM,
-# elephant). Quips, the peanut jar and the "never forget" word are decoration only; every fact stays in plain text.
+# elephant). Quips, the peanut jar and the "remember" word are decoration only; every fact stays in plain text.
 # On the plain edition this block is replaced by the untitled page.
 now = when(datetime.now(timezone.utc))
 newest = versions[0] if versions else None
@@ -153,7 +153,7 @@ for (const t of document.querySelectorAll('time[datetime]')) {
   const mem = JSON.parse(document.getElementById('memory').textContent);
   const says = document.getElementById('says'), cs = document.getElementById('cs');
   const quips = [
-    'An elephant never forgets. Every build that landed here is still on the shelf.',
+    'An elephant remembers. Every build that landed here is still on the shelf.',
     'I hold the formation. You pick the build.',
     'Newest at the top, oldest at the bottom. Nobody gets lost in my herd.',
     'Every row was built here and tested here, and nothing was sent anywhere.',
@@ -176,14 +176,14 @@ for (const t of document.querySelectorAll('time[datetime]')) {
   const jar = document.getElementById('jar');
   jar.textContent = `🫙 Peanut jar: ${mem.passed} of ${mem.count} builds passed their unit tests` + (mem.failed ? `, ${mem.failed} did not.` : '.');
   jar.title = 'Cornerstone is saving them for release day.';
-  // Type "never forget" anywhere to walk down memory lane to the oldest build still on the shelf.
-  const phrase = 'never forget'; let typed = '';
+  // Type "remember" anywhere to walk down memory lane to the oldest build still on the shelf.
+  const phrase = 'remember'; let typed = '';
   document.addEventListener('keydown', e => {
     if (e.target.closest('input, textarea, select') || e.key.length !== 1) return;
     typed = (typed + e.key.toLowerCase()).slice(-phrase.length);
     if (typed !== phrase || !mem.oldest) return;
     const lane = document.getElementById('lane');
-    lane.textContent = `🐘 Memory lane: the oldest build I still keep is ${mem.oldest.short}, "${mem.oldest.subject}", from ${mem.oldest.date}. I never forget. I just tidy the shelf sometimes.`;
+    lane.textContent = `🐘 Memory lane: the oldest build I still keep is ${mem.oldest.short}, "${mem.oldest.subject}", from ${mem.oldest.date}. I remember everything. I just tidy the shelf sometimes.`;
     lane.classList.remove('hidden');
     says.textContent = 'You said the words. Down memory lane we go.';
   });
