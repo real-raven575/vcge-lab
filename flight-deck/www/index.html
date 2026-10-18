@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Flight Deck</title>
+<link rel="icon" href="tower.svg" type="image/svg+xml">
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+<header class="deck">
+  <div class="mast">
+    <button type="button" class="tower" id="tower" aria-label="Call the tower">
+      <img src="tower.svg" alt="" width="64" height="64">
+    </button>
+    <div>
+      <h1>Flight Deck</h1>
+      <p class="tag">raven575's lab &middot; one hangar per team &middot; nothing here leaves this machine</p>
+    </div>
+  </div>
+  <div class="clock" aria-label="Time">
+    <span class="z"><b id="zulu">--:--</b> Zulu (UTC)</span>
+    <span class="l" id="local"></span>
+  </div>
+  <div class="formation" id="formation" aria-hidden="true"></div>
+</header>
+
+<main>
+  <p class="radio" id="radio" role="status" aria-live="polite">Tower to all hangars: deck is clear, lights are on. Pick your team and taxi in.</p>
+
+  <ol class="hangars">
+    <li class="hangar live">
+      <div class="bay">HANGAR 01</div>
+      <h2>Team vCGE <span class="badge">founding division</span></h2>
+      <p class="proj">vCGE, the vCard Generator Engine. <em>Operation: Never Lose Contact.</em></p>
+      <p class="pilots" aria-label="Pilots: Cornerstone, Shutout, Ghost, Iris, Glyph, Pidge, Flipside, Checkers, Airlock">
+        <span title="Cornerstone, PM">🐘</span><span title="Shutout, MOD01 Shell">🐢</span><span title="Ghost, MOD02 Vault">🦝</span><span title="Iris, MOD03 Camera">🐈</span><span title="Glyph, MOD04 OCR">🦉</span><span title="Pidge, MOD05 Field mapping">🐙</span><span title="Flipside, MOD06 3D Card">🦎</span><span title="Checkers, MOD07 QR">🦓</span><span title="Airlock, MOD08 Export">🦅</span>
+      </p>
+      <ul class="tools">
+        <li><a href="vcge/"><span class="ic" aria-hidden="true">🐘</span><span><b>The Elephant's Memory</b><small>Every build, newest first</small></span></a></li>
+        <li><a href="vcge/latest/"><span class="ic" aria-hidden="true">🛫</span><span><b>Newest build</b><small>Open the app as it is right now</small></span></a></li>
+        <li><a href="vcge/bench/"><span class="ic" aria-hidden="true">🦉</span><span><b>The Reading Room</b><small>Glyph's OCR bench</small></span></a></li>
+        <li><a href="vcge/testing/"><span class="ic" aria-hidden="true">🦝</span><span><b>Wipe Trials</b><small>Ghost's test range</small></span></a></li>
+      </ul>
+    </li>
+
+    <li class="hangar reserved">
+      <div class="bay">HANGAR 02</div>
+      <h2>vCGE Creative team</h2>
+      <p class="proj">Own project: the comic, the characters, the visuals.</p>
+      <p class="pilots empty">Pilots not on file yet. Their PM adds them to the registry.</p>
+      <p class="stamp">Reserved</p>
+      <p class="lights" aria-hidden="true">The lights are on. Easels are set up. Waiting for pilots.</p>
+    </li>
+
+    <li class="hangar reserved">
+      <div class="bay">HANGAR 03</div>
+      <h2>vCGE Marketing and Distribution team</h2>
+      <p class="proj">Own project: stores, publisher accounts, findability.</p>
+      <p class="pilots empty">Pilots not on file yet. Their PM adds them to the registry.</p>
+      <p class="stamp">Reserved</p>
+      <p class="lights" aria-hidden="true">The lights are on. The store shelves are empty. Waiting for pilots.</p>
+    </li>
+
+    <li class="hangar open">
+      <div class="bay">OPEN BAY</div>
+      <h2>A new team's space</h2>
+      <p class="proj">Each team gets its own folder, its own address on this deck, its own service account and its own block of ports. Ask raven575 to open a hangar.</p>
+    </li>
+  </ol>
+</main>
+
+<footer class="foot">
+  <span aria-hidden="true">✈</span> Lab only. Every tool here runs on this machine and is reached only over raven575's private network. No ads, no tracking, nothing calls home.
+  <span class="hint">Pilots who know the word can call a <kbd>formation</kbd>.</span>
+</footer>
+<script src="portal.js"></script>
+</body>
+</html>

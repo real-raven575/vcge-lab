@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Control tower: cab with windows, shaft, base, a beacon on top. -->
+  <rect x="27" y="3" width="10" height="5" rx="2" fill="#F2B705"/>
+  <path d="M14 10h36l-5 14H19z" fill="#2B5FD9"/>
+  <path d="M19 14h26l-2.5 7h-21z" fill="#BFD4FF"/>
+  <path d="M27 14v7M37 14v7" stroke="#2B5FD9" stroke-width="2"/>
+  <rect x="25" y="24" width="14" height="30" fill="#8A94A6"/>
+  <path d="M25 32h14M25 40h14M25 48h14" stroke="#6B7587" stroke-width="2"/>
+  <rect x="16" y="54" width="32" height="7" rx="2" fill="#5B6577"/>
+  <path d="M8 61h48" stroke="#F2B705" stroke-width="2" stroke-dasharray="5 4"/>
+</svg>
