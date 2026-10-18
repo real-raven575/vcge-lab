@@ -20,7 +20,8 @@ nothing stored) are not loosened to make testing easier.
 
 ## Two editions
 
-- **`main`** is the personalized edition: Glyph the owl hosts the Reading Room, Ghost the raccoon hosts Wipe Trials.
+- **`main`** is the personalized edition: Glyph the owl hosts the Reading Room, Ghost the raccoon hosts Wipe Trials,
+  Cornerstone the elephant keeps the versions page (The Elephant's Memory) and a control tower runs the Flight Deck.
 - **`plain`** has every feature of `main`, with the characters, themed wording and accent styling taken out: plain
   text and a basic light/dark theme.
 
