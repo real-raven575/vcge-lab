@@ -1,12 +1,11 @@
-# 🦉 The Reading Room: the OCR bench
+# OCR bench
 
-Glyph's tool for testing the reader on real photos. It runs one published build's own edge finder, crop, OCR reader
+A tool for testing the reader on real photos. It runs one published build's own edge finder, crop, OCR reader
 and field mapper over every sample, in your browser, then lets you correct the result and scores it.
 
 ## Files
-- `www/index.html`, `www/bench.js`, `www/bench.css`, `www/owl.svg`: the page, served at `/bench/` on the lab
-  (midnight navy, lamplight amber, phosphor green; Glyph comments on each run in a speech bubble). Motion is soft and
-  stops under "reduce motion"; nothing flashes.
+- `www/index.html`, `www/bench.js`, `www/bench.css`: the page, served at `/bench/` on the lab, in a basic light or
+  dark theme. Motion stops under "reduce motion"; nothing flashes.
 - `vcge-bench-api.py`: the file service (Python standard library) that lists builds and samples, takes uploads, keeps
   each sample's truth and stores runs. Runs as the lab user on 127.0.0.1 (`BENCH_PORT`, default 8765); Caddy
   forwards `/bench/api/*` to it.
@@ -31,9 +30,9 @@ Each prints `OK` lines; the installer also prints undo commands.
 3. Run all. Each sample goes through that build's own code in your browser.
 4. Correct the lines on the right, tick *drop* for noise, add missed lines with +, and untick "edges are right" if the
    green outline is wrong. Go saves the truth per sample (`data/truth/<set>/<file>.json`) and scores the run.
-5. The notebook shows character accuracy, lines exact / missed / invented / in the wrong field, the "please check"
+5. The analysis shows character accuracy, lines exact / missed / invented / in the wrong field, the "please check"
    flags that were right, needless or missing, edge finding, and the top character confusions. Each run is kept under
-   `data/runs/<build>/<time>/` (results.json, summary.json, summary.md, report.html) and listed in the archive.
+   `data/runs/<build>/<time>/` (results.json, summary.json, summary.md, report.html) and listed under Past runs.
 
 A sample with saved truth is scored on every later run without typing; edit its truth on the page if it was wrong.
 Sample photos and truth stay on your lab; they are not part of this repository.

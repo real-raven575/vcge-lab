@@ -1,4 +1,4 @@
-# 🐘 Versions page
+# Versions page
 
 `vcge-lab-index.py` writes the lab's front page, `www/index.html`: one row per branch and per published build,
 newest first, each time shown in UTC with the viewer's local time beside it, and a version number `0.MMM.BB`.

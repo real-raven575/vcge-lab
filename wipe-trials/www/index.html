@@ -6,7 +6,6 @@
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <title>vCGE Lab: Trials</title>
-<link rel="icon" href="ghost.svg" type="image/svg+xml">
 <link rel="stylesheet" href="trials.css">
 </head>
 <body>
@@ -40,10 +39,9 @@
 <header class="top">
   <a class="back" href="../">&larr; Lab</a>
   <div class="mast">
-    <img src="ghost.svg" alt="" class="ghost" width="56" height="56">
     <div>
       <h1>Wipe Trials</h1>
-      <p class="tag">Ghost's test range &middot; MOD02 Vault &middot; <span id="trialTitle">loading trial&hellip;</span></p>
+      <p class="tag">Manual test guide &middot; MOD02 Vault &middot; <span id="trialTitle">loading trial&hellip;</span></p>
     </div>
   </div>
   <div class="stamp" id="stampBox" aria-live="polite">
@@ -56,9 +54,9 @@
   <section class="bar">
     <button type="button" class="btn btn-new" id="newBtn"><svg class="ic"><use href="#i-new"/></svg> Start a new report</button>
     <div class="progress" aria-label="Steps done">
-      <div class="paws" id="paws"></div>
+      <div class="paws hidden" id="paws"></div>
       <span class="count" id="count">0 / 0 steps</span>
-      <svg class="ic padlock" id="padlock" aria-hidden="true"><use href="#i-unlock"/></svg>
+      <svg class="ic padlock hidden" id="padlock" aria-hidden="true"><use href="#i-unlock"/></svg>
     </div>
     <span class="save" id="saveState">Fill the header, then work through each range.</span>
   </section>
@@ -74,7 +72,7 @@
   <section id="scenarios"></section>
 
   <section class="panel">
-    <h2><svg class="ic"><use href="#i-paw"/></svg> Verdict</h2>
+    <h2><svg class="ic"><use href="#i-check"/></svg> Verdict</h2>
     <label class="field"><span>Did any contact data ever show where it should not have? Say exactly what, and where.</span>
       <textarea id="verdict" rows="4" placeholder="Nothing crossed over. Or: Browser B showed Card A's email before Card A was photographed there..."></textarea></label>
     <label class="field"><span>Anything else worth telling the pilots</span>
@@ -97,7 +95,6 @@
 
 <dialog id="confirm">
   <form method="dialog">
-    <img src="ghost.svg" alt="" width="48" height="48">
     <h3 id="confirmTitle">Are you sure you want to clear all fields and start new?</h3>
     <p id="confirmText">The time stamp is taken the moment you say yes.</p>
     <div class="row">

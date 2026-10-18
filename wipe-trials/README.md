@@ -1,9 +1,9 @@
-# 🦝 Wipe Trials
+# Wipe Trials
 
-Ghost's test range: step-by-step manual test guides that file a Markdown report on the lab. The first trial is the
+Step-by-step manual test guides that file a Markdown report on the lab. The first trial is the
 cross-browser wipe guide: does anything a card leaves behind in one browser ever show up in another?
 
-- `www/`: the page (`index.html`, `trials.css` in the Darcula palette, `trials.js`, `ghost.svg`) and one JSON per
+- `www/`: the page (`index.html`, `trials.css` in a basic light or dark theme, `trials.js`) and one JSON per
   trial in `www/trials/` (`cross-browser-wipe.json`: 7 ranges, 30 steps). A new test guide is a new JSON file,
   opened with `/testing/?trial=<id>`; no code change needed.
 - `api/vcge-testing-api.py`: the save service (Python standard library) on 127.0.0.1 (`TRIALS_PORT`, default 8766).

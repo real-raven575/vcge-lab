@@ -6,7 +6,7 @@
  * MOD05 formMapper.js (lines to fields), imported by URL from /v/<build>/src/... so nothing is copied or re-implemented.
  * The reading happens on this device; the lab server only stores samples, truth and reports (bench/api, see
  * vcge-bench-api.py). Switching builds reloads the page, because a build's modules can only be loaded once.
- * The page is Glyph's "Reading Room": Glyph comments on the run in #glyphSays (dry, honest, never in the way).
+ * Plain edition: the page has no #glyphSays, so say() does nothing.
  */
 const ROOT = location.pathname.replace(/bench\/.*$/, '');   // the lab root, e.g. "/"
 const API = `${ROOT}bench/api/`;
@@ -51,7 +51,7 @@ async function loadSamples() {
         const rows = sets[set] || [];
         $(countId).textContent = `(${rows.length})`;
         $(listId).replaceChildren(...rows.map(r => { const li = document.createElement('li'); li.textContent = `${r.name} (${Math.round(r.size / 1024)} KB)`; if (r.truth) { li.className = 'truth'; li.title = 'has saved truth'; li.textContent += ' ✓ truth'; } return li; }));
-        if (!rows.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Empty. Glyph is polishing their goggles.'; $(listId).append(li); }
+        if (!rows.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'No samples yet.'; $(listId).append(li); }
     };
     fill('listCards', 'countCards', 'business-cards');
     fill('listHand', 'countHand', 'handwriting');
@@ -343,8 +343,8 @@ function pct(x) { return `${Math.round(x * 100)}%`; }
 
 function summaryHtml(a, build) {
     const row = (label, t) => t.n ? `<tr><td>${label}</td><td>${t.n}</td><td>${pct(t.charAccuracy)}</td><td>${t.linesExact}/${t.linesTotal}</td><td>${t.linesMissed}</td><td>${t.linesInvented}</td><td>${t.linesWrongRole}</td><td>${t.flagsRight} / ${t.flagsFalse} / ${t.flagsMissed}</td><td>${t.edgesTried ? `${t.edgesRight}/${t.edgesTried}` : '–'}</td><td>${t.failed}</td></tr>` : '';
-    // Each confusion as it shows on Glyph's wrist scanner: what was read, a "?", what it should have been
-    const top = a.all.top.length ? `<p><b>Letters that fooled me (read → truth):</b></p><div class="confusions">${a.all.top.map(([k, n]) => { const [from, to] = k.split(' → '); return `<span class="confusion" title="${esc(k)}">${esc(from)} <span class="q">?</span> ${esc(to)} <span class="n">×${n}</span></span>`; }).join('')}</div>` : '<p>No character confusions. Not one.</p>';
+    // Each confusion: what was read, a "?", what it should have been
+    const top = a.all.top.length ? `<p><b>Top character confusions (read → truth):</b></p><div class="confusions">${a.all.top.map(([k, n]) => { const [from, to] = k.split(' → '); return `<span class="confusion" title="${esc(k)}">${esc(from)} <span class="q">?</span> ${esc(to)} <span class="n">×${n}</span></span>`; }).join('')}</div>` : '<p>No character confusions.</p>';
     return `<p>Build <code>${esc(build.short)}</code>: ${esc(build.subject)}</p><table><thead><tr><th>Set</th><th>Samples</th><th>Char accuracy</th><th>Lines exact</th><th>Missed</th><th>Invented</th><th>Wrong field</th><th>Flags right / false / missed</th><th>Edges right</th><th>Failed reads</th></tr></thead><tbody>${row('Business cards', a.cards)}${row('Handwriting (v2 baseline)', a.hand)}</tbody></table>${top}`;
 }
 
