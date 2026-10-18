@@ -70,6 +70,8 @@ def row(link, label, m):
             f'<td class="{cls}">{tests}</td><td><a href="v/{m["short"]}/build.log">log</a></td></tr>')
 
 now = when(datetime.now(timezone.utc))
+# When the lab has a Flight Deck (a front page for several teams, see flight-deck/), link back to it.
+back = '<p><a href="/">&larr; Flight Deck</a></p>' if os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www')) else ''
 page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>vCGE Lab</title><style>
 body{{font:14px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px;background:#f6f7f9;color:#14181f}}
@@ -79,7 +81,7 @@ main{{max-width:1000px;margin:auto}} h1{{margin:0 0 4px}} h2{{margin-top:28px}} 
 th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#5b6472}} a{{color:#0b63c5}} .ok{{color:#13803a}} .ver{{white-space:nowrap;font-variant-numeric:tabular-nums}} .local{{display:block;color:#5b6472;font-size:12px}} p .local{{display:inline;font-size:inherit}} p .local::before{{content:' / '}} .bad{{color:#b42318;font-weight:600}}
 @media (prefers-color-scheme:dark){{body{{background:#0f1217;color:#e6e8eb}} table,.fresh{{background:#161a21}} .fresh{{border-color:#262c36}} th,td{{border-color:#262c36}} p,th,.local{{color:#9aa3b0}} a{{color:#6cb2ff}}}}
 </style></head><body><main>
-<h1>vCGE Lab</h1><p>Every pushed version of vCGE, built on this machine. <a href="latest/">Open the newest build</a>. Updated {now}.</p>
+{back}<h1>vCGE Lab</h1><p>Every pushed version of vCGE, built on this machine. <a href="latest/">Open the newest build</a>. Updated {now}.</p>
 <div class="fresh"><p><strong>Start fresh.</strong> All versions on this address share one saved vault and settings (browsers keep data per site, not per folder), so a vault made in one version is the vault every version asks for. This deletes everything this browser saved for the lab: the vault, the session, settings and cached files.</p>
 <a class="btn" href="reset.html" onclick="return confirm('Delete everything this browser saved for the vCGE lab (vault, settings, cache)? This cannot be undone.')">Start fresh: clear this browser's lab data</a></div>
 <h2>Branches</h2><div class="wrap"><table><tr><th>Branch</th><th>Commit</th><th>Version</th><th>Change</th><th>Committed</th><th>Unit tests</th><th></th></tr>

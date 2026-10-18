@@ -1,0 +1,19 @@
+# Team vCGE (founding division): the vCGE lab at /vcge/, files in /srv/dataprojects/vcge/www, services on 8765-8799.
+redir /vcge /vcge/ 308
+handle_path /vcge/* {
+	root * /srv/dataprojects/vcge/www
+	reverse_proxy /bench/api/* 127.0.0.1:8765
+	reverse_proxy /testing/api/* 127.0.0.1:8766
+	header /testing/* Cache-Control no-store
+	header /testing/reports/* Content-Type "text/plain; charset=utf-8"
+	# Builds change with every push: never let a browser keep a stale copy of the index or of a branch link.
+	header / Cache-Control "no-store"
+	header /index.html Cache-Control "no-store"
+	header /b/* Cache-Control "no-store"
+	header /latest/* Cache-Control "no-store"
+	# "Start fresh": the browser deletes everything this site stored (vault, settings, cache). Browsers keep data per
+	# address, not per folder, so this also clears what any other team's pages stored on this address.
+	header /reset.html Clear-Site-Data "\"cache\", \"cookies\", \"storage\""
+	header /reset.html Cache-Control "no-store"
+	file_server browse
+}

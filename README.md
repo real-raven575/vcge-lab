@@ -15,6 +15,7 @@ commit, and a few tools sit beside the builds to test them:
 | OCR bench | `bench/` | Runs one build's own edge finder, OCR reader and field mapper over a library of card photos in your browser, lets you correct the result, and scores it. |
 | Wipe Trials | `wipe-trials/` | A step-by-step manual test guide (first trial: cross-browser wipe) that files a Markdown report on the lab. |
 | Versions page | `versions-page/` | The lab's front page: every published build, newest first, with UTC and local times and a version number. |
+| Flight Deck | `flight-deck/` | A front page above the lab when one server holds several teams: one tile per team, each team in its own folder, address and port block. |
 
 The lab never becomes part of the app. Nothing here is built into vCGE, and the app's own rules (no internet,
 nothing stored) are not loosened to make testing easier.
@@ -57,6 +58,9 @@ LAB_ROOT/
 `version.json` holds `{"short": "<commit>", "subject": "<commit message>", "date": "<ISO date>", "tests": "passed|FAILED"}`.
 Whatever builds and publishes the app (a git hook, a timer, CI) only has to write that folder and the `latest`
 link. That builder is specific to each lab and is not in this repository.
+
+With a Flight Deck in front, the whole tree above is served under `/vcge/` and the old top-level addresses redirect
+there (see `flight-deck/`).
 
 ## Setting it up
 

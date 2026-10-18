@@ -1,0 +1,22 @@
+# Lab web server: the Flight Deck. Listens only on this machine (bind 127.0.0.1); Tailscale (tailscale serve) adds
+# HTTPS for your tailnet. Caddy's admin API stays on its default localhost:2019, which `systemctl reload caddy` needs.
+# Layout (2026-10-18): "/" is the Flight Deck (one tile per team). Each team has one file in /etc/caddy/teams/
+# that serves its own folder under its own path, e.g. /vcge/ -> /srv/dataprojects/vcge/www. The port block each
+# team may use for its own services is listed in /srv/dataprojects/PORTS.md.
+:8080 {
+	bind 127.0.0.1
+	encode gzip
+
+	import /etc/caddy/teams/*.caddy
+
+	# vCGE's addresses from before 2026-10-18 lived at the top; send them to the same place under /vcge/.
+	# 308 keeps the method, so a page left open on an old address can still save to the bench and Trials services.
+	@vcgeOld path /v/* /b/* /latest /latest/* /bench /bench/* /testing /testing/* /reset.html
+	redir @vcgeOld /vcge{uri} 308
+
+	handle {
+		root * /srv/dataprojects/portal/www
+		header Cache-Control "no-store"
+		file_server
+	}
+}
