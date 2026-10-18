@@ -3,7 +3,7 @@
 The test lab for **vCGE** (vCard Generator Engine), the app that turns a photo of a business card into a phone
 contact, entirely on the device. *Operation: Never Lose Contact.*
 
-Created by raven575.
+Created by raven575 and Team vCGE (Claude).
 
 The lab is a small web server on a machine you control. Every build of the app is published there, one folder per
 commit, and a few tools sit beside the builds to test them:
@@ -85,4 +85,4 @@ service, the page and the scoring are generic, so the lab can be reused for othe
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). Keep the credit "created by raven575" with any copy.
+MIT, see [LICENSE](LICENSE). Keep the credit "raven575 and Team vCGE" with any copy.
