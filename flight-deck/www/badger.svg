@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Waypoint the Badger (PM-vCGE-02), hand-written SVG. -->
+  <ellipse cx="32" cy="36" rx="22" ry="20" fill="#5B5F66"/>
+  <circle cx="14" cy="18" r="6" fill="#3A3D42"/><circle cx="50" cy="18" r="6" fill="#3A3D42"/>
+  <path d="M27 16h10l-1 30h-8z" fill="#F4F4F2"/>
+  <path d="M14 30c4-6 9-6 12-2l-2 12c-5 0-9-4-10-10zM50 30c-4-6-9-6-12-2l2 12c5 0 9-4 10-10z" fill="#F4F4F2"/>
+  <path d="M17 31c3-3 6-3 8 0l-1 7c-3 0-6-3-7-7zM47 31c-3-3-6-3-8 0l1 7c3 0 6-3 7-7z" fill="#26282C"/>
+  <circle cx="21" cy="33" r="2.2" fill="#fff"/><circle cx="43" cy="33" r="2.2" fill="#fff"/>
+  <circle cx="21" cy="33" r="1.2" fill="#111"/><circle cx="43" cy="33" r="1.2" fill="#111"/>
+  <ellipse cx="32" cy="49" rx="4" ry="3" fill="#111"/>
+</svg>

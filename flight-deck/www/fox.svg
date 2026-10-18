@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Signal the Fox (PM-vCGE-01), hand-written SVG. -->
+  <path d="M12 8l10 14h20L52 8l-2 22c0 14-8 24-18 26C22 54 14 44 14 30z" fill="#E07A2E"/>
+  <path d="M15 11l6 10-5 2zM49 11l-6 10 5 2z" fill="#5A2E14"/>
+  <path d="M18 34c4 6 9 9 14 9s10-3 14-9c-2 12-7 20-14 21-7-1-12-9-14-21z" fill="#FFF4E6"/>
+  <circle cx="24" cy="30" r="2.6" fill="#1E1A17"/><circle cx="40" cy="30" r="2.6" fill="#1E1A17"/>
+  <circle cx="25" cy="29" r=".8" fill="#fff"/><circle cx="41" cy="29" r=".8" fill="#fff"/>
+  <path d="M29 44h6l-3 3z" fill="#1E1A17"/>
+</svg>
