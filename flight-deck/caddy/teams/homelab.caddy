@@ -1,0 +1,7 @@
+# Team HomeLab: pages at /homelab/, files in /srv/lab/homelab/www, services on 8900-8949.
+redir /homelab /homelab/ 308
+handle_path /homelab/* {
+	root * /srv/lab/homelab/www
+	header Cache-Control "no-store"
+	file_server
+}

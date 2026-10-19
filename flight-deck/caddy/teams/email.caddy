@@ -1,0 +1,7 @@
+# Team eMail: pages at /email/, files in /srv/lab/email/www, services on 8950-8999.
+redir /email /email/ 308
+handle_path /email/* {
+	root * /srv/lab/email/www
+	header Cache-Control "no-store"
+	file_server
+}
