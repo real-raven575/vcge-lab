@@ -1,0 +1,7 @@
+# Team History: pages at /history/, files in /srv/lab/history/www, services on 9000-9049.
+redir /history /history/ 308
+handle_path /history/* {
+	root * /srv/lab/history/www
+	header Cache-Control "no-store"
+	file_server
+}

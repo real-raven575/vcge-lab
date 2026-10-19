@@ -19,6 +19,8 @@
     'Hangars 02 and 03 are held for the Gemini field offices. Signal and Waypoint fly from elsewhere for now.',
     'Tower to Hangar 04: Team HomeLab, three Proxmox nodes and a TrueNAS on your board. Hangar is yours when your PM checks in.',
     'Tower to Hangar 05: Team eMail, runway swept, inbox clear. Operation Clean Slate has a hangar whenever it wants one.',
+    'Tower to Hangar 06: Keepsake, the logbook is yours. Write down everything that lands here.',
+    'Tower to Hangar 07: Ledger reports fuel and tokens within budget. Carry on.',
     'Tower to Hangar 02: Signal, your easels are dusted. Tower to Hangar 03: Waypoint, your map table is clear.',
     'Tower to vCGE Prime: an elephant remembers, but please still write your test results down.',
     'Wind calm, visibility unlimited, zero data on the runway.',

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Keepsake the Squirrel</title>
+  <!-- Keepsake the Squirrel (PM-HIST-00), hand-written SVG. -->
+  <path d="M44 56c14-4 16-22 8-32-6-8-16-6-16 2 0 6 8 6 8 12 0 6-6 10-6 18z" fill="#B5652A"/>
+  <path d="M46 26c4 2 6 6 5 10" fill="none" stroke="#E7B07A" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="28" cy="44" rx="13" ry="14" fill="#C8783A"/>
+  <ellipse cx="28" cy="48" rx="7" ry="9" fill="#F3D9B8"/>
+  <circle cx="24" cy="26" r="11" fill="#C8783A"/>
+  <path d="M16 18l2-9 6 7zM28 16l4-8 3 9z" fill="#A85A22"/>
+  <circle cx="20" cy="25" r="2.2" fill="#1E1A17"/><circle cx="20.7" cy="24.3" r=".7" fill="#fff"/>
+  <circle cx="14" cy="29" r="1.6" fill="#3A2416"/>
+  <ellipse cx="27" cy="38" rx="4" ry="3.5" fill="#7A4A1E"/><path d="M24 36c2-2 4-2 6 0" stroke="#5A3414" stroke-width="1.5" fill="none"/>
+</svg>

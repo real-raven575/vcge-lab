@@ -1,0 +1,7 @@
+# Team Finance: pages at /finance/, files in /srv/lab/finance/www, services on 9050-9099.
+redir /finance /finance/ 308
+handle_path /finance/* {
+	root * /srv/lab/finance/www
+	header Cache-Control "no-store"
+	file_server
+}
