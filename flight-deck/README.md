@@ -8,6 +8,7 @@ Flight Deck links to all of them.
 | Flight Deck, one tile per team | `/` serves `/srv/lab/portal/www` (static files from `www/`, no services) |
 | A team's pages | `/<team>/` serves `/srv/lab/<team>/www`, e.g. `/vcge/` |
 | A team's web routes | one file per team, `/etc/caddy/teams/<team>.caddy`, imported by the Caddyfile |
+| A team's starter page | `team-pages/<team>/index.html`, copied to `/srv/lab/<team>/www/index.html` until the team brings its own |
 | A team's services | its own service user, its own block of ports, listening on 127.0.0.1 (see `PORTS.md.example`) |
 
 `caddy/Caddyfile` is the front door and `caddy/teams/vcge.caddy` is the vCGE lab's file. Its tools work unchanged

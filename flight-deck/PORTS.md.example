@@ -3,6 +3,8 @@
 |---|---|---|
 | 8080 | Flight Deck (shared) | Caddy, the one web server for every team |
 | 8765-8799 | Team vCGE | 8765 OCR bench file service, 8766 Wipe Trials save service |
-| 8800-8849 | vCGE Creative team | reserved |
-| 8850-8899 | vCGE Marketing and Distribution team | reserved |
-| 8900+ | next team | ask raven575 |
+| 8800-8849 | Team vCGE: Creative | reserved |
+| 8850-8899 | Team vCGE: Marketing | reserved |
+| 8900-8949 | Team HomeLab | reserved |
+| 8950-8999 | Team eMail | reserved |
+| 9000+ | next team | ask raven575 |
