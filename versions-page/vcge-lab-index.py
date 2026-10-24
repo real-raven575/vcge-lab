@@ -23,6 +23,7 @@ versions = [m for m in (meta(s) for s in os.listdir(os.path.join(www, 'v'))) if 
 def utc(iso):  # git's commit date carries the committer's own offset; turn it into UTC
     return datetime.fromisoformat(iso.replace('Z', '+00:00')).astimezone(timezone.utc)
 versions.sort(key=lambda m: utc(m['date']), reverse=True)
+branches.sort(key=lambda b: utc(b[1]['date']), reverse=True)  # newest branch first, so the top row is the latest push
 
 # Human-friendly version, 0.MMM.BB: MMM is the milestone, BB counts the commits on the main
 # branch since that milestone began, from 01. Milestones start at the commits listed in milestones.txt (one
