@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Inkwell the Panda</title>
+  <!-- Inkwell the Panda (PM-vCGE-03, Team vCGE:  Creative), hand-written SVG, holding an ink pen. -->
+  <circle cx="16" cy="16" r="8" fill="#22252B"/><circle cx="48" cy="16" r="8" fill="#22252B"/>
+  <circle cx="32" cy="34" r="22" fill="#F7F7F4"/>
+  <ellipse cx="23" cy="31" rx="6" ry="8" fill="#22252B" transform="rotate(-25 23 31)"/>
+  <ellipse cx="41" cy="31" rx="6" ry="8" fill="#22252B" transform="rotate(25 41 31)"/>
+  <circle cx="24" cy="31" r="2.4" fill="#fff"/><circle cx="24" cy="31" r="1.2" fill="#111"/>
+  <circle cx="40" cy="31" r="2.4" fill="#fff"/><circle cx="40" cy="31" r="1.2" fill="#111"/>
+  <ellipse cx="32" cy="42" rx="4" ry="3" fill="#22252B"/>
+  <path d="M29 47c2 2 4 2 6 0" fill="none" stroke="#22252B" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50 44l8-14" stroke="#2B5FD9" stroke-width="4" stroke-linecap="round"/><path d="M58 30l1-4-3 2z" fill="#22252B"/>
+</svg>

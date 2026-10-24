@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Uptime the Penguin</title>
+  <!-- Uptime the Penguin (PM-HMLB-00), hand-written SVG. A rockhopper-style penguin with a status-light headset. -->
+  <ellipse cx="32" cy="38" rx="17" ry="21" fill="#2B3440"/>
+  <ellipse cx="32" cy="42" rx="11" ry="15" fill="#EEF2F5"/>
+  <circle cx="32" cy="20" r="12" fill="#2B3440"/>
+  <path d="M22 16c-4-3-6-6-6-9 3 2 6 3 9 4M42 16c4-3 6-6 6-9-3 2-6 3-9 4" fill="none" stroke="#E2A93B" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="27" cy="20" r="2.2" fill="#fff"/><circle cx="27" cy="20" r="1.1" fill="#111"/>
+  <circle cx="37" cy="20" r="2.2" fill="#fff"/><circle cx="37" cy="20" r="1.1" fill="#111"/>
+  <path d="M29 25l3 4 3-4z" fill="#D9573A"/>
+  <path d="M15 36c-4 6-4 12-1 16M49 36c4 6 4 12 1 16" fill="none" stroke="#2B3440" stroke-width="5" stroke-linecap="round"/>
+  <path d="M24 59h6M34 59h6" stroke="#D9573A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M21 14a12 12 0 0 1 22 0" fill="none" stroke="#5A6475" stroke-width="2"/>
+  <circle cx="44" cy="22" r="2.5" fill="#3FBF6A"/>
+</svg>

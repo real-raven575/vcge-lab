@@ -91,3 +91,4 @@ kbd { font-family: var(--stencil); font-size: .8rem; border: 1px solid var(--lin
 @media (max-width: 520px) { .clock { text-align: left; } .stamp { right: -44px; } }
 .badge.prime { text-transform: none; letter-spacing: .02em; }
 .crew { font-size: .85rem; color: var(--dim); }
+.comms { font-size: .8rem; color: var(--dim); }

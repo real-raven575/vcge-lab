@@ -23,6 +23,7 @@ versions = [m for m in (meta(s) for s in os.listdir(os.path.join(www, 'v'))) if 
 def utc(iso):  # git's commit date carries the committer's own offset; turn it into UTC
     return datetime.fromisoformat(iso.replace('Z', '+00:00')).astimezone(timezone.utc)
 versions.sort(key=lambda m: utc(m['date']), reverse=True)
+branches.sort(key=lambda b: utc(b[1]['date']), reverse=True)  # newest branch first, so the top row is the latest push
 
 # Human-friendly version, 0.MMM.BB: MMM is the milestone, BB counts the commits on the main
 # branch since that milestone began, from 01. Milestones start at the commits listed in milestones.txt (one
@@ -183,9 +184,9 @@ for (const t of document.querySelectorAll('time[datetime]')) {
     typed = (typed + e.key.toLowerCase()).slice(-phrase.length);
     if (typed !== phrase || !mem.oldest) return;
     const lane = document.getElementById('lane');
-    lane.textContent = `🐘 Memory lane: the oldest build I still keep is ${mem.oldest.short}, "${mem.oldest.subject}", from ${mem.oldest.date}. I remember everything. I just tidy the shelf sometimes.`;
+    lane.textContent = `🐘 Memory lane: the oldest build I still keep is ${mem.oldest.short}, "${mem.oldest.subject}", from ${mem.oldest.date}. I remember them all. I just tidy the shelf sometimes.`;
     lane.classList.remove('hidden');
-    says.textContent = 'You said the words. Down memory lane we go.';
+    says.textContent = 'You said the word. Down memory lane we go.';
   });
 })();
 '''
@@ -200,13 +201,14 @@ page = head + f'''
 <nav class="tiles" aria-label="Lab tools">
 <a class="tile" href="latest/"><span class="ic" aria-hidden="true">🛫</span><span><b>Newest build</b><small>Open the app as it is right now</small></span></a>
 <a class="tile" href="bench/"><span class="ic" aria-hidden="true">🦉</span><span><b>The Reading Room</b><small>Glyph's OCR bench</small></span></a>
+<a class="tile" href="edge-bench/"><span class="ic" aria-hidden="true">🐈</span><span><b>The Darkroom</b><small>Iris's edge bench</small></span></a>
 <a class="tile" href="testing/"><span class="ic" aria-hidden="true">🦝</span><span><b>Wipe Trials</b><small>Ghost's test range</small></span></a>
 <a class="tile fresh" href="reset.html" onclick="return confirm('Delete everything this browser saved for the vCGE lab (vault, settings, cache)? This cannot be undone.')"><span class="ic" aria-hidden="true">🧹</span><span><b>Start fresh</b><small>Clear this browser's lab data</small></span></a>
 </nav>
 <p class="note"><strong>About Start fresh:</strong> all versions on this address share one saved vault and settings (browsers keep data per site, not per folder), so a vault made in one version is the vault every version asks for. Start fresh deletes everything this browser saved for the lab: the vault, the session, settings and cached files.</p>
 <p class="lane hidden" id="lane" role="status"></p>
 <div class="trail" aria-hidden="true"></div>
-<h2>Branches</h2><p class="sub">Where each trail ends right now.</p><div class="wrap"><table><tr><th>Branch</th><th>Commit</th><th>Version</th><th>Change</th><th>Committed</th><th>Unit tests</th><th></th></tr>
+<h2>Branches</h2><p class="sub">Where each trail ends right now, newest first.</p><div class="wrap"><table><tr><th>Branch</th><th>Commit</th><th>Version</th><th>Change</th><th>Committed</th><th>Unit tests</th><th></th></tr>
 {''.join(row(f"b/{n}/", n, m) for n, m in branches)}</table></div>
 <div class="trail" aria-hidden="true"></div>
 <h2>All versions</h2><p class="sub">The long memory: every build still on the shelf, newest first.</p><div class="wrap"><table><tr><th>Build</th><th>Commit</th><th>Version</th><th>Change</th><th>Committed</th><th>Unit tests</th><th></th></tr>
