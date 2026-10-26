@@ -49,3 +49,11 @@ test('welcome reads row 2', () => {
   assert.deepEqual(C.parseWelcome([['Hi', 'Text', '2026-10-26 02:47']]), { row: 2, title: 'Hi', text: 'Text', editedUtc: '2026-10-26 02:47' });
   assert.equal(C.parseWelcome([]).text, '');
 });
+
+test('Sheets-reformatted times (one-digit hour) still show and sort', () => {
+  assert.equal(C.normStamp('2026-10-26 5:47'), '2026-10-26 05:47');
+  assert.equal(C.showTime('2026-10-26 5:47'), '2026-10-26 05:47 UTC (1:47 AM Eastern)');
+  const m = C.parseInbox([['2026-10-26 5:47', 'a', 'early', 'x'], ['2026-10-26 10:01', 'b', 'late', 'y']]);
+  assert.deepEqual(m.map(x => x.about), ['late', 'early']);
+  assert.equal(m[1].raw, '2026-10-26 5:47');
+});

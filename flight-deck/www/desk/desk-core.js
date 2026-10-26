@@ -21,9 +21,14 @@
     return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
   }
 
+  // Google Sheets turns a typed "2026-10-26 05:47" into a date and gives it back as "2026-10-26 5:47"; pad it back so it sorts.
+  function normStamp(stamp) {
+    return String(stamp || '').trim().replace(/^(\d{4}-\d{2}-\d{2})[ T](\d):/, '$1 0$2:');
+  }
+
   // "2026-10-26 02:47" -> "2026-10-26 02:47 UTC (10:47 PM Eastern)". Anything else is shown as it was written.
   function showTime(stamp) {
-    const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(String(stamp || '').trim());
+    const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(normStamp(stamp));
     if (!m) return String(stamp || '');
     const d = new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5]));
     const east = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(d);
@@ -46,7 +51,7 @@
   // Newest first; rows with the same time keep the order they were added in, the later one on top.
   function parseInbox(values) {
     return (values || []).map((r, i) => ({
-      row: i + 2, when: cell(r, 0).trim(), from: cell(r, 1), about: cell(r, 2), text: cell(r, 3),
+      row: i + 2, when: normStamp(cell(r, 0)), raw: cell(r, 0), from: cell(r, 1), about: cell(r, 2), text: cell(r, 3),
       used: yes(cell(r, 4)), usedUtc: cell(r, 5),
     })).filter(x => x.text.trim()).sort((a, b) => (a.when === b.when ? b.row - a.row : a.when < b.when ? 1 : -1));
   }
@@ -79,7 +84,7 @@
       `${g} rules\n` + list.map(r => `${r.id}. ${r.text.trim()}`).join('\n')).join('\n\n');
   }
 
-  const api = { SHEET_NAME, HEADERS, GROUPS, utcStamp, showTime, parseRules, parseWelcome, parseInbox, nextRuleId,
+  const api = { SHEET_NAME, HEADERS, GROUPS, utcStamp, normStamp, showTime, parseRules, parseWelcome, parseInbox, nextRuleId,
     groupRules, editRuleRow, signRuleRow, newRuleRow, rulesAsText };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.DeskCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

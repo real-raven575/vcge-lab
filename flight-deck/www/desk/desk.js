@@ -196,7 +196,7 @@
         const done = el('button', 'ghost', 'Mark used'); done.type = 'button';
         done.addEventListener('click', async () => {
           done.disabled = true;
-          try { if (await sameRow(`Inbox!A${m.row}`, m.when)) { await put(`Inbox!E${m.row}:F${m.row}`, [['yes', C.utcStamp(new Date())]]); await load(); } }
+          try { if (await sameRow(`Inbox!A${m.row}`, m.raw)) { await put(`Inbox!E${m.row}:F${m.row}`, [['yes', C.utcStamp(new Date())]]); await load(); } }
           catch (err) { say(err.message, true); done.disabled = false; }
         });
         tools.appendChild(done);
