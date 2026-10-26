@@ -1,0 +1,78 @@
+/* Desk, plain edition: Rules, Welcome and Copy-paste Inbox in the plain light and dark theme. Stands alone (no portal.css). */
+:root {
+  --bg: #f6f7f9; --panel: #fff; --panel-2: #f6f7f9; --line: #e3e6ea; --ink: #14181f; --dim: #5b6472;
+  --yellow: #5b6472; --hazard: #e3e6ea; --blue: #0b63c5; --ok: #1e7a3c; --warn: #c2410c; --shadow: none;
+  --sans: system-ui, sans-serif; --stencil: ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f1217; --panel: #161a21; --panel-2: #1b2029; --line: #262c36; --ink: #e6e8eb; --dim: #9aa3b0;
+    --yellow: #9aa3b0; --hazard: #262c36; --blue: #6cb2ff; --ok: #6fcf8a; --warn: #fb923c; }
+}
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); min-height: 100vh; }
+a { color: var(--blue); }
+h1, h2, h3, p { margin: 0; }
+.deck { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 20px 16px 18px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.mast { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 220px; }
+h1 { font: 800 1.9rem/1.1 var(--sans); letter-spacing: -.01em; }
+.tag { color: var(--dim); font-size: .9rem; }
+.back { font-weight: 600; text-decoration: none; white-space: nowrap; }
+main { max-width: 1000px; margin: 0 auto; padding: 20px 16px 8px; }
+.radio { font-family: var(--stencil); font-size: .9rem; padding: 10px 14px; border-left: 4px solid var(--blue);
+  background: var(--panel); border-radius: 0 10px 10px 0; box-shadow: var(--shadow); margin-bottom: 20px; overflow-wrap: anywhere; }
+.foot { max-width: 1000px; margin: 16px auto 32px; padding: 0 16px; color: var(--dim); font-size: .85rem; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+.auth { display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: 600 .9rem/1 var(--sans); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--blue); background: var(--blue); color: #fff; cursor: pointer; min-height: 40px; }
+button.ghost, button.copy { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
+button.copy:hover, button.ghost:hover { border-color: var(--blue); }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.big { font-size: 1rem; padding: 12px 18px; }
+
+body:not(.in) .in-only, body.in .out-only, body:not(.nosheet) .nosheet-only { display: none !important; }
+.nosheet-only { margin-bottom: 16px; }
+.radio.bad { border-left-color: var(--warn); }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+.tabs a { padding: 10px 14px; border-radius: 10px 10px 0 0; text-decoration: none; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-bottom: 0; }
+.tabs a[aria-current="page"] { background: var(--panel); font-weight: 700; border-top: 2px solid var(--blue); }
+
+.page h2 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.page h2 small, .hint, .empty { color: var(--dim); font-size: .85rem; font-weight: 400; }
+.group { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px; }
+.group[open] { padding-bottom: 12px; }
+.group summary { cursor: pointer; padding: 10px 0; font-size: 1.05rem; min-height: 40px; }
+.group summary small { color: var(--dim); font-weight: 400; }
+.group > .rtools { margin-bottom: 10px; }
+#rulesList { display: grid; gap: 10px; }
+.picks { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }
+.picks legend { color: var(--dim); font-size: .85rem; padding: 0 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.chip:has(input:checked) { border-color: var(--blue); font-weight: 600; }
+.chip input { width: 18px; height: 18px; }
+#build .mtext { max-height: 32em; margin-top: 10px; }
+.rules, .inbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.rule, .msg { display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+.msg { flex-direction: column; gap: 8px; }
+.rule.signed { border-left: 5px solid var(--ok); }
+.rule:not(.signed) { border-left: 5px solid var(--hazard); }
+.rid { font: 700 .8rem/1.6 var(--stencil); color: var(--yellow); flex: none; min-width: 3.4em; }
+.rbody { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.rtext { white-space: pre-wrap; overflow-wrap: anywhere; }
+.rsign, .mmeta { color: var(--dim); font-size: .82rem; }
+.rule.signed .rsign { color: var(--ok); }
+.rtools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sign { display: inline-flex; gap: 6px; align-items: center; min-height: 40px; cursor: pointer; }
+.sign input { width: 20px; height: 20px; }
+.msg.used { opacity: .7; }
+.mhead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.mtext { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: .85rem/1.5 var(--stencil); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; max-height: 24em; overflow: auto; }
+#welcome .mtext { max-height: none; margin: 12px 0 6px; }
+.add { display: grid; gap: 8px; margin-top: 16px; background: var(--panel); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; }
+textarea, input[type=text], select { font: .95rem/1.5 var(--sans); color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+select { width: auto; }
+textarea.edit { min-height: 5em; }
+label input[type=checkbox] { width: 18px; height: 18px; vertical-align: middle; }

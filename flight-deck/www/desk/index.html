@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<!-- The one Flight Deck page that talks to Google: sign-in (accounts.google.com) and the Desk Sheet (Sheets and Drive APIs). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' https://accounts.google.com/gsi/style; script-src 'self' https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; connect-src https://accounts.google.com/gsi/ https://oauth2.googleapis.com https://sheets.googleapis.com https://www.googleapis.com; form-action 'none'; base-uri 'none'">
+<title>Desk · Flight Deck</title>
+<link rel="stylesheet" href="desk.css">
+</head>
+<body>
+<header class="deck">
+  <div class="mast">
+    <div>
+      <a class="back" href="../">&larr; Flight Deck</a>
+      <h1>Desk</h1>
+      <p class="tag">raven575's rules, welcome and copy-paste inbox &middot; kept in one Google Sheet</p>
+    </div>
+  </div>
+  <div class="auth">
+    <button type="button" id="signIn" class="out-only">Sign in with Google</button>
+    <button type="button" id="reload" class="in-only ghost">Reload</button>
+    <button type="button" id="signOut" class="in-only ghost">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <p class="radio" id="status" role="status" aria-live="polite">Sign in with Google to open the Desk.</p>
+  <p class="nosheet-only"><button type="button" id="create">Create my Desk Sheet</button> <small>Makes one Sheet named "Flight Deck Desk" in your Google Drive. This page can open only that Sheet.</small></p>
+
+  <nav class="tabs" aria-label="Desk pages">
+    <a href="#build">Build a block</a><a href="#rules">Rules</a><a href="#welcome">Welcome</a><a href="#inbox">Copy-paste Inbox</a>
+  </nav>
+
+  <section id="build" class="page" hidden>
+    <h2>Build a block <small>Pick the pieces, then copy one ready-to-paste block</small></h2>
+    <div class="in-only">
+      <fieldset class="picks"><legend>Include</legend><div id="buildPicks" class="chips"></div></fieldset>
+      <label class="sign"><input type="checkbox" id="buildSigned"> Signed-off rules only</label>
+      <p id="buildNote" class="hint"></p>
+      <div class="rtools"><button type="button" id="copyBuild" class="copy big">Copy block</button></div>
+      <pre id="buildText" class="mtext" tabindex="0" aria-label="The block that Copy block copies"></pre>
+    </div>
+  </section>
+
+  <section id="rules" class="page">
+    <h2>Rules <small id="rulesCount"></small></h2>
+    <div id="rulesList" class="in-only"></div>
+    <form id="addRule" class="in-only add">
+      <label>Add a rule to <select id="newGroup"></select></label>
+      <textarea id="newRule" rows="2" placeholder="New rule, in plain words"></textarea>
+      <button type="submit">Add rule</button>
+      <small class="hint">New rules start "Not signed off yet". Deleting a rule happens in Google Sheets itself.</small>
+    </form>
+  </section>
+
+  <section id="welcome" class="page" hidden>
+    <div id="welcomeView" class="in-only">
+      <h2 id="welcomeTitle">Welcome</h2>
+      <div class="rtools"><button type="button" id="copyWelcome" class="copy big">Copy welcome</button><button type="button" id="editWelcome" class="ghost">Edit</button></div>
+      <pre id="welcomeText" class="mtext"></pre>
+      <small id="welcomeEdited" class="hint"></small>
+    </div>
+    <form id="welcomeForm" class="add" hidden>
+      <label>Title <input id="welcomeTitleIn" type="text"></label>
+      <textarea id="welcomeTextIn" rows="16"></textarea>
+      <div class="rtools"><button type="submit">Save welcome</button><button type="button" id="cancelWelcome" class="ghost">Cancel</button></div>
+    </form>
+  </section>
+
+  <section id="inbox" class="page" hidden>
+    <h2>Copy-paste Inbox <small id="inboxCount"></small></h2>
+    <p class="hint">Every card, nudge or prompt you ask the Herd for also lands here, newest first. Nothing is ever deleted from this page.</p>
+    <label class="in-only"><input type="checkbox" id="showUsed"> Show used ones too</label>
+    <ol id="inboxList" class="in-only inbox"></ol>
+  </section>
+</main>
+
+<footer class="foot">
+  Google sign-in with one permission: this page can see and edit only the Sheet it created, nothing else in your Google account. The key from Google lasts about an hour and is never saved in the browser.
+</footer>
+<script src="config.js"></script>
+<script src="desk-core.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="desk.js"></script>
+</body>
+</html>
