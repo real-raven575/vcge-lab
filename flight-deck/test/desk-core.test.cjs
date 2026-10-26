@@ -57,3 +57,17 @@ test('Sheets-reformatted times (one-digit hour) still show and sort', () => {
   assert.deepEqual(m.map(x => x.about), ['late', 'early']);
   assert.equal(m[1].raw, '2026-10-26 5:47');
 });
+
+test('build a block: picked groups in order, sections, roster lines, welcome last, signed-only', () => {
+  const r = C.parseRules([['CRTV-01', 'Team vCGE: Creative', 'Directives: House style: soft.', 'yes'], ['HB-01', 'Herd', 'Intro.'],
+    ['HB-02', 'Herd', 'Chain of command: A.', 'yes'], ['HB-03', 'Herd', 'Chain of command: B.'], ['CRTV-02', 'Team vCGE: Creative', 'Roster:\n🐼 Inkwell\n🐸 Chapter']]);
+  const w = { title: 'Welcome aboard', text: 'Hi.' };
+  assert.equal(C.buildBlock(r, w, ['Team vCGE: Creative', 'Herd', 'Welcome'], false),
+    '# Herd rules\n\nIntro.\n\n## Chain of command\n- A.\n- B.\n\n# Team vCGE: Creative rules\n\n## Directives\n- House style: soft.\n\n## Roster\n🐼 Inkwell\n🐸 Chapter' +
+    '\n\n# Welcome aboard (paste as the first message in the new project)\n\nHi.');
+  assert.equal(C.buildBlock(r, w, ['Herd'], true), '# Herd rules\n\n## Chain of command\n- A.');
+  assert.equal(C.buildBlock(r, w, [], false), '');
+  assert.deepEqual(C.splitSection('Not vCGE-only. Card code HMLB.'), ['', 'Not vCGE-only. Card code HMLB.']);
+  assert.equal(C.shortName('Team vCGE: Marketing'), 'Marketing');
+  assert.equal(C.nextRuleId(r, 'Team vCGE: Creative'), 'CRTV-03');
+});
