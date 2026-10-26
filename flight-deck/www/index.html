@@ -17,7 +17,7 @@
     </button>
     <div>
       <h1>Flight Deck</h1>
-      <p class="tag">raven575's lab &middot; one hangar per team &middot; nothing here leaves this machine</p>
+      <p class="tag">raven575's lab &middot; one hangar per team &middot; only the Desk talks to Google</p>
     </div>
   </div>
   <div class="clock" aria-label="Time">
@@ -29,6 +29,13 @@
 
 <main>
   <p class="radio" id="radio" role="status" aria-live="polite">Tower to all hangars: deck is clear, lights are on. Pick your team and taxi in.</p>
+
+  <ul class="tools desk" aria-label="raven575's Desk">
+    <li><a href="desk/#rules"><span class="ic" aria-hidden="true">📜</span><span><b>Rules</b><small>Every Herd rule and its sign-off</small></span></a></li>
+    <li><a href="desk/#welcome"><span class="ic" aria-hidden="true">👋</span><span><b>Welcome</b><small>The new-project welcome, ready to copy</small></span></a></li>
+    <li><a href="desk/#inbox"><span class="ic" aria-hidden="true">📬</span><span><b>Copy-paste Inbox</b><small>Every card and prompt you asked for</small></span></a></li>
+  </ul>
+  <p class="desk-note">The Desk is the one part of the deck that talks to Google: you sign in with Google and it reads one Sheet.</p>
 
   <ol class="hangars">
     <li class="hangar live">
@@ -158,7 +165,7 @@
 </main>
 
 <footer class="foot">
-  <span aria-hidden="true">✈</span> Lab only. Every tool here runs on this machine and is reached only over raven575's private network. No ads, no tracking, nothing calls home.
+  <span aria-hidden="true">✈</span> Lab only. Every tool here runs on this machine and is reached only over raven575's private network. No ads, no tracking, nothing calls home. The one exception is the Desk, which signs in with Google and reads one Sheet, only after you press Sign in.
   <span class="hint">Pilots who know the word can call a <kbd>formation</kbd>.</span>
 </footer>
 <script src="portal.js"></script>
