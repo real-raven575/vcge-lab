@@ -133,6 +133,19 @@ const gsi = `window.google = { accounts: { oauth2: {
   assert.equal(await page.$$eval('.msg', e => e.length), 1);
   await page.check('#showUsed'); assert.equal(await page.$$eval('.msg', e => e.length), 2);
 
+  // Mark all as used: "Are you sure?" first; No changes nothing, Yes ticks every waiting row and deletes none
+  await page.uncheck('#showUsed');
+  page.once('dialog', d => { assert.match(d.message(), /Are you sure\? This marks all 1 waiting/); d.dismiss(); });
+  await page.click('#markAll');
+  assert.equal(await page.textContent('#inboxCount'), '1 waiting, 1 used');
+  page.once('dialog', d => d.accept());
+  await page.click('#markAll');
+  await page.waitForFunction(() => document.getElementById('inboxCount').textContent === '0 waiting, 2 used');
+  assert.match(await status(), /Marked all 1 as used/);
+  assert.equal(await page.isVisible('#markAll'), false);
+  assert.equal(tabs.Inbox.length, 3);
+  assert.ok(tabs.Inbox.slice(1).every(r => r[4] === 'yes' && /^\d{4}-\d\d-\d\d \d\d:\d\d$/.test(r[5])));
+
   // Sign out drops the key; the next load finds the Sheet again by itself
   await page.click('#signOut'); assert.match(await status(), /Signed out/);
   assert.equal(await page.isVisible('#rulesList'), false);
