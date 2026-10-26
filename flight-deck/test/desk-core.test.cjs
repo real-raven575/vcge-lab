@@ -71,3 +71,16 @@ test('build a block: picked groups in order, sections, roster lines, welcome las
   assert.equal(C.shortName('Team vCGE: Marketing'), 'Marketing');
   assert.equal(C.nextRuleId(r, 'Team vCGE: Creative'), 'CRTV-03');
 });
+
+test('mark all as used: only rows still waiting and unchanged in the Sheet, never deletes', () => {
+  const vals = [['2026-10-26 02:40', 'a', 'x', 'one'], ['2026-10-26 02:45', 'a', 'y', 'two', 'yes', '2026-10-26 03:00'], ['2026-10-26 02:50', 'a', 'z', 'three']];
+  const shown = C.parseInbox(vals);
+  const now = new Date(Date.UTC(2026, 9, 26, 16, 50));
+  assert.deepEqual(C.markAllUsed(shown, vals, now), [
+    { range: 'Inbox!E4:F4', values: [['yes', '2026-10-26 16:50']] }, { range: 'Inbox!E2:F2', values: [['yes', '2026-10-26 16:50']] }]);
+  const moved = [vals[0], vals[1], ['2026-10-26 02:55', 'a', 'w', 'other']];                 // row 4 replaced in Sheets
+  assert.deepEqual(C.markAllUsed(shown, moved, now).map(d => d.range), ['Inbox!E2:F2']);
+  const ticked = [[...vals[0], 'yes'], vals[1], vals[2]];                                     // row 2 ticked meanwhile
+  assert.deepEqual(C.markAllUsed(shown, ticked, now).map(d => d.range), ['Inbox!E4:F4']);
+  assert.deepEqual(C.markAllUsed(shown, [], now), []);
+});

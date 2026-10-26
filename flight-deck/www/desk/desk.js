@@ -217,6 +217,7 @@
     const box = $('inboxList'); box.replaceChildren();
     const fresh = inbox.filter(m => !m.used);
     $('inboxCount').textContent = `${fresh.length} waiting, ${inbox.length - fresh.length} used`;
+    $('markAll').hidden = !fresh.length;
     (showUsed ? inbox : fresh).forEach(m => {
       const li = el('li', m.used ? 'msg used' : 'msg');
       const head = el('div', 'mhead');
@@ -236,6 +237,22 @@
       li.appendChild(tools); box.appendChild(li);
     });
     if (!(showUsed ? inbox : fresh).length) box.appendChild(el('p', 'empty', 'Nothing waiting. New copy-paste texts from the Herd land here.'));
+  }
+
+  // Ticks every waiting row at once after one confirm. Nothing is deleted; a row that changed in Sheets is skipped.
+  async function markAll() {
+    const fresh = inbox.filter(m => !m.used);
+    if (!fresh.length || !confirm(`Are you sure? This marks all ${fresh.length} waiting texts as used. Nothing is deleted, and "Show used ones too" still shows them.`)) return;
+    const btn = $('markAll'); btn.disabled = true;
+    try {
+      const now = await call(`${SHEETS}/${sheetId}/values/${range('Inbox!A2:F')}`);
+      const data = C.markAllUsed(fresh, now.values, new Date());
+      if (data.length) await call(`${SHEETS}/${sheetId}/values:batchUpdate`, { method: 'POST', body: JSON.stringify({ valueInputOption: 'RAW', data }) });
+      await load();
+      const left = fresh.length - data.length;
+      say(left ? `Marked ${data.length} as used. ${left} changed in the Sheet since it was loaded and were left as they are.` : `Marked all ${data.length} as used.`, left > 0);
+    } catch (err) { say(err.message, true); }
+    finally { btn.disabled = false; }
   }
 
   // ---- pages (#rules, #welcome, #inbox) ----
@@ -259,6 +276,7 @@
   $('welcomeForm').addEventListener('submit', saveWelcome);
   $('cancelWelcome').addEventListener('click', () => { $('welcomeForm').hidden = true; $('welcomeView').hidden = false; });
   $('copyWelcome').addEventListener('click', e => copy(welcome ? welcome.text : '', e.currentTarget));
+  $('markAll').addEventListener('click', markAll);
   $('showUsed').addEventListener('change', e => { showUsed = e.target.checked; renderInbox(); });
   $('buildSigned').addEventListener('change', updateBuild);
   $('copyBuild').addEventListener('click', e => copy($('buildText').textContent, e.currentTarget));
