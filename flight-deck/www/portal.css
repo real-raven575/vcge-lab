@@ -11,3 +11,4 @@ a { color: var(--link); } small, .tag, .foot, .team > p { color: var(--dim); }
 .team { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
 .tools { margin: 10px 0 0; padding-left: 18px; }
 .tools li { margin: 4px 0; }
+.tools.desk { margin-top: 16px; }

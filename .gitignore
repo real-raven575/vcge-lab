@@ -4,3 +4,5 @@ lab.conf
 wipe-trials/vcge-lab-testing-install.sh
 # Test leftovers
 __pycache__/
+# Desk: each lab keeps its own Google Client ID
+flight-deck/www/desk/config.js
