@@ -30,14 +30,25 @@
   <p class="nosheet-only"><button type="button" id="create">Create my Desk Sheet</button> <small>Makes one Sheet named "Flight Deck Desk" in your Google Drive. This page can open only that Sheet.</small></p>
 
   <nav class="tabs" aria-label="Desk pages">
-    <a href="#rules">Rules</a><a href="#welcome">Welcome</a><a href="#inbox">Copy-paste Inbox</a>
+    <a href="#build">Build a block</a><a href="#rules">Rules</a><a href="#welcome">Welcome</a><a href="#inbox">Copy-paste Inbox</a>
   </nav>
+
+  <section id="build" class="page" hidden>
+    <h2>Build a block <small>Pick the pieces, then copy one ready-to-paste block</small></h2>
+    <div class="in-only">
+      <fieldset class="picks"><legend>Include</legend><div id="buildPicks" class="chips"></div></fieldset>
+      <label class="sign"><input type="checkbox" id="buildSigned"> Signed-off rules only</label>
+      <p id="buildNote" class="hint"></p>
+      <div class="rtools"><button type="button" id="copyBuild" class="copy big">Copy block</button></div>
+      <pre id="buildText" class="mtext" tabindex="0" aria-label="The block that Copy block copies"></pre>
+    </div>
+  </section>
 
   <section id="rules" class="page">
     <h2>Rules <small id="rulesCount"></small></h2>
     <div id="rulesList" class="in-only"></div>
     <form id="addRule" class="in-only add">
-      <label>Add a rule to <select id="newGroup"><option>Herd</option><option>Team vCGE</option></select></label>
+      <label>Add a rule to <select id="newGroup"></select></label>
       <textarea id="newRule" rows="2" placeholder="New rule, in plain words"></textarea>
       <button type="submit">Add rule</button>
       <small class="hint">New rules start "Not signed off yet". Deleting a rule happens in Google Sheets itself.</small>

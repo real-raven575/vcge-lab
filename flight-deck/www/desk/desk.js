@@ -13,6 +13,8 @@
   const $ = id => document.getElementById(id);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   let token = null, client = null, sheetId = null, rules = [], welcome = null, inbox = [], showUsed = false;
+  const openGroups = new Set(['Herd']);                 // which rule groups are unfolded; kept across reloads of the Sheet
+  let picks = ['Herd', 'Welcome'];                     // what "Build a block" includes
 
   function say(msg, bad) { const s = $('status'); s.textContent = msg; s.classList.toggle('bad', !!bad); }
 
@@ -97,7 +99,7 @@
   function copyBtn(getText, label = 'Copy') { const b = el('button', 'copy', label); b.type = 'button'; b.addEventListener('click', () => copy(getText(), b)); return b; }
 
   // ---- render ----
-  function render() { renderRules(); renderWelcome(); renderInbox(); }
+  function render() { renderRules(); renderWelcome(); renderInbox(); renderBuild(); }
 
   function renderRules() {
     const box = $('rulesList'); box.replaceChildren();
@@ -105,14 +107,44 @@
     $('rulesCount').textContent = `${signed} of ${rules.length} signed off`;
     const groups = C.groupRules(rules);
     Object.entries(groups).forEach(([g, list]) => {
-      const sec = el('section', 'group');
-      const h = el('h3', null, `${g} rules`); h.appendChild(copyBtn(() => C.rulesAsText(list), `Copy all ${g}`));
-      sec.appendChild(h);
+      const sec = el('details', 'group'); sec.open = openGroups.has(g);
+      sec.addEventListener('toggle', () => { if (sec.open) openGroups.add(g); else openGroups.delete(g); });
+      const sum = el('summary');
+      sum.append(el('b', null, `${g} rules`), el('small', null, ` ${list.filter(r => r.signed).length} of ${list.length} signed off`));
+      sec.appendChild(sum);
+      const tools = el('div', 'rtools'); tools.appendChild(copyBtn(() => C.groupAsBlock(g, list), `Copy ${C.shortName(g)} block`));
+      sec.appendChild(tools);
       const ol = el('ol', 'rules');
       list.forEach(r => ol.appendChild(ruleItem(r)));
       sec.appendChild(ol); box.appendChild(sec);
     });
     if (!rules.length) box.appendChild(el('p', 'empty', 'No rules in the Sheet yet.'));
+    const sel = $('newGroup'), was = sel.value;
+    sel.replaceChildren(...[...new Set([...Object.keys(groups), ...Object.keys(C.GROUPS)])].map(g => el('option', null, g)));
+    if (was) sel.value = was;
+  }
+
+  // "Build a block": one toggle per rule group plus Welcome; the result is re-made on every change.
+  function renderBuild() {
+    const box = $('buildPicks'); box.replaceChildren();
+    [...Object.keys(C.groupRules(rules)), 'Welcome'].forEach(g => {
+      const lab = el('label', 'chip'); const box2 = el('input'); box2.type = 'checkbox'; box2.checked = picks.includes(g);
+      box2.addEventListener('change', () => { picks = box2.checked ? [...picks, g] : picks.filter(x => x !== g); updateBuild(); });
+      lab.append(box2, ` ${g === 'Welcome' ? 'Welcome' : C.shortName(g)}`); box.appendChild(lab);
+    });
+    updateBuild();
+  }
+
+  function updateBuild() {
+    const signedOnly = $('buildSigned').checked;
+    const text = C.buildBlock(rules, welcome, picks, signedOnly);
+    $('buildText').textContent = text || 'Nothing picked yet.';
+    const used = rules.filter(r => picks.includes(r.group));
+    const unsigned = used.filter(r => !r.signed).length;
+    $('buildNote').textContent = signedOnly
+      ? `Showing ${used.length - unsigned} signed-off rules; ${unsigned} not signed off yet are left out.`
+      : (unsigned ? `${unsigned} of ${used.length} picked rules are not signed off yet.` : `All ${used.length} picked rules are signed off.`);
+    $('copyBuild').disabled = !text;
   }
 
   function ruleItem(r) {
@@ -208,7 +240,7 @@
 
   // ---- pages (#rules, #welcome, #inbox) ----
   function route() {
-    const page = ['rules', 'welcome', 'inbox'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'rules';
+    const page = ['build', 'rules', 'welcome', 'inbox'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'rules';
     document.querySelectorAll('.page').forEach(p => { p.hidden = p.id !== page; });
     document.querySelectorAll('.tabs a').forEach(a => a.setAttribute('aria-current', a.hash === `#${page}` ? 'page' : 'false'));
   }
@@ -228,4 +260,6 @@
   $('cancelWelcome').addEventListener('click', () => { $('welcomeForm').hidden = true; $('welcomeView').hidden = false; });
   $('copyWelcome').addEventListener('click', e => copy(welcome ? welcome.text : '', e.currentTarget));
   $('showUsed').addEventListener('change', e => { showUsed = e.target.checked; renderInbox(); });
+  $('buildSigned').addEventListener('change', updateBuild);
+  $('copyBuild').addEventListener('click', e => copy($('buildText').textContent, e.currentTarget));
 })();
