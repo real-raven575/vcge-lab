@@ -43,8 +43,19 @@ body:not(.in) .in-only, body.in .out-only, body:not(.nosheet) .nosheet-only { di
 
 .page h2 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .page h2 small, .hint, .empty { color: var(--dim); font-size: .85rem; font-weight: 400; }
-.group { margin-bottom: 20px; }
-.group h3 { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 8px; font-size: 1.05rem; }
+.group { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px; }
+.group[open] { padding-bottom: 12px; }
+.group summary { cursor: pointer; padding: 10px 0; font-size: 1.05rem; min-height: 40px; }
+.group summary small { color: var(--dim); font-weight: 400; }
+.group > .rtools { margin-bottom: 10px; }
+#rulesList { display: grid; gap: 10px; }
+.picks { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }
+.picks legend { color: var(--dim); font-size: .85rem; padding: 0 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.chip:has(input:checked) { border-color: var(--blue); font-weight: 600; }
+.chip input { width: 18px; height: 18px; }
+#build .mtext { max-height: 32em; margin-top: 10px; }
 .rules, .inbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .rule, .msg { display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
 .msg { flex-direction: column; gap: 8px; }

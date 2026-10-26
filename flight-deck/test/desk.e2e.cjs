@@ -92,11 +92,27 @@ const gsi = `window.google = { accounts: { oauth2: {
   await page.selectOption('#newGroup', 'Team vCGE');
   await page.fill('#newRule', 'Cards at the bottom.');
   await page.click('#addRule button[type=submit]');
+  await page.click('summary:has-text("Team vCGE rules")');
   await page.waitForSelector('.rid:text("CS-02")');
 
-  // Copy all
-  await page.click('button:text("Copy all Herd")');
-  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'Herd rules\nHB-01. Evidence only. Never guess.');
+  // Copy one group's block
+  await page.click('button:text("Copy Herd block")');
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), '# Herd rules\n\nEvidence only. Never guess.');
+
+  // Build a block: Herd + Team vCGE + Welcome in one paste, signed-only filter
+  await page.click('a[href="#build"]');
+  await page.check('.chip:has-text("vCGE") input');
+  const built = await page.textContent('#buildText');
+  assert.ok(built.startsWith('# Herd rules'), built);
+  assert.ok(built.indexOf('# Team vCGE rules') > built.indexOf('# Herd rules'));
+  assert.ok(built.includes('(paste as the first message in the new project)') && built.trim().endsWith('Step 1: check your tools.'));
+  await page.click('#copyBuild');
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), built);
+  await page.check('#buildSigned');
+  assert.ok(!(await page.textContent('#buildText')).includes('# Herd rules'), 'nothing signed off yet, so no rules');
+  assert.match(await page.textContent('#buildNote'), /left out/);
+  await page.uncheck('#buildSigned');
+  await page.click('a[href="#rules"]');
 
   // Welcome: copy and edit
   await page.click('a[href="#welcome"]');
@@ -125,7 +141,7 @@ const gsi = `window.google = { accounts: { oauth2: {
   // Mobile width: no sideways scroll
   await page.setViewportSize({ width: 360, height: 800 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'no sideways scroll at 360px');
-  if (process.argv[2]) { await page.click('a[href="#rules"]'); await page.setViewportSize({ width: 1000, height: 900 }); await page.screenshot({ path: process.argv[2], fullPage: true }); }
+  if (process.argv[2]) { await page.click('a[href="#build"]'); await page.check('.chip:has-text("vCGE") input'); await page.setViewportSize({ width: 1000, height: 900 }); await page.screenshot({ path: process.argv[2], fullPage: true }); }
 
   assert.deepEqual(errors, []);
   assert.ok(calls.every(c => /googleapis\.com/.test(c)), 'only Google APIs were called');
