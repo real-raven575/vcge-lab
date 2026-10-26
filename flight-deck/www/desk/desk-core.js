@@ -75,6 +75,16 @@
     return out;
   }
 
+  // "Mark all as used": one write per row the page showed as waiting, but only if the Sheet's fresh copy of that row
+  // still has the same time and text and is still not used (rows moved or ticked in Sheets meanwhile are left alone).
+  function markAllUsed(shown, freshValues, now) {
+    const stamp = utcStamp(now), fresh = freshValues || [];
+    return shown.filter(m => !m.used).filter(m => {
+      const r = fresh[m.row - 2];
+      return r && cell(r, 0) === m.raw && cell(r, 3) === m.text && !yes(cell(r, 4));
+    }).map(m => ({ range: `Inbox!E${m.row}:F${m.row}`, values: [['yes', stamp]] }));
+  }
+
   // A rule's wording changed: the old sign-off no longer covers it, so the sign-off cells are cleared.
   function editRuleRow(text, who, now) { return [text, '', '', '', who, utcStamp(now)]; }        // C..H
   function signRuleRow(signed, who, now) { return signed ? ['yes', who, utcStamp(now)] : ['', '', '']; }  // D..F
@@ -117,6 +127,6 @@
   }
 
   const api = { SHEET_NAME, HEADERS, GROUPS, utcStamp, normStamp, showTime, parseRules, parseWelcome, parseInbox, nextRuleId,
-    groupRules, editRuleRow, signRuleRow, newRuleRow, rulesAsText, shortName, splitSection, groupAsBlock, buildBlock };
+    groupRules, editRuleRow, signRuleRow, newRuleRow, rulesAsText, shortName, splitSection, groupAsBlock, buildBlock, markAllUsed };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.DeskCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
