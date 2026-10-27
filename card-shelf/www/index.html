@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>vCGE Lab: The Card Shelf</title>
+<link rel="stylesheet" href="shelf.css">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="../">&larr; Lab</a>
+  <div>
+    <h1>📚 The Card Shelf</h1>
+    <p class="tag">One place for the benches' test photos: 🦉 OCR, 🦎 Logo, 🐈 Edges</p>
+  </div>
+</header>
+
+<main>
+<p class="lead">Upload a photo once. It waits in <b>Holding</b>; tick the benches that should test it and it moves to <b>Active</b>. <b>Archive</b> keeps a photo for good, out of the way. <b>Delete</b> is only for wrong files and cannot be undone.</p>
+
+<section class="panel">
+  <div class="row">
+    <label class="upload">Add photos to Holding <input id="addPhotos" type="file" accept="image/*" multiple></label>
+    <span id="status" class="note" role="status" aria-live="polite"></span>
+  </div>
+  <div id="dropZone" class="drop">or drop photos here</div>
+</section>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-place="holding" class="tab on">📥 Holding <span id="countHolding"></span></button>
+  <button role="tab" data-place="active" class="tab">🧪 Active <span id="countActive"></span></button>
+  <button role="tab" data-place="archive" class="tab">📦 Archive <span id="countArchive"></span></button>
+</nav>
+
+<section class="panel">
+  <div class="row bulk">
+    <label class="check"><input type="checkbox" id="selectAll"> Select all</label>
+    <span id="selCount" class="note">0 selected</span>
+    <span class="group">Use in:
+      <button class="btn small" data-bulk="ocr">🦉 OCR</button>
+      <button class="btn small" data-bulk="logo">🦎 Logo</button>
+      <button class="btn small" data-bulk="edges">🐈 Edges</button>
+    </span>
+    <button class="btn small" data-bulk="holding">📥 Back to Holding</button>
+    <button class="btn small" data-bulk="archive">📦 Archive</button>
+    <button class="btn small danger" data-bulk="delete">🗑 Delete for good</button>
+  </div>
+  <div id="grid" class="grid"></div>
+  <p id="empty" class="note hidden">Nothing here.</p>
+</section>
+</main>
+<script type="module" src="shelf.js"></script>
+</body>
+</html>
