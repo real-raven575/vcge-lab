@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>vCGE Lab: Logo bench</title>
+<link rel="stylesheet" href="logo.css">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="../">&larr; Lab</a>
+  <div class="mast">
+    <div>
+      <h1>Logo bench</h1>
+      <p class="tag">MOD06 3D Card, with MOD04 OCR telling a logo from text</p>
+    </div>
+  </div>
+</header>
+
+<main>
+<p class="lead">Runs one published build's own Snap to card and reader over every card photo, in this browser, then points at the likely logo. Confirm it or show the right spot, and the logo is redrawn as a small SVG of flat shapes. Nothing leaves this browser; the shapes are for looking at and tossing.</p>
+
+<section class="panel">
+  <h2><span class="step">1</span> Build</h2>
+  <div class="row">
+    <label class="field-inline">Build <select id="buildSelect"></select></label>
+    <span id="buildNote" class="note"></span>
+  </div>
+</section>
+
+<section class="panel">
+  <h2><span class="step">2</span> Cards</h2>
+  <p id="photoNote" class="note"></p>
+  <div class="row">
+    <label class="upload">Add photos <input id="addPhotos" type="file" accept="image/*" multiple></label>
+    <a href="../shelf/">Open the Card Shelf</a>
+    <span id="photoCount" class="note"></span>
+  </div>
+  <div id="dropZone" class="drop">or drop photos here</div>
+</section>
+
+<section class="panel">
+  <h2><span class="step">3</span> Find the logos</h2>
+  <div class="row">
+    <label class="check"><input type="checkbox" id="useReader" checked> Read the text first (slower, fewer wrong picks)</label>
+    <label class="field-inline">Colours in the shapes <select id="colourCount"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+  </div>
+  <div class="row actions">
+    <button id="runBtn" class="btn primary">Run all</button>
+    <button id="stopBtn" class="btn quiet" disabled>Stop</button>
+    <span id="runStatus" class="note mono"></span>
+  </div>
+  <div id="progress" class="progress hidden" aria-hidden="true"><div id="progressFill"></div></div>
+</section>
+
+<section class="panel">
+  <h2><span class="step">4</span> Check each pick</h2>
+  <p class="note">The green box is the first pick, amber boxes are the next ones. Press <b>Right</b>, pick another box, or <b>Draw it</b> and drag a box over the real logo. Your answers are kept in this browser, so later runs are scored without asking again.</p>
+  <p id="tally" class="tally mono"></p>
+  <div class="row actions">
+    <button id="reportBtn" class="btn quiet" disabled>Download the results (JSON, no pictures)</button>
+    <button id="forgetBtn" class="btn quiet">Forget my answers</button>
+  </div>
+  <div id="cards" class="cards"></div>
+</section>
+</main>
+<script type="module" src="logo.js"></script>
+</body>
+</html>

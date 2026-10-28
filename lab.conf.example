@@ -5,4 +5,7 @@ LAB_USER=vcge                     # the unprivileged user the lab's services run
 LAB_REPO=$LAB_ROOT/repo           # a git checkout of the app, used to publish each build's source for the bench
 BENCH_PORT=8765                   # OCR bench file service, 127.0.0.1 only
 TRIALS_PORT=8766                  # Wipe Trials save service, 127.0.0.1 only
+SHELF_ROOT=$LAB_ROOT/shelf        # the Card Shelf's photos: outside www/ and every git repo
+SHELF_PORT=8768                   # Card Shelf service, 127.0.0.1 only
+VCGE_CADDY=/etc/caddy/teams/vcge.caddy   # Team vCGE's Caddy file (the shelf installer adds its route there)
 CADDYFILE=/etc/caddy/Caddyfile
