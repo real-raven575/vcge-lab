@@ -20,11 +20,10 @@ the logo is redrawn as a small SVG of flat shapes, to look at and toss. Lab only
   `logo.e2e.cjs` (the whole page in headless Chromium, drawn cards only).
 
 ## Where the photos come from
-- **The Darkroom's tray** (🐈 Iris's edge bench): when its file service answers at `edge-bench/api/` beside this page,
-  its photos are listed (read only), and the card corners Iris's answer keys hold are used to flatten each card. So
-  the stack of cards from different angles loaded there is ready here too.
-- **Add photos from this device** (or drop them on the page): kept in this browser's memory only, gone when the page
-  closes. Nothing is uploaded.
+- **The Card Shelf** (`../card-shelf/`): the photos ticked Logo there are listed here. **Add photos** on this page
+  uploads to the shelf, ticked Logo. Where the Darkroom (🐈 Iris's edge bench) holds saved card corners for a photo
+  (by its sha256), they are used to flatten the card.
+- Without the shelf, photos added on this page stay in this browser's memory only and are gone when the page closes.
 
 ## Use
 1. Open `logo-bench/` from the lab. Pick a build (newest by default; it needs its source published, as for the
