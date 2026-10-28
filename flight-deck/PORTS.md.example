@@ -2,7 +2,7 @@
 | Port(s) | Owner | Use |
 |---|---|---|
 | 8080 | Flight Deck (shared) | Caddy, the one web server for every team |
-| 8765-8799 | Team vCGE | 8765 OCR bench file service, 8766 Wipe Trials save service, 8767 edge bench file service |
+| 8765-8799 | Team vCGE | 8765 OCR bench file service, 8766 Wipe Trials save service, 8767 edge bench file service, 8768 Card Shelf |
 | 8800-8849 | Team vCGE:  Creative | reserved |
 | 8850-8899 | Team vCGE:  Marketing | reserved |
 | 8900-8949 | Team HomeLab | reserved |

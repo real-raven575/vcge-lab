@@ -1,0 +1,69 @@
+/* The Paint Shop: Flipside's (MOD06) logo bench. Lab only.
+   Flipside's colours: leaf green (the chameleon), sunset orange and paint-pot teal on a warm dark studio wall.
+   No motion except the progress bar, and none under "reduce motion"; nothing flashes. */
+:root {
+  --bg: #17201B; --panel: #1F2B24; --panel-2: #26362D; --line: #36503F; --text: #E3EADF; --dim: #93A398;
+  --leaf: #7BD389; --sunset: #F29E4C; --teal: #4CC3C9; --red: #E5675F;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); min-height: 100vh; overflow-x: hidden; }
+.hidden { display: none !important; }
+a { color: var(--leaf); }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+h1 { font-size: 1.6rem; color: var(--leaf); }
+h2 { font-size: 1.05rem; color: var(--sunset); display: flex; align-items: center; gap: .5rem; margin-bottom: .7rem; }
+p { margin: 0; }
+.note { color: var(--dim); font-size: .85rem; }
+.mono { font-family: var(--mono); }
+.step { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid var(--leaf); color: var(--leaf); font: 700 .8rem var(--mono); }
+
+.top { display: flex; align-items: center; gap: 1rem; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+.back { color: var(--dim); text-decoration: none; font-size: .9rem; }
+.mast { display: flex; align-items: center; gap: .8rem; flex: 1; min-width: 220px; }
+.mascot { font-size: 2.4rem; line-height: 1; }
+.tag { color: var(--dim); font-size: .85rem; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+.speech { display: flex; gap: .7rem; align-items: flex-start; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.speech span { font-size: 1.5rem; line-height: 1; }
+.lead { color: var(--dim); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; margin-top: .5rem; }
+.field-inline { display: flex; gap: .4rem; align-items: center; }
+select, button, input { font: inherit; }
+select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; max-width: 100%; }
+.btn { border-radius: 9px; padding: 7px 14px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); cursor: pointer; }
+.btn.primary { background: var(--leaf); color: #10301A; border-color: var(--leaf); font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.small { padding: 4px 10px; font-size: .85rem; }
+.btn.on { border-color: var(--leaf); color: var(--leaf); }
+.upload { display: inline-flex; gap: .4rem; align-items: center; border: 1px dashed var(--leaf); color: var(--leaf); border-radius: 9px; padding: 6px 12px; cursor: pointer; }
+.upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop { margin-top: .6rem; border: 2px dashed var(--line); border-radius: 10px; padding: 14px; text-align: center; color: var(--dim); }
+.drop.over { border-color: var(--leaf); color: var(--leaf); }
+.check { display: flex; gap: .4rem; align-items: center; }
+.progress { height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; margin-top: .6rem; }
+#progressFill { height: 100%; width: 0; background: var(--leaf); transition: width .3s; }
+.tally { margin-top: .4rem; color: var(--leaf); }
+
+.cards { display: grid; gap: 14px; margin-top: .8rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+.card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: .5rem; min-width: 0; }
+.card h3 { font-size: .9rem; overflow-wrap: anywhere; }
+.card .verdict { font-size: .8rem; color: var(--dim); }
+.card .verdict.hit { color: var(--leaf); }
+.card .verdict.miss { color: var(--sunset); }
+.stage { position: relative; touch-action: none; user-select: none; }
+.stage canvas { width: 100%; height: auto; display: block; border-radius: 6px; background: #fff; }
+.stage.drawing { cursor: crosshair; outline: 2px dashed var(--teal); }
+.picks { display: flex; flex-wrap: wrap; gap: .4rem; }
+.why { font-size: .8rem; color: var(--dim); }
+.shapes { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.shape { background: #fff; border-radius: 8px; padding: 6px; display: grid; gap: 4px; justify-items: center; color: #1F2B24; font-size: .75rem; text-align: center; min-width: 0; }
+.shape img { max-width: 100%; max-height: 110px; }
+.shape.checker { background-color: #fff; background-image: linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%), linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%); background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+.shape a { color: #1F6B35; }
+
+@media (prefers-reduced-motion: reduce) { #progressFill { transition: none; } }

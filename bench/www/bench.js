@@ -10,7 +10,6 @@
  */
 const ROOT = location.pathname.replace(/bench\/.*$/, '');   // the lab root, e.g. "/"
 const API = `${ROOT}bench/api/`;
-const DATA = `${ROOT}bench/data/`;
 const SETS = { 'business-cards': 'Business card', handwriting: 'Handwriting' };
 const FINDER_MAX_SIDE = 1200;      // same as MOD03 cropEditor.js: the edge finder reads a copy no larger than this
 const $ = (id) => document.getElementById(id);
@@ -90,7 +89,7 @@ function loadImage(url) {
 /** Edges, crop, read, map: one sample through the build's code. Returns a result record (never throws). */
 async function runSample(set, name, snap) {
     const { finder, persp, ocr, mapper } = state.modules;
-    const r = { set, name, url: `${DATA}samples/${set}/${name}`, quad: null, cropUrl: null, outcome: 'read', error: null, ms: {}, confidence: null, lines: [], fields: null, width: 0, height: 0 };
+    const r = { set, name, url: `${API}photo?set=${encodeURIComponent(set)}&name=${encodeURIComponent(name)}`, quad: null, cropUrl: null, outcome: 'read', error: null, ms: {}, confidence: null, lines: [], fields: null, width: 0, height: 0 };
     let t = performance.now();
     try {
         const img = await loadImage(r.url);

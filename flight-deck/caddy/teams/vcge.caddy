@@ -3,6 +3,7 @@ redir /vcge /vcge/ 308
 handle_path /vcge/* {
 	root * /srv/lab/vcge/www
 	reverse_proxy /bench/api/* 127.0.0.1:8765
+	reverse_proxy /shelf/api/* 127.0.0.1:8768
 	reverse_proxy /testing/api/* 127.0.0.1:8766
 	header /testing/* Cache-Control no-store
 	header /testing/reports/* Content-Type "text/plain; charset=utf-8"
