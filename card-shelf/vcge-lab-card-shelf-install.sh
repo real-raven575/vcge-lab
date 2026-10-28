@@ -101,11 +101,27 @@ if [ ! -f "$BENCH_UNIT" ]; then
 elif grep -q -- '--cards-dir' "$BENCH_UNIT"; then
     echo "  OK   Glyph's bench already reads a cards folder"
 else
-    cp -p "$BENCH_UNIT" "$BENCH_UNIT.before-shelf"
-    sed -i "s|^\(ExecStart=.*vcge-bench-api.*\)$|\1 --cards-dir $SH/active/ocr|; s|^\(ReadWritePaths=.*\)$|\1 $SH/active/ocr|" "$BENCH_UNIT"
-    systemctl daemon-reload && systemctl restart vcge-bench-api.service && sleep 1
-    if curl -fsS "http://127.0.0.1:${BENCH_PORT:-8765}/bench/api/health" >/dev/null; then echo "  OK   Glyph's bench restarted on the shelf (backup $BENCH_UNIT.before-shelf)"
-    else cp -p "$BENCH_UNIT.before-shelf" "$BENCH_UNIT"; systemctl daemon-reload; systemctl restart vcge-bench-api.service; echo "  FAIL Glyph's bench did not come back; old unit restored" >&2; exit 1; fi
+    # The deployed bench must be new enough to know --cards-dir (vcge-lab PR #6); an older copy refuses to start with it.
+    BENCH_BIN=$(sed -n 's/^ExecStart=\([^ ]*\).*/\1/p' "$BENCH_UNIT" | head -n1)
+    case "$BENCH_BIN" in */python3|*/python) BENCH_BIN=$(sed -n 's/^ExecStart=[^ ]* \([^ ]*\).*/\1/p' "$BENCH_UNIT" | head -n1);; esac
+    if [ -z "$BENCH_BIN" ] || ! grep -q -- '--cards-dir' "$BENCH_BIN" 2>/dev/null; then
+        echo "  WARN the OCR bench at ${BENCH_BIN:-?} is an older copy without --cards-dir; its unit is unchanged."
+        echo "       Update it with the bench installer, then run this again. The shelf itself works without this step."
+    else
+        cp -p "$BENCH_UNIT" "$BENCH_UNIT.before-shelf"
+        sed -i "s|^\(ExecStart=.*vcge-bench-api.*\)$|\1 --cards-dir $SH/active/ocr|; s|^\(ReadWritePaths=.*\)$|\1 $SH/active/ocr|" "$BENCH_UNIT"
+        systemctl daemon-reload; systemctl restart vcge-bench-api.service || true
+        up=no; for _ in 1 2 3 4 5; do sleep 1; curl -fsS "http://127.0.0.1:${BENCH_PORT:-8765}/bench/api/health" >/dev/null 2>&1 && { up=yes; break; }; done
+        if [ "$up" = yes ]; then echo "  OK   the OCR bench restarted on the shelf (backup $BENCH_UNIT.before-shelf)"
+        else
+            echo "  FAIL the OCR bench did not come back on the shelf; putting the old unit back" >&2
+            cp -p "$BENCH_UNIT.before-shelf" "$BENCH_UNIT"; systemctl daemon-reload
+            systemctl reset-failed vcge-bench-api.service || true
+            if systemctl restart vcge-bench-api.service; then echo "  OK   old unit restored and the OCR bench restarted"
+            else echo "  FAIL old unit restored but the OCR bench did not restart; see: journalctl -u vcge-bench-api -n 30" >&2; fi
+            exit 1
+        fi
+    fi
 fi
 
 echo
