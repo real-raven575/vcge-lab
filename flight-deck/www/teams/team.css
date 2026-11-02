@@ -1,0 +1,5 @@
+html { color-scheme: light dark; }
+body { margin: 0; padding: 16px; font: 15px/1.5 system-ui, sans-serif; }
+.teams { display: flex; flex-wrap: wrap; gap: 10px; font-size: .9rem; margin-bottom: 12px; }
+.teams a[aria-current] { font-weight: 700; }
+main { max-width: 860px; }

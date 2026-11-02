@@ -14,7 +14,7 @@ test('every team has a name and one line about it', () => {
     assert.equal((t.match(/<h2>/g) || []).length, 1, t.slice(0, 80));
     assert.match(t, /<p>[^<]+/);
   }
-  assert.ok(page.includes('<h2>TEAM 9to5</h2>'));
+  assert.ok(page.includes('>TEAM 9to5</a></h2>'));
 });
 
 test('no wording left over from before the teams were running', () => {
@@ -39,4 +39,27 @@ test('every tool link stays on the deck (relative, no scheme, no host)', () => {
 test('the page keeps its no-internet lock', () => {
   assert.match(page, /default-src 'self'/);
   assert.match(page, /connect-src 'none'/);
+});
+
+const teamsDir = path.join(www, 'teams');
+const slugs = fs.readdirSync(teamsDir).filter((d) => fs.statSync(path.join(teamsDir, d)).isDirectory());
+
+test('every team name opens its own team page, and every team page exists', () => {
+  assert.equal(slugs.length, 10);
+  const linked = [...page.matchAll(/href="teams\/([^/"]+)\/"/g)].map((m) => m[1]);
+  assert.deepEqual([...linked].sort(), [...slugs].sort());
+  assert.ok(!page.includes('Placeholder'));
+});
+
+test('each plain team page has the five sections, links every team, stays offline and plain', () => {
+  for (const s of slugs) {
+    const t = fs.readFileSync(path.join(teamsDir, s, 'index.html'), 'utf8');
+    for (const h of ['What we do', 'Crew', 'The plan', 'What we can reach', 'Logbook']) assert.ok(t.includes(`<h2>${h}</h2>`), `${s}: ${h}`);
+    for (const o of slugs) assert.ok(t.includes(`href="../${o}/"`), `${s} -> ${o}`);
+    assert.ok(t.includes('href="../../"'));
+    assert.match(t, /script-src 'none'/);
+    assert.doesNotMatch(t, /style="/);
+    assert.doesNotMatch(t, /\p{Extended_Pictographic}/u, `${s}: plain has no emoji`);
+    assert.doesNotMatch(t, /HANGAR|class="lights"|class="motto"/, `${s}: plain has no hangar wording`);
+  }
 });
