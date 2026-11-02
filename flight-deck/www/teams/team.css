@@ -1,0 +1,31 @@
+html { color-scheme: light dark; }
+:root { --bg: #EEF1F4; --panel: #fff; --line: #D8DEE6; --ink: #1B2230; --dim: #5A6475; --link: #2B5FD9; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0D1117; --panel: #161B24; --line: #2A3342; --ink: #E6EAF0; --dim: #9AA4B4; --link: #79A6FF; } }
+body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, sans-serif; }
+a { color: var(--link); }
+.teams { max-width: 860px; margin: 0 auto 14px; display: flex; flex-wrap: wrap; gap: 6px; font-size: .85rem; }
+.teams a { padding: 4px 10px; border: 1px solid var(--line); border-radius: 99px; background: var(--panel); text-decoration: none; }
+.teams a[aria-current] { border-color: var(--tint); box-shadow: inset 0 -3px 0 var(--tint); font-weight: 600; }
+main { max-width: 860px; margin: auto; background: var(--panel); border: 1px solid var(--line); border-top: 6px solid var(--tint); border-radius: 14px; padding: 18px; }
+.bay { font: 700 .75rem/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .18em; color: var(--dim); }
+h1 { margin: 6px 0 2px; display: flex; align-items: center; gap: 10px; font-size: 1.7rem; }
+.big { font-size: 2.6rem; }
+.motto { margin: 0 0 8px; color: var(--tint); font-weight: 600; font-style: italic; }
+h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); border-bottom: 2px solid color-mix(in srgb, var(--tint) 40%, transparent); padding-bottom: 4px; }
+.crew { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.card { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-left: 5px solid var(--tint); border-radius: 10px; }
+.face { font-size: 2rem; }
+.card small { display: block; color: var(--dim); font-size: .8rem; }
+.away, .lights { color: var(--dim); font-style: italic; font-size: .9rem; }
+.log { background: color-mix(in srgb, var(--tint) 8%, transparent); border-radius: 10px; padding: 2px 12px 8px; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: transform .2s; } .card:hover { transform: translateY(-2px); } }
+.t-vcge { --tint: #E0B43A; }
+.t-creative { --tint: #2E9E5B; }
+.t-marketing { --tint: #337BC7; }
+.t-homelab { --tint: #5B6CC9; }
+.t-email { --tint: #E0A21A; }
+.t-history { --tint: #A0663A; }
+.t-finance { --tint: #3E8E7E; }
+.t-vault { --tint: #6B7280; }
+.t-auto-fixer { --tint: #C2410C; }
+.t-9to5 { --tint: #7C3AED; }

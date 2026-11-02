@@ -42,3 +42,25 @@ test('the page keeps its no-internet lock', () => {
   assert.match(page, /default-src 'self'/);
   assert.match(page, /connect-src 'none'/);
 });
+
+const teamsDir = path.join(www, 'teams');
+const slugs = fs.readdirSync(teamsDir).filter((d) => fs.statSync(path.join(teamsDir, d)).isDirectory());
+
+test('every hangar opens its own team page, and every team page exists', () => {
+  assert.equal(slugs.length, 10);
+  const linked = [...page.matchAll(/href="teams\/([^/"]+)\/"/g)].map((m) => m[1]);
+  assert.deepEqual([...linked].sort(), [...slugs].sort());
+  assert.ok(!page.includes('Placeholder'));
+});
+
+test('each team page has the five sections, links every other team, and stays offline', () => {
+  for (const s of slugs) {
+    const t = fs.readFileSync(path.join(teamsDir, s, 'index.html'), 'utf8');
+    for (const h of ['What we do', 'Crew', 'The plan', 'What we can reach', 'Logbook']) assert.ok(t.includes(`<h2>${h}</h2>`), `${s}: ${h}`);
+    for (const o of slugs) assert.ok(t.includes(`href="../${o}/"`), `${s} -> ${o}`);
+    assert.ok(t.includes('href="../../"'), `${s}: back to the deck`);
+    assert.match(t, /script-src 'none'/);
+    assert.doesNotMatch(t, /style="/, `${s}: inline style would be blocked by the CSP`);
+    assert.doesNotMatch(t, /never forget/i);
+  }
+});
