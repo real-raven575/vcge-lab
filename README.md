@@ -13,7 +13,13 @@ commit, and a few tools sit beside the builds to test them:
 | 🦉 The Reading Room (OCR bench) | `bench/` | Runs one build's own edge finder, OCR reader and field mapper over a library of card photos in your browser, lets you correct the result, and scores it. |
 | 🦝 Wipe Trials | `wipe-trials/` | A step-by-step manual test guide (first trial: cross-browser wipe) that files a Markdown report on the lab. |
 | 🐘 Versions page | `versions-page/` | The lab's front page: every published build, newest first, with UTC and local times and a version number. |
+| 🦎 The Paint Shop (logo bench) | `logo-bench/` | Finds the likely logo on each card photo, lets you confirm or correct it, and redraws it as a small flat SVG. |
+| 📚 The Card Shelf | `card-shelf/` | One shared store of bench photos (Holding, Active, Archive) that every bench reads from. |
+| 📬 The Desk | `flight-deck/www/desk/` | raven575's Rules, Welcome and Copy-paste Inbox, read from one private Google Sheet after you sign in. |
 | ✈ Flight Deck | `flight-deck/` | A front page above the lab when one server holds several teams: one tile per team, each team in its own folder, address and port block. |
+
+Two more benches run on the lab, 🐈 the Darkroom (edge bench) and 🎪 the Funhouse (tricky-photo maker); their source
+stays with Iris (Camera) for now and comes to this repository later.
 
 The lab never becomes part of the app. Nothing here is built into vCGE, and the app's own rules (no internet,
 nothing stored) are not loosened to make testing easier.
