@@ -1,5 +1,5 @@
 """Card Shelf service tests (standard library only): python3 card-shelf/test/test_shelf_api.py"""
-import importlib.util, json, os, shutil, tempfile, threading, unittest, urllib.request, urllib.error
+import importlib.util, json, os, shutil, struct, tempfile, threading, unittest, urllib.request, urllib.error, zlib
 from http.server import ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -8,6 +8,35 @@ shelf = importlib.util.module_from_spec(spec); spec.loader.exec_module(shelf)
 
 PNG_A = bytes.fromhex('89504e470d0a1a0a') + b'photo-a' * 50
 PNG_B = bytes.fromhex('89504e470d0a1a0a') + b'photo-b' * 50
+
+
+def drawn_png(w, h):
+    """A real drawn PNG (grey stripes), big like a phone photo; no card data."""
+    chunk = lambda kind, data: struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+    rows = b''.join(b'\x00' + bytes([(y // 40) * 30 % 256]) * (w * 3) for y in range(h))
+    return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
+            + chunk(b'IDAT', zlib.compress(rows)) + chunk(b'IEND', b''))
+
+
+def jpeg_size(data):
+    """(width, height) from a JPEG's frame header."""
+    assert data[:2] == b'\xff\xd8', 'not a JPEG'
+    i = 2
+    while i < len(data):
+        marker, length = data[i + 1], struct.unpack('>H', data[i + 2:i + 4])[0]
+        if marker in (0xc0, 0xc1, 0xc2):
+            h, w = struct.unpack('>HH', data[i + 5:i + 9])
+            return w, h
+        i += 2 + length
+    raise AssertionError('no frame header')
+
+
+def can_resize():
+    try:
+        import PIL  # noqa: F401
+        return True
+    except ImportError:
+        return bool(shutil.which('magick') or shutil.which('convert'))
 
 
 class ShelfTest(unittest.TestCase):
@@ -22,6 +51,7 @@ class ShelfTest(unittest.TestCase):
 
     def tearDown(self):
         self.srv.shutdown(); self.srv.server_close(); shutil.rmtree(self.dir)
+        shelf.RESIZERS = [shelf._resize_pillow, shelf._resize_magick]
 
     def call(self, method, path, body=None, raw=False):
         data = body if isinstance(body, bytes) else (json.dumps(body).encode() if body is not None else None)
@@ -99,6 +129,50 @@ class ShelfTest(unittest.TestCase):
         self.assertEqual(self.call('POST', 'move', {'hash': h, 'to': 'active', 'benches': ['vault']})[0], 400)
         self.assertEqual(self.call('POST', 'move', {'hash': '0' * 64, 'to': 'archive'})[0], 404)
         self.assertEqual(self.call('POST', 'delete', b'not json')[0], 400)
+
+    @unittest.skipUnless(can_resize(), 'needs Pillow or ImageMagick')
+    def test_thumb_is_a_small_jpeg_and_the_photo_stays_full(self):
+        big = drawn_png(2400, 1400)
+        h = self.call('PUT', 'upload?name=big.png', big)[1]['hash']
+        code, small = self.call('GET', 'thumb?hash=' + h, raw=True)
+        self.assertEqual(code, 200)
+        w, ht = jpeg_size(small)
+        self.assertEqual(max(w, ht), shelf.THUMB_PX)
+        self.assertAlmostEqual(w / ht, 2400 / 1400, places=1)
+        self.assertEqual(self.call('GET', 'photo?hash=' + h, raw=True)[1], big)   # benches still get every byte
+        self.assertEqual(self.files('.thumbs'), [h + '.jpg'])
+        self.assertEqual(len(self.call('GET', 'photos')[1]['photos']), 1)        # previews are not photos
+
+    @unittest.skipUnless(can_resize(), 'needs Pillow or ImageMagick')
+    def test_thumb_is_made_once_and_survives_moves(self):
+        h = self.call('PUT', 'upload?name=big.png', drawn_png(1200, 700))[1]['hash']
+        first = self.call('GET', 'thumb?hash=' + h, raw=True)[1]
+        self.call('POST', 'move', {'hash': h, 'to': 'active', 'benches': ['logo']})
+        shelf.RESIZERS = []   # a second ask must come from the saved preview
+        self.assertEqual(self.call('GET', 'thumb?hash=' + h, raw=True)[1], first)
+
+    @unittest.skipUnless(shutil.which('magick') or shutil.which('convert'), 'needs ImageMagick')
+    def test_thumb_with_imagemagick_only(self):
+        shelf.RESIZERS = [shelf._resize_magick]
+        h = self.call('PUT', 'upload?name=big.png', drawn_png(1600, 900))[1]['hash']
+        self.assertEqual(max(jpeg_size(self.call('GET', 'thumb?hash=' + h, raw=True)[1])), shelf.THUMB_PX)
+
+    def test_thumb_falls_back_to_the_photo(self):
+        h = self.call('PUT', 'upload?name=a.png', PNG_A)[1]['hash']           # not a real image: nothing can shrink it
+        self.assertEqual(self.call('GET', 'thumb?hash=' + h, raw=True), (200, PNG_A))
+        shelf.RESIZERS = []                                                    # no Pillow, no ImageMagick
+        big = drawn_png(800, 500)
+        h2 = self.call('PUT', 'upload?name=big.png', big)[1]['hash']
+        self.assertEqual(self.call('GET', 'thumb?hash=' + h2, raw=True), (200, big))
+        self.assertEqual(self.files('.thumbs'), [])                            # no half-written previews left
+
+    def test_delete_drops_the_thumb(self):
+        h = self.call('PUT', 'upload?name=big.png', drawn_png(900, 500))[1]['hash']
+        self.call('GET', 'thumb?hash=' + h, raw=True)
+        self.call('POST', 'delete', {'hash': h, 'confirm': h})
+        self.assertEqual(self.files('.thumbs'), [])
+        self.assertEqual(self.call('GET', 'thumb?hash=' + h)[0], 404)
+        self.assertEqual(self.call('GET', 'thumb?hash=../../etc/passwd')[0], 400)
 
 
 if __name__ == '__main__':

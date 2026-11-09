@@ -10,6 +10,7 @@ outside every git repo, in plain folders, so a bench can simply read its own fol
     <shelf>/archive/            kept for good, out of the benches' way
     <shelf>/deleted.json        sha256 and time of each photo deleted for good, so a bench can drop its answer keys
                                 (no names)
+    <shelf>/.thumbs/<hash>.jpg  small JPEG previews for the page (made on first ask, removed with the photo)
 
 A photo is known by the sha256 of its bytes, which never change on a move, so answer keys keyed by hash follow it.
 Moving between places never deletes a byte; only "delete" does, and it needs the hash sent twice. Logs carry the
@@ -17,7 +18,7 @@ method and path only, never a file name or what a card says.
 
     card-shelf-api --shelf <LAB_ROOT>/shelf [--port 8768]
 """
-import argparse, hashlib, json, os, re, shutil, sys, threading, time
+import argparse, hashlib, json, os, re, shutil, subprocess, sys, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, parse_qs
 
@@ -28,6 +29,8 @@ MAX_UPLOAD = 25 * 1024 * 1024
 MAX_JSON = 64 * 1024
 NAME_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9 ._()-]{0,120}$')
 HASH_RE = re.compile(r'^[0-9a-f]{64}$')
+THUMB_PX = 480            # longest side of a preview: a 130 px tall tile on a 2x screen
+THUMB_QUALITY = 80
 
 SHELF = None
 LOCK = threading.Lock()   # one change at a time
@@ -146,6 +149,60 @@ def note_deleted(digest):
     os.replace(tmp, path)
 
 
+def thumb_path(digest):
+    return os.path.join(SHELF, '.thumbs', digest + '.jpg')
+
+
+def _resize_pillow(src, dst):
+    from PIL import Image, ImageOps
+    with Image.open(src) as im:
+        im.draft('RGB', (THUMB_PX, THUMB_PX))   # JPEG: decode at a smaller scale, much faster on phone photos
+        im = ImageOps.exif_transpose(im)
+        im.thumbnail((THUMB_PX, THUMB_PX))
+        if im.mode != 'RGB':
+            im = im.convert('RGB')
+        im.save(dst, 'JPEG', quality=THUMB_QUALITY, optimize=True)
+
+
+def _resize_magick(src, dst):
+    tool = shutil.which('magick') or shutil.which('convert')
+    if not tool:
+        raise OSError('no ImageMagick')
+    subprocess.run([tool, src + '[0]', '-auto-orient', '-thumbnail', '%dx%d>' % (THUMB_PX, THUMB_PX), '-strip',
+                    '-quality', str(THUMB_QUALITY), 'jpg:' + dst], check=True, timeout=30,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+RESIZERS = [_resize_pillow, _resize_magick]
+
+
+def make_thumb(p):
+    """Path of photo `p`'s preview, made now if missing; None when no resizer works (the page then gets the photo)."""
+    dst = thumb_path(p['hash'])
+    if os.path.isfile(dst):
+        return dst
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    tmp = '%s.%d.%d.part' % (dst, os.getpid(), threading.get_ident())
+    for resize in RESIZERS:
+        try:
+            resize(p['paths'][0], tmp)
+            if os.path.getsize(tmp) > 0:
+                os.replace(tmp, dst)
+                return dst
+        except Exception:   # missing library, unreadable image, tool failure: try the next way
+            pass
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    return None
+
+
+def drop_thumb(digest):
+    try:
+        os.remove(thumb_path(digest))
+    except OSError:
+        pass
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):   # method and path only
         sys.stdout.write('%s %s\n' % (self.command, urlsplit(self.path).path)); sys.stdout.flush()
@@ -165,6 +222,16 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(413, {'error': 'body missing or too large'}); return None
         return self.rfile.read(n)
 
+    def send_file(self, path, ctype):
+        with open(path, 'rb') as f:
+            data = f.read()
+        self.send_response(200)
+        self.send_header('Content-Type', ctype)
+        self.send_header('Content-Length', str(len(data)))
+        self.send_header('Cache-Control', 'private, max-age=3600')
+        self.end_headers()
+        self.wfile.write(data)
+
     def route(self):
         u = urlsplit(self.path)
         q = {k: v[0] for k, v in parse_qs(u.query).items()}
@@ -183,22 +250,18 @@ class Handler(BaseHTTPRequestHandler):
                 rows = [r for r in rows if bench in r['benches']]
             rows.sort(key=lambda r: (-r['added'], r['name']))
             return self.send_json(200, {'photos': rows, 'benches': BENCHES})
-        if path == '/shelf/api/photo':
+        if path in ('/shelf/api/photo', '/shelf/api/thumb'):
             digest = q.get('hash', '')
             if not HASH_RE.match(digest):
                 return self.send_json(400, {'error': 'bad hash'})
             p = catalogue().get(digest)
             if not p:
                 return self.send_json(404, {'error': 'no such photo'})
-            with open(p['paths'][0], 'rb') as f:
-                data = f.read()
-            self.send_response(200)
-            self.send_header('Content-Type', TYPES.get(os.path.splitext(p['name'])[1].lower(), 'application/octet-stream'))
-            self.send_header('Content-Length', str(len(data)))
-            self.send_header('Cache-Control', 'private, max-age=3600')
-            self.end_headers()
-            self.wfile.write(data)
-            return
+            if path == '/shelf/api/thumb':
+                small = make_thumb(p)
+                if small:
+                    return self.send_file(small, 'image/jpeg')
+            return self.send_file(p['paths'][0], TYPES.get(os.path.splitext(p['name'])[1].lower(), 'application/octet-stream'))
         if path == '/shelf/api/deleted':
             try:
                 with open(os.path.join(SHELF, 'deleted.json')) as f:
@@ -254,6 +317,7 @@ class Handler(BaseHTTPRequestHandler):
                 for q_ in p['paths']:
                     os.remove(q_)
                     _hashes.pop(q_, None)
+                drop_thumb(digest)
                 note_deleted(digest)
                 return self.send_json(200, {'ok': True, 'deleted': digest})
             to = req.get('to')

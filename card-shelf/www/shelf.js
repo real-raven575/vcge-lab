@@ -49,7 +49,7 @@ function render() {
 function tile(p) {
     const el = document.createElement('article');
     el.className = `tile${state.selected.has(p.hash) ? ' sel' : ''}`;
-    const img = document.createElement('img'); img.loading = 'lazy'; img.alt = p.name; img.src = `${API}photo?hash=${p.hash}`;
+    const img = document.createElement('img'); img.loading = 'lazy'; img.alt = p.name; img.src = `${API}thumb?hash=${p.hash}`;   // small preview; the benches still read the full photo
     const pick = document.createElement('label'); pick.className = 'check name';
     const box = document.createElement('input'); box.type = 'checkbox'; box.checked = state.selected.has(p.hash);
     box.addEventListener('change', () => { box.checked ? state.selected.add(p.hash) : state.selected.delete(p.hash); render(); });

@@ -18,7 +18,9 @@ follow the photo everywhere. Uploading the same photo twice keeps it once. `<she
 
 ## Files
 - `card-shelf-api.py`: the service (Python standard library), as the lab user on 127.0.0.1:8768 behind Caddy at
-  `shelf/api/`. `GET photos[?bench=ocr|logo|edges]`, `GET photo?hash=`, `GET deleted`, `PUT upload?name=&to=holding|ocr|logo|edges`,
+  `shelf/api/`. `GET photos[?bench=ocr|logo|edges]`, `GET photo?hash=` (the full photo, for benches), `GET thumb?hash=` (a
+  small JPEG preview for the page, 480 px on the long side, made on first ask and kept in `<shelf>/.thumbs/`; made with
+  Pillow, else ImageMagick, else the full photo is sent), `GET deleted`, `PUT upload?name=&to=holding|ocr|logo|edges`,
   `POST move {hash, to: holding|archive|active, benches}`, `POST delete {hash, confirm: hash}`. It logs the method and
   path only, never a file name.
 - `www/`: the page at `shelf/` (tabs for the three places, bench buttons on each photo, a bar for many at once).
