@@ -47,7 +47,7 @@ const teamsDir = path.join(www, 'teams');
 const slugs = fs.readdirSync(teamsDir).filter((d) => fs.statSync(path.join(teamsDir, d)).isDirectory());
 
 test('every hangar opens its own team page, and every team page exists', () => {
-  assert.equal(slugs.length, 10);
+  assert.equal(slugs.length, 11);
   const linked = [...page.matchAll(/href="teams\/([^/"]+)\/"/g)].map((m) => m[1]);
   assert.deepEqual([...linked].sort(), [...slugs].sort());
   assert.ok(!page.includes('Placeholder'));
@@ -61,6 +61,7 @@ test('each team page has the five sections, links every other team, and stays of
     assert.ok(t.includes('href="../../"'), `${s}: back to the deck`);
     assert.match(t, /script-src 'none'/);
     assert.doesNotMatch(t, /style="/, `${s}: inline style would be blocked by the CSP`);
-    assert.doesNotMatch(t, /never forget/i);
+    // The old tagline stays retired; "TEAM Never Forget" is raven575's own team name (11-05) and is the only allowed use.
+    assert.doesNotMatch(t.replaceAll('TEAM Never Forget', ''), /never forget/i, `${s}: old tagline`);
   }
 });
