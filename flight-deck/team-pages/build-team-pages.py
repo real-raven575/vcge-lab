@@ -133,6 +133,15 @@ TEAMS = [
     access=['No access to any work computer or account: raven575 runs every work command',
             'Cards travel with raven575', 'No repo yet'],
     lights='Lights on, time clock punched. Punchcard clocks in at nine sharp.'),
+  dict(slug='never-forget', bay='11', icon='🦒', name='TEAM Never Forget', tint='#D97706', room=None,
+    motto='A little better than yesterday.',
+    does='raven575\'s personal assistants: research answered in plain language, daily plans, reminders, drafts and lists, and keeping focus on what matters in life and community. The name is raven575\'s own, turned from remembrance into hope.',
+    crew=[('🦒','Milestone','Giraffe','PM-AIDE-00','Project manager and personal assistant'),
+          ('🐯','Coat','Tiger','EDU01','Top research pilot'),
+          ('🦦','Elliot "Dam"','Otter','LIF01','Focus on what matters, and our communities')],
+    plan=['Milestone picks the team\'s third pilot.'],
+    access=['Its Herd Drive folder (TEAM_Never-Forget)', 'The Herd Mailbox', 'No repo, no lab tools'],
+    lights='Lights on, head above the tall grass. Milestone is watching the road ahead.'),
 ]
 
 E = html.escape
