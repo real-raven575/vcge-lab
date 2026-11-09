@@ -18,6 +18,14 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: v
 .card small { display: block; color: var(--dim); font-size: .8rem; }
 .away, .lights { color: var(--dim); font-style: italic; font-size: .9rem; }
 .log { background: color-mix(in srgb, var(--tint) 8%, transparent); border-radius: 10px; padding: 2px 12px 8px; }
+.crumbs { max-width: 860px; margin: 0 auto 10px; font-size: .9rem; color: var(--dim); }
+.menu main { border-top-color: #2B5FD9; }
+.menu-team { margin-top: 18px; border-left: 5px solid var(--tint); padding-left: 12px; scroll-margin-top: 12px; }
+.menu-team h3 { font-size: .85rem; margin: 10px 0 4px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+.menu-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.menu-list small { display: block; color: var(--dim); font-size: .82rem; }
+.tag { font-size: .7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
+.tag.priv { border-color: #B45309; color: #B45309; }
 @media (prefers-reduced-motion: no-preference) { .card { transition: transform .2s; } .card:hover { transform: translateY(-2px); } }
 .t-vcge { --tint: #E0B43A; }
 .t-creative { --tint: #2E9E5B; }

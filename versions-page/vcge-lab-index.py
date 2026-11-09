@@ -86,7 +86,8 @@ memory = json.dumps({
                'date': utc(versions[-1]['date']).strftime('%Y-%m-%d %H:%M UTC')} if versions else None,
 }).replace('<', '\\u003c')
 portal = os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www'))  # the Flight Deck is installed: link back to it
-back = '<a class="back" href="/">&larr; Flight Deck</a>' if portal else ''
+back = ('<a class="back" href="/">&larr; Flight Deck</a> &middot; <a class="back" href="/menu/">&#9776; Menu</a>'
+        if portal else '')
 
 ELEPHANT = '''<svg viewBox="0 0 96 80" width="76" height="64" aria-hidden="true" class="ele">
 <g class="body"><ellipse cx="54" cy="44" rx="30" ry="21"/><rect x="32" y="52" width="10" height="20" rx="4"/><rect x="46" y="54" width="10" height="18" rx="4"/>

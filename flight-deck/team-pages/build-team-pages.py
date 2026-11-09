@@ -144,6 +144,123 @@ TEAMS = [
     lights='Lights on, head above the tall grass. Milestone is watching the road ahead.'),
 ]
 
+# The Flight Deck menu (www/menu/): every tool, grouped by team then category. One source of truth: teams send
+# their lines to Team vCGE on a card (HQ-0294 replies, 2026-11-09). Each row: (category, name, what it is for, link,
+# private). A link starting with "/" stays on the deck; any other link opens outside the lab (marked ↗). private=True
+# means it opens only signed in as raven575. A row with link None is named, not linked, on purpose.
+TOOLS = {
+  'vcge': [
+    ('Builds', 'The Elephant\'s Memory', 'Every build, newest first', '/vcge/', False),
+    ('Builds', 'Newest build', 'Open the app as it is right now', '/vcge/latest/', False),
+    ('Benches', 'The Reading Room', 'Glyph\'s OCR bench', '/vcge/bench/', False),
+    ('Benches', 'The Darkroom', 'Iris\'s edge bench', '/vcge/edge-bench/', False),
+    ('Benches', 'The Paint Shop', 'Flipside\'s logo bench', '/vcge/logo-bench/', False),
+    ('Benches', 'The Funhouse', 'Iris\'s tricky-photo maker', '/vcge/funhouse/', False),
+    ('Photos', 'The Card Shelf', 'The benches\' shared test photos', '/vcge/shelf/', False),
+    ('Testing', 'Wipe Trials', 'Ghost\'s cross-browser wipe test range', '/vcge/testing/', False),
+  ],
+  'homelab': [
+    ('Storage', 'Nextcloud', 'Herd shared storage; every team\'s folders (tailnet address on raven575\'s devices)', None, True),
+    ('Comms', 'Herd Post', 'Never-overwrite team mail: Nextcloud > group folder Herd Post', None, True),
+    ('Servers', 'Karaoke Lounge', 'VM 410 herd-teams: each team\'s Remote Control device', None, True),
+    ('Servers', 'Lounge web-tools page', 'Where tailnet-only team HTML tools live', 'https://herd-teams.tailfc4090.ts.net/web-tools/9to5/ticket-format-lab.html', True),
+  ],
+  'email': [
+    ('Mail', 'Herd mail sender guide', 'Sends Gmail with Drive attachments from a queue (not installed yet)', 'https://docs.google.com/document/d/1guomuxrGq8Cld868sj07-lJNqdPlWYGk--Lk4fHExKY/edit', True),
+    ('Mail', 'Herd mail sender code', 'The Apps Script', 'https://drive.google.com/file/d/1FlLch2msxrPHpny7hgpcbGsNhoIjsXkw/view', True),
+    ('Mail', 'Mail queue folder', 'Drive folder the sender reads', 'https://drive.google.com/drive/folders/11nZz81cbbslywk3_XQt9YGJmxlZcWRxw', True),
+    ('Mail', 'Gmail rules (gmailctl)', 'Labels and filters as code', 'https://github.com/real-raven575/Team-eMail/tree/main/gmailctl/raven575-gmail', True),
+    ('Comms', '00 Herd Mailbox', 'Every card between teams, plus Poke Buttons and Poke Log', 'https://docs.google.com/spreadsheets/d/1cbQzzPZoaO0sDT2q-xi3KUOtOQp7cH1lV-pO-e4q8NA/edit', True),
+  ],
+  'finance': [
+    ('Money', 'Herd cost log', 'Herd bills by date and source', 'https://docs.google.com/spreadsheets/d/1p3MpU4yp0liEkug_O-KPnR1n2QB9-2Jk4QdjRyWeUV4/edit', True),
+    ('Money', 'CPI and Value of $1, 1900 to 2026', 'Inflation calculator', 'https://docs.google.com/spreadsheets/d/1Z7n-Ghe-Yiwng7Gz-OxVGNvXK7mgtOe7tcLee5N66Ik/edit', True),
+    ('Plans', 'Cheaper Herd work plan', 'Token budget and plan pick', 'https://claude.ai/artifact/HW7TopkYcHWvNAbVF2C1uK', True),
+    ('Plans', 'Herd money accounts and finance software', 'Tip jars and payouts', 'https://claude.ai/artifact/NXH25GAww6BxdQooUqCKDD', True),
+    ('Plans', 'Leak Finder plan', 'Spending-leak steps', 'https://claude.ai/artifact/Yacc5pmcdnSdFoss3TkdMi', True),
+    ('Research', 'Claude Code on your own hardware', 'Report', 'https://claude.ai/artifact/8gpnga5U2fMkbvaKAnUcPC', True),
+    ('Money', 'Leak Finder and Income picture Sheets', 'raven575\'s Drive > 40 Finance work (named, not linked: private by design)', None, True),
+  ],
+  'marketing': [
+    ('Launch', 'vCGE Launch To-Do', '', 'https://claude.ai/artifact/QACxP64MUZ2uAAF1Mr55ev', True),
+    ('Launch', 'vCGE Launch Playbook', '', 'https://claude.ai/artifact/2pkmyvRp5fjmTVY2ebewLw', True),
+    ('Accounts and socials', 'Pre-launch accounts and tip jars plan', '', 'https://claude.ai/artifact/CHdXcjDGPSJXsuoKdx8o4j', True),
+    ('Accounts and socials', 'Social profiles for every project', '', 'https://claude.ai/artifact/S9vC6DhFoGt3P9nWxAACA3', True),
+    ('Tip jars', 'Tip jar plan for all Herd projects', '', 'https://claude.ai/artifact/EEkQyBbYe7b349Y24Pei7Y', True),
+    ('Tip jars', 'Tip jar copy kit', '', 'https://claude.ai/artifact/9TUKy98M2xD2auLig9TFRF', True),
+    ('Tip jars', 'Tip Jar Site Sections', '', 'https://claude.ai/artifact/2dMQ4ZYmzUHUfrSnNwXpCZ', True),
+    ('Research', 'Solo Therapy Practice Software', '', 'https://claude.ai/artifact/HvqvwRW1hSBXCGuuN3siB5', True),
+  ],
+  'auto-fixer': [
+    ('Windows repair', 'Auto-Fixer', 'Guided Windows 10/11 repair tool (download the zip, run AutoFix.bat)', 'https://github.com/real-raven575/auto-fix_win10-11', False),
+    ('About', 'Auto-Fixer product page', '', 'https://claude.ai/artifact/XnRM8A28SPWFfXTWaDAncc', True),
+    ('Testing', 'Auto-Fixer Test Run checklist', '', 'https://claude.ai/artifact/XMzQ2xAjPekJDMH1iEzExN', True),
+    ('Research', 'Crash Evidence Map', 'Crash causes to logs and event IDs', 'https://claude.ai/artifact/7prJVVAQh3uzdnay1fRJbB', True),
+    ('How-to guides', 'Fog Light Bulb Swap', 'Picture guide', 'https://claude.ai/artifact/Na9iydTfpucESqa4TAaevu', True),
+    ('How-to guides', 'Leaf Seat Airbag Check', 'Picture guide', 'https://claude.ai/artifact/DZCM2ftWvToV3XKFwbVg7J', True),
+  ],
+  'never-forget': [
+    ('Daily life', 'Dashboard phase 1 plan', 'Merged calendar and Don\'t-forget list (plan, not built)', 'https://docs.google.com/document/d/14ZUXV_mGMkUR9mMi9977nZhi1feJu8SKilqfbZuRJhA', True),
+    ('Daily life', 'Tonight\'s top 3 plan', 'HQ-0292', 'https://docs.google.com/document/d/1EekeIYqzmxGlUvlLQktyueo8JoT-hWhIKNEoSyDr5-Y', True),
+    ('Proposals', 'Fred Rogers ethics proposal', 'AIDE-0011', 'https://docs.google.com/document/d/1h_-lqRhvNBb9F_YoH3K0_1VzO5--ENll6jq3dzG6grs', True),
+    ('Reports', 'W45 reflection', 'PDF', 'https://drive.google.com/file/d/1AR3TGMCm9loMbWzjrJeBoS3p9e5Wlbu_/view', True),
+  ],
+}
+OWED = ('creative', 'history', '9to5')   # lists not in yet (HQ-0294)
+
+
+def menu_page():
+    """www/menu/index.html: every team's tools on one page, grouped by team then category."""
+    jump = ''.join(f'<a href="#{t["slug"]}">{E(t["name"]) if PLAIN else '<span aria-hidden="true">' + t["icon"] + '</span> ' + E(t["name"])}</a>' for t in TEAMS)
+    out = []
+    for t in TEAMS:
+        rows = TOOLS.get(t['slug'], [])
+        cats = {}
+        for row in rows:
+            cats.setdefault(row[0], []).append(row)
+        body = ''
+        for cat, items in cats.items():
+            lis = ''
+            for _, name, what, link, private in items:
+                tags = (' <span class="tag priv">Private</span>' if private else '')
+                if link is None:
+                    label = f'<b>{E(name)}</b> <span class="tag">no link</span>'
+                elif link.startswith('/'):
+                    label = f'<a href="..{E(link)}"><b>{E(name)}</b></a>'
+                else:
+                    label = f'<a href="{E(link)}" rel="noreferrer"><b>{E(name)}</b> <span aria-label="opens outside the lab">&#8599;</span></a>'
+                lis += f'<li>{label}{tags}' + (f'<small>{E(what)}</small>' if what else '') + '</li>'
+            body += f'<h3>{E(cat)}</h3><ul class="menu-list">{lis}</ul>'
+        if not rows:
+            body = ('<p class="away">Tool list still coming from the team.</p>' if t['slug'] in OWED else
+                    '<p class="away">No tools listed.</p>')
+        head = E(t['name']) if PLAIN else f'<span aria-hidden="true">{t["icon"]}</span> {E(t["name"])}'
+        out.append(f'<section id="{t["slug"]}" class="t-{t["slug"]} menu-team"><h2>{head}</h2>'
+                   f'<p><a href="../teams/{t["slug"]}/">Team page</a></p>{body}</section>')
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Flight Deck menu</title>
+<link rel="stylesheet" href="../teams/team.css">
+</head>
+<body class="menu">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../">&larr; Flight Deck</a> &rsaquo; <span aria-current="page">Menu</span></nav>
+<main>
+<h1>&#9776; Every tool, by team</h1>
+<p class="away">Links marked &#8599; open outside the lab. <span class="tag priv">Private</span> ones open only signed in as raven575.
+To add or fix a line, a team sends a card to &#128024; Cornerstone, Team vCGE.</p>
+<nav class="teams" aria-label="Jump to a team">{jump}</nav>
+{''.join(out)}
+</main>
+</body>
+</html>
+'''
+
+
 E = html.escape
 
 
@@ -178,7 +295,7 @@ def page(t):
 <link rel="stylesheet" href="../team.css">
 </head>
 <body class="t-{t["slug"]}">
-<nav class="teams" aria-label="All teams"><a href="../../">&larr; Flight Deck</a>{nav}</nav>
+<nav class="teams" aria-label="All teams"><a href="../../">&larr; Flight Deck</a><a href="../../menu/">&#9776; Menu</a>{nav}</nav>
 <main>
 {head}
 <section><h2>What we do</h2><p>{E(t["does"])}</p></section>
@@ -215,6 +332,14 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: v
 .card small { display: block; color: var(--dim); font-size: .8rem; }
 .away, .lights { color: var(--dim); font-style: italic; font-size: .9rem; }
 .log { background: color-mix(in srgb, var(--tint) 8%, transparent); border-radius: 10px; padding: 2px 12px 8px; }
+.crumbs { max-width: 860px; margin: 0 auto 10px; font-size: .9rem; color: var(--dim); }
+.menu main { border-top-color: #2B5FD9; }
+.menu-team { margin-top: 18px; border-left: 5px solid var(--tint); padding-left: 12px; scroll-margin-top: 12px; }
+.menu-team h3 { font-size: .85rem; margin: 10px 0 4px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+.menu-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.menu-list small { display: block; color: var(--dim); font-size: .82rem; }
+.tag { font-size: .7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
+.tag.priv { border-color: #B45309; color: #B45309; }
 @media (prefers-reduced-motion: no-preference) { .card { transition: transform .2s; } .card:hover { transform: translateY(-2px); } }
 '''
 CSS_PLAIN = '''html { color-scheme: light dark; }
@@ -232,4 +357,7 @@ for t in TEAMS:
     os.makedirs(d, exist_ok=True)
     with open(os.path.join(d, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(page(t))
+os.makedirs(os.path.join(OUT, '..', 'menu'), exist_ok=True)
+with open(os.path.join(OUT, '..', 'menu', 'index.html'), 'w', encoding='utf-8') as f:
+    f.write(menu_page())
 print(f'wrote {len(TEAMS)} team pages ({"plain" if PLAIN else "main"}) to {os.path.normpath(OUT)}')

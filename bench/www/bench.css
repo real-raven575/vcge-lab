@@ -134,3 +134,5 @@ textarea { width: 100%; font: 12px/1.45 var(--mono); margin-top: 8px; }
   h1 { font-size: 1.4rem; }
   .truth .line { grid-template-columns: 1fr auto; } .truth .line label.drop { grid-column: 1 / -1; }
 }
+.back a { color: inherit; text-decoration: none; }
+.back a:hover { text-decoration: underline; }
