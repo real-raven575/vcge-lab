@@ -8,8 +8,11 @@
  * vcge-bench-api.py). Switching builds reloads the page, because a build's modules can only be loaded once.
  * The page is Glyph's "Reading Room": Glyph comments on the run in #glyphSays (dry, honest, never in the way).
  */
-const ROOT = location.pathname.replace(/bench\/.*$/, '');   // the lab root, e.g. "/"
+import { keysForSet, versionRow, setScorecard, scorecardMd, MIN_TRUSTED } from './setrun.js';
+
+const ROOT = typeof location === 'undefined' ? '/' : location.pathname.replace(/bench\/.*$/, '');   // the lab root, e.g. "/"
 const API = `${ROOT}bench/api/`;
+const FUNHOUSE = `${ROOT}funhouse/api/`;   // the Funhouse's variant sets (Run a set)
 const SETS = { 'business-cards': 'Business card', handwriting: 'Handwriting' };
 const FINDER_MAX_SIDE = 1200;      // same as MOD03 cropEditor.js: the edge finder reads a copy no larger than this
 const $ = (id) => document.getElementById(id);
@@ -26,6 +29,76 @@ async function api(path, options) {
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || `${path}: HTTP ${r.status}`);
     return body;
+}
+
+// ---- One answer key for many photos of the same card (raven575, 2026-11-04) ------------------------------------
+// A photo uploaded with a card name is stored as "<card>__<photo>"; every photo of that card shares one answer key,
+// saved as the truth of "<card>__card". Each photo still keeps its own edges answer and gets its own score.
+
+/** The card a photo belongs to ("card-07" for "card-07__IMG_1.jpg"), or null for a photo on its own. */
+export function cardOf(name) {
+    const m = /^([A-Za-z0-9-]{1,40})__(?!card$)./.exec(name || '');
+    return m ? m[1] : null;
+}
+/** The name the card's shared answer key is saved under. */
+export function cardKeyName(card) { return `${card}__card`; }
+/** A card name as typed, made safe for a file name: letters, digits and dashes ("Card 7!" -> "Card-7"), or ''. */
+export function cleanCardName(text) {
+    return String(text || '').trim().replace(/[^A-Za-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+}
+/** The file name a photo is stored under: "<card>__<photo>" when it has a card name, else the photo's own name. */
+export function uploadName(card, fileName) {
+    const c = cleanCardName(card);
+    return c && !cardOf(fileName) ? `${c}__${fileName}` : fileName;
+}
+/**
+ * The truth a photo is scored against: its card's shared lines when it has a card and that key has lines, else its own
+ * saved truth. The edges answer always stays the photo's own.
+ */
+export function mergeTruth(own, key) {
+    if (!key || !Array.isArray(key.lines)) return own && own.lines ? own : null;
+    return { ...(own || {}), lines: key.lines, sharedFrom: key.card || true };
+}
+/**
+ * At Go, the lines that become a card's key: the first photo of that card whose lines were edited since they were
+ * shown (boxes: [{ card, lines, shown }]), else the first photo of it. One entry per card: { card: lines }.
+ */
+export function pickCardKeys(boxes) {
+    const out = {};
+    for (const b of boxes) {
+        if (!b.card) continue;
+        const edited = JSON.stringify(b.lines) !== JSON.stringify(b.shown);
+        if (!(b.card in out) || (edited && !out[b.card].edited)) out[b.card] = { lines: b.lines, edited };
+    }
+    return Object.fromEntries(Object.entries(out).map(([c, v]) => [c, v.lines]));
+}
+/** Per card, from the scores: photos, average, best and worst photo, and the fields that slipped most. */
+export function cardSummary(scores) {
+    const by = {};
+    for (const s of scores) {
+        const name = s.sample.split('/').pop(), card = cardOf(name);
+        if (!card) continue;
+        (by[card] = by[card] || []).push({ ...s, photo: name.slice(card.length + 2) });
+    }
+    return Object.entries(by).map(([card, list]) => {
+        const read = list.filter(s => s.outcome === 'read');
+        const sorted = read.slice().sort((a, b) => b.charAccuracy - a.charAccuracy);
+        const slips = {};
+        for (const s of read) for (const d of s.diffs) if (d.ops.some(o => o.op !== 'eq') || d.roleRead !== d.roleTruth) slips[d.roleTruth || 'other'] = (slips[d.roleTruth || 'other'] || 0) + 1;
+        for (const s of read) if (s.linesMissed) slips['missed lines'] = (slips['missed lines'] || 0) + s.linesMissed;
+        return { card, photos: list.length, failed: list.length - read.length,
+            average: read.length ? read.reduce((n, s) => n + s.charAccuracy, 0) / read.length : 0,
+            best: sorted[0] ? { photo: sorted[0].photo, acc: sorted[0].charAccuracy } : null,
+            worst: sorted.length ? { photo: sorted[sorted.length - 1].photo, acc: sorted[sorted.length - 1].charAccuracy } : null,
+            slips: Object.entries(slips).sort((a, b) => b[1] - a[1]).slice(0, 4) };
+    }).sort((a, b) => a.card.localeCompare(b.card));
+}
+/** A photo's truth: its own, with its card's shared lines when it has a card. */
+async function truthFor(set, name) {
+    const get = (n) => api(`truth?set=${encodeURIComponent(set)}&name=${encodeURIComponent(n)}`).catch(() => null);
+    const own = await get(name), card = cardOf(name);
+    const key = card ? await get(cardKeyName(card)) : null;
+    return mergeTruth(own, key && key.lines ? { ...key, card } : null);
 }
 
 // ---- Builds and samples ----------------------------------------------------------------------------------------
@@ -60,7 +133,8 @@ async function loadSamples() {
 async function upload(set, files) {
     for (const file of files) {
         $('runStatus').textContent = `Uploading ${file.name}…`;
-        await api(`upload?set=${encodeURIComponent(set)}&name=${encodeURIComponent(file.name)}`, { method: 'PUT', body: file });
+        const card = set === 'business-cards' ? ($('cardName') || {}).value : '';
+        await api(`upload?set=${encodeURIComponent(set)}&name=${encodeURIComponent(uploadName(card, file.name))}`, { method: 'PUT', body: file });
     }
     $('runStatus').textContent = `${files.length} file${files.length === 1 ? '' : 's'} added.`;
     await loadSamples();
@@ -86,10 +160,22 @@ function loadImage(url) {
     return new Promise((res, rej) => { const img = new Image(); img.onload = () => res(img); img.onerror = () => rej(new Error('image failed to load')); img.src = url; });
 }
 
-/** Edges, crop, read, map: one sample through the build's code. Returns a result record (never throws). */
-async function runSample(set, name, snap) {
+/** A small JPEG of what was read, for the set run's worst versions (a full-size PNG per version would fill memory). */
+function thumbOf(canvas) {
+    const scale = Math.min(1, 480 / Math.max(canvas.width, canvas.height));
+    const t = document.createElement('canvas'); t.width = Math.max(1, Math.round(canvas.width * scale)); t.height = Math.max(1, Math.round(canvas.height * scale));
+    t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height);
+    return t.toDataURL('image/jpeg', 0.7);
+}
+
+/**
+ * Edges, crop, read, map: one sample through the build's code. Returns a result record (never throws).
+ * opts.url reads another photo (a Funhouse version); opts.quad crops at known corners instead of finding edges (the
+ * set run's "perfect crop"); opts.statusId names the status line to update; opts.thumb keeps a small JPEG of the crop instead of the full-size PNG.
+ */
+async function runSample(set, name, snap, opts = {}) {
     const { finder, persp, ocr, mapper } = state.modules;
-    const r = { set, name, url: `${API}photo?set=${encodeURIComponent(set)}&name=${encodeURIComponent(name)}`, quad: null, cropUrl: null, outcome: 'read', error: null, ms: {}, confidence: null, lines: [], fields: null, width: 0, height: 0 };
+    const r = { set, name, url: opts.url || `${API}photo?set=${encodeURIComponent(set)}&name=${encodeURIComponent(name)}`, quad: null, cropUrl: null, outcome: 'read', error: null, ms: {}, confidence: null, lines: [], fields: null, width: 0, height: 0 };
     let t = performance.now();
     try {
         const img = await loadImage(r.url);
@@ -97,25 +183,29 @@ async function runSample(set, name, snap) {
         // Whole photo as a data URL (what the app reads when no corner is moved)
         const full = document.createElement('canvas'); full.width = img.naturalWidth; full.height = img.naturalHeight;
         full.getContext('2d').drawImage(img, 0, 0);
-        let source = full.toDataURL('image/png');
-        if (snap) {
+        let shown = full;
+        if (opts.quad) {
+            r.quad = opts.quad.map(p => ({ x: p.x, y: p.y }));
+            r.ms.edges = 0;
+        } else if (snap) {
             const scale = Math.min(1, FINDER_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
             const small = document.createElement('canvas'); small.width = Math.max(1, Math.round(img.naturalWidth * scale)); small.height = Math.max(1, Math.round(img.naturalHeight * scale));
             const sctx = small.getContext('2d'); sctx.drawImage(img, 0, 0, small.width, small.height);
             const quad = finder.findCardQuad(sctx.getImageData(0, 0, small.width, small.height));
             r.ms.edges = Math.round(performance.now() - t);
-            if (quad) {
-                r.quad = quad.map(p => ({ x: p.x / scale, y: p.y / scale }));
-                const { width, height } = persp.quadOutputSize(r.quad);
-                const flat = persp.warpPerspective(full.getContext('2d').getImageData(0, 0, full.width, full.height), r.quad, width, height);
-                const out = document.createElement('canvas'); out.width = width; out.height = height;
-                out.getContext('2d').putImageData(new ImageData(flat.data, width, height), 0, 0);
-                source = out.toDataURL('image/png');
-            }
+            if (quad) r.quad = quad.map(p => ({ x: p.x / scale, y: p.y / scale }));
         }
-        r.cropUrl = source;
+        if (r.quad) {
+            const { width, height } = persp.quadOutputSize(r.quad);
+            const flat = persp.warpPerspective(full.getContext('2d').getImageData(0, 0, full.width, full.height), r.quad, width, height);
+            const out = document.createElement('canvas'); out.width = width; out.height = height;
+            out.getContext('2d').putImageData(new ImageData(flat.data, width, height), 0, 0);
+            shown = out;
+        }
+        const source = shown.toDataURL('image/png');
+        r.cropUrl = opts.thumb ? thumbOf(shown) : source;
         t = performance.now();
-        const read = await ocr.executeOCRScan(source, { onStatus: s => { $('runStatus').textContent = `${name}: ${s === 'starting' ? 'preparing the reader' : 'reading'}…`; } });
+        const read = await ocr.executeOCRScan(source, { onStatus: s => { $(opts.statusId || 'runStatus').textContent = `${name}: ${s === 'starting' ? 'preparing the reader' : 'reading'}…`; } });
         r.ms.read = Math.round(performance.now() - t);
         r.confidence = read.confidence;
         const lines = mapper.classifyLines(read.lines && read.lines.length ? read.lines : read.text);
@@ -150,8 +240,7 @@ async function runAll() {
     for (let i = 0; i < jobs.length && !state.stop; i++) {
         const { set, name, snap } = jobs[i];
         const r = await runSample(set, name, snap);
-        const got = await api(`truth?set=${encodeURIComponent(set)}&name=${encodeURIComponent(name)}`).catch(() => null);
-        const truth = got && got.lines ? got : null;
+        const truth = await truthFor(set, name);
         state.results.push(r); if (truth) state.truths[`${set}/${name}`] = truth;
         $('rows').append(renderSample(r, truth, state.results.length - 1));
         $('progressFill').style.width = `${Math.round(((i + 1) / jobs.length) * 100)}%`;
@@ -231,7 +320,10 @@ function renderSample(r, truth, index) {
     mid.append(outcome, ul, fields);
     // Right: the truth inputs
     const right = document.createElement('div'); right.className = 'truth';
-    const rh = document.createElement('h3'); rh.textContent = truth ? 'Truth (saved earlier; edit if wrong)' : 'Correct what it got wrong';
+    const card = cardOf(r.name);
+    const rh = document.createElement('h3');
+    rh.textContent = truth && truth.sharedFrom ? `Answer key for card ${card} (shared by all its photos; edit if wrong)`
+        : truth ? 'Truth (saved earlier; edit if wrong)' : card ? `Correct what it got wrong (becomes the key for every photo of card ${card})` : 'Correct what it got wrong';
     const lines = document.createElement('div');
     const base = truth && truth.lines ? truth.lines : r.lines.map(l => ({ text: l.text, role: l.role, drop: false }));
     base.forEach((l, i) => lines.append(truthLineRow(l, (r.lines[i] || {}).text ?? '')));
@@ -240,6 +332,8 @@ function renderSample(r, truth, index) {
     const score = document.createElement('div'); score.className = 'score';
     right.append(rh, lines, add, score);
     box.append(left, mid, right);
+    box.card = card;
+    box.shownLines = () => base.map(l => ({ text: (l.text || '').trim(), role: l.role, drop: !!l.drop })).filter(l => l.text || l.drop);
     box.getTruth = () => ({ lines: Array.from(lines.children).map(row => row.getLine()).filter(l => l.text || l.drop), edgesOk: edgeBox.checked, hadQuad: !!r.quad });
     box.showScore = (s) => { score.innerHTML = scoreHtml(s); };
     if (truth) box.showScore(scoreSample(r, box.getTruth()));
@@ -340,6 +434,17 @@ function analyse(scores) {
 
 function pct(x) { return `${Math.round(x * 100)}%`; }
 
+/** The same card from every angle: one row per card. */
+export function cardsHtml(cards) {
+    if (!cards.length) return '';
+    const rows = cards.map(c => `<tr><td>${esc(c.card)}</td><td>${c.photos}</td><td>${pct(c.average)}</td><td>${c.best ? `${esc(c.best.photo)} (${pct(c.best.acc)})` : '–'}</td><td>${c.worst ? `${esc(c.worst.photo)} (${pct(c.worst.acc)})` : '–'}</td><td>${c.slips.map(([f, n]) => `${esc(f)} ×${n}`).join(', ') || 'none'}</td><td>${c.failed}</td></tr>`).join('');
+    return `<h3>Same card, every angle</h3><table><thead><tr><th>Card</th><th>Photos</th><th>Average</th><th>Best photo</th><th>Weakest photo</th><th>Fields that slipped</th><th>Failed reads</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+export function cardsMd(cards) {
+    if (!cards.length) return '';
+    return ['Same card, every angle:', ...cards.map(c => `- ${c.card}: ${c.photos} photos, average ${pct(c.average)}${c.best ? `, best ${c.best.photo} ${pct(c.best.acc)}` : ''}${c.worst ? `, weakest ${c.worst.photo} ${pct(c.worst.acc)}` : ''}${c.slips.length ? `, slipped: ${c.slips.map(([f, n]) => `${f} x${n}`).join(', ')}` : ''}${c.failed ? `, failed reads ${c.failed}` : ''}`)].join('\n');
+}
+
 function summaryHtml(a, build) {
     const row = (label, t) => t.n ? `<tr><td>${label}</td><td>${t.n}</td><td>${pct(t.charAccuracy)}</td><td>${t.linesExact}/${t.linesTotal}</td><td>${t.linesMissed}</td><td>${t.linesInvented}</td><td>${t.linesWrongRole}</td><td>${t.flagsRight} / ${t.flagsFalse} / ${t.flagsMissed}</td><td>${t.edgesTried ? `${t.edgesRight}/${t.edgesTried}` : '–'}</td><td>${t.failed}</td></tr>` : '';
     // Each confusion as it shows on Glyph's wrist scanner: what was read, a "?", what it should have been
@@ -360,16 +465,24 @@ async function go() {
     $('goBtn').disabled = true; $('goStatus').textContent = 'Saving corrections…';
     const boxes = Array.from($('rows').children), scores = [];
     try {
+        // Photos of the same card share one key: the photo you edited sets it, and every photo of that card is scored on it
+        const keys = pickCardKeys(boxes.map(b => ({ card: b.card, lines: b.getTruth().lines, shown: b.shownLines() })));
+        for (const [card, lines] of Object.entries(keys)) {
+            await api(`truth?set=business-cards&name=${encodeURIComponent(cardKeyName(card))}`, { method: 'PUT', body: JSON.stringify({ lines, card, build: state.build.short }) });
+        }
         for (const box of boxes) {
-            const r = state.results[Number(box.dataset.index)], truth = box.getTruth();
-            await api(`truth?set=${encodeURIComponent(r.set)}&name=${encodeURIComponent(r.name)}`, { method: 'PUT', body: JSON.stringify({ ...truth, build: state.build.short }) });
+            const r = state.results[Number(box.dataset.index)], own = box.getTruth();
+            const truth = box.card && keys[box.card] ? { ...own, lines: keys[box.card] } : own;
+            // A photo of a card keeps only its edges answer; its lines live in the card's key
+            const saved = box.card ? { edgesOk: own.edgesOk, hadQuad: own.hadQuad } : truth;
+            await api(`truth?set=${encodeURIComponent(r.set)}&name=${encodeURIComponent(r.name)}`, { method: 'PUT', body: JSON.stringify({ ...saved, build: state.build.short }) });
             const s = scoreSample(r, truth); scores.push(s); box.showScore(s);
         }
         const a = analyse(scores);
-        $('summary').innerHTML = summaryHtml(a, state.build);
-        const md = summaryMd(a, state.build, scores); $('summaryMd').value = md;
+        $('summary').innerHTML = summaryHtml(a, state.build) + cardsHtml(cardSummary(scores));
+        const md = [summaryMd(a, state.build, scores), cardsMd(cardSummary(scores))].filter(Boolean).join('\n'); $('summaryMd').value = md;
         $('analysis').classList.remove('hidden');
-        const reportHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>vCGE OCR bench ${esc(state.build.short)}</title><style>body{font:14px/1.5 system-ui,sans-serif;margin:24px;color:#14181f}table{border-collapse:collapse}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e3e6ea}del{background:#fde2e1;text-decoration:none}ins{background:#dcf5e4;text-decoration:none}.diff{font-family:monospace}</style></head><body><h1>OCR bench report</h1>${summaryHtml(a, state.build)}<h2>Samples</h2>${scores.map(s => `<h3>${esc(s.sample)}</h3>${scoreHtml(s)}`).join('')}<pre>${esc(md)}</pre></body></html>`;
+        const reportHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>vCGE OCR bench ${esc(state.build.short)}</title><style>body{font:14px/1.5 system-ui,sans-serif;margin:24px;color:#14181f}table{border-collapse:collapse}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e3e6ea}del{background:#fde2e1;text-decoration:none}ins{background:#dcf5e4;text-decoration:none}.diff{font-family:monospace}</style></head><body><h1>OCR bench report</h1>${summaryHtml(a, state.build)}${cardsHtml(cardSummary(scores))}<h2>Samples</h2>${scores.map(s => `<h3>${esc(s.sample)}</h3>${scoreHtml(s)}`).join('')}<pre>${esc(md)}</pre></body></html>`;
         const summary = { samples: scores.length, charAccuracy: a.all.charAccuracy, linesExact: a.all.linesExact, linesTotal: a.all.linesTotal, edgesRight: a.all.edgesRight, edgesTried: a.all.edgesTried, failed: a.all.failed, cards: a.cards.n, hand: a.hand.n };
         const saved = await api('runs', { method: 'POST', body: JSON.stringify({ build: state.build.short, subject: state.build.subject, when: new Date().toISOString(), scores, summary, summaryMd: md, reportHtml }) });
         $('savedNote').innerHTML = `Saved on the lab: <a href="${ROOT}${esc(saved.path)}report.html">report</a> (${esc(saved.path)}).`;
@@ -390,7 +503,147 @@ async function loadRuns() {
     const { runs } = await api('runs');
     const tb = $('runsTable').querySelector('tbody');
     tb.replaceChildren(...runs.map(r => { const tr = document.createElement('tr'); const s = r.summary || {};
-        tr.innerHTML = `<td>${esc(r.when.replace(/T(\d\d)-(\d\d)-\d\dZ/, ' $1:$2'))}</td><td><code>${esc(r.build)}</code></td><td>${s.samples ?? ''}</td><td>${s.charAccuracy != null ? pct(s.charAccuracy) : ''}</td><td>${s.linesTotal ? `${s.linesExact}/${s.linesTotal}` : ''}</td><td>${s.edgesTried ? `${s.edgesRight}/${s.edgesTried}` : '–'}</td><td><a href="${ROOT}bench/data/runs/${esc(r.build)}/${esc(r.when)}/report.html">report</a></td>`; return tr; }));
+        const isSet = s.kind === 'set';
+        const tick = isSet ? `<input type="checkbox" class="cmp" aria-label="compare" value="${esc(JSON.stringify({ build: r.build, when: r.when, set: s.set }))}">` : '';
+        tr.innerHTML = `<td>${tick}</td><td>${esc(r.when.replace(/T(\d\d)-(\d\d)-\d\dZ/, ' $1:$2'))}</td><td><code>${esc(r.build)}</code></td><td>${isSet ? `${esc(s.set)}${s.mode === 'perfect' ? ' (perfect crop)' : ''}` : '–'}</td><td>${s.samples ?? ''}</td><td>${s.charAccuracy != null ? pct(s.charAccuracy) : ''}</td><td>${s.linesTotal ? `${s.linesExact}/${s.linesTotal}` : ''}</td><td>${s.edgesTried ? `${s.edgesRight}/${s.edgesTried}` : '–'}</td><td><a href="${ROOT}bench/data/runs/${esc(r.build)}/${esc(r.when)}/report.html">report</a></td>`; return tr; }));
+    tb.querySelectorAll('input.cmp').forEach(x => x.addEventListener('change', onCompareTick)); onCompareTick();
+}
+
+// ---- Run a set: every version of a Funhouse set, scored by effect ----------------------------------------------
+
+async function funhouse(path) {
+    const r = await fetch(FUNHOUSE + path, { cache: 'no-store' });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body.error || `${path}: HTTP ${r.status}`);
+    return body;
+}
+
+/** Lists the Funhouse's finished sets; the panel stays hidden when the Funhouse isn't there. */
+async function loadSets() {
+    let sets;
+    try { ({ sets } = await funhouse('sets')); } catch { return; }
+    const ready = (sets || []).filter(x => x.status === 'ready' || x.done === x.total);
+    $('setSelect').replaceChildren(...ready.map(x => new Option(`${x.name}  (${x.done ?? x.total} versions)`, x.name)));
+    if (!ready.length) $('setStatus').textContent = 'No finished sets yet. Make one in the Funhouse first.';
+    $('setRunBtn').disabled = !ready.length || $('runBtn').disabled;
+    $('setPanel').classList.remove('hidden');
+}
+
+const fieldMark = (v) => (v == null ? '<span class="na">–</span>' : v ? '<span class="yes">✓</span>' : '<span class="no">✗</span>');
+
+/** The effects one version used, in words: "warp, background: wood, glare". */
+function effectWords(effects) {
+    return Object.entries(effects || {}).filter(([k]) => k !== 'size').map(([k, v]) => (k === 'background' ? `background: ${v.kind}` : k)).join(', ') || 'clean';
+}
+
+function versionHtml(key, row, r) {
+    const v = row.values;
+    const outcome = r.outcome === 'read' ? `${Math.round(v.chars * 100)}%` : `<span class="bad">${esc(r.outcome)}</span>`;
+    return `<td>#${row.n}</td><td>${esc(key.source)}</td><td class="fx">${esc(effectWords(row.effects))}</td><td>${outcome}</td><td>${fieldMark(v.name)}</td><td>${fieldMark(v.phone)}</td><td>${fieldMark(v.email)}</td>`;
+}
+
+function scorecardHtml(card) {
+    const p = (x) => (x == null ? '–' : pct(x));
+    const tr = (g) => `<tr class="${g.trusted === false ? 'few' : ''}"><td>${esc(g.label)}</td><td>${g.n}</td><td>${p(g.mean.chars)}</td><td>${p(g.mean.name)}</td><td>${p(g.mean.phone)}</td><td>${p(g.mean.email)}</td><td>${p(g.mean.turnedDown)}</td></tr>`;
+    return `<table class="card"><thead><tr><th>Group</th><th>Versions</th><th>Characters right</th><th>Name right</th><th>Phone right</th><th>Email right</th><th>Couldn't read</th></tr></thead><tbody>${tr({ ...card.all, label: 'every version', trusted: true })}${card.groups.map(tr).join('')}</tbody></table>`
+        + `<p class="note">Worst groups first. Greyed groups have fewer than ${MIN_TRUSTED} versions: too few to trust yet.</p>`;
+}
+
+async function runSet() {
+    const name = $('setSelect').value, mode = $('setMode').value;
+    if (!name) return;
+    $('setRunBtn').disabled = true; $('runBtn').disabled = true; $('setStopBtn').disabled = false; state.stop = false;
+    $('setProgress').classList.remove('hidden'); $('setProgressFill').style.width = '0';
+    $('setResults').classList.add('hidden'); $('setSaved').textContent = ''; $('setMd').value = ''; $('setCard').replaceChildren();
+    $('setRows').querySelector('tbody').replaceChildren(); $('setStatus').textContent = 'Starting…';
+    const done = () => { $('setRunBtn').disabled = false; $('runBtn').disabled = false; $('setStopBtn').disabled = true; };
+    try {
+        await loadModules();
+    } catch (e) {
+        say("I couldn't open this build's reader. Pick another build and I'll try that one.");
+        $('setStatus').textContent = `Could not load the build's modules: ${e.message}`; done(); return;
+    }
+    const set = await funhouse(`set?name=${encodeURIComponent(name)}`);
+    // Each source card's answer key is its saved Reading Room truth, found by its Shelf name
+    const truthByName = {};
+    for (const src of set.sources || []) {
+        const got = await truthFor('business-cards', src.name);
+        if (got && got.lines) truthByName[src.name] = got;
+    }
+    const keys = keysForSet(set, truthByName), todo = keys.filter(k => k.truth);
+    const noKey = [...new Set(keys.filter(k => !k.truth).map(k => k.source || 'an unknown photo'))];
+    say(todo.length ? `Funhouse night. ${plural(todo.length, 'version')} of ${plural(Object.keys(truthByName).length, 'card')} I already know by heart. Let's see what the mirrors do to me.`
+        : "None of this set's cards have a saved answer key. Read them once in the in-tray above, press Go, then come back.");
+    const rows = [], scores = [], results = [];
+    for (let i = 0; i < todo.length && !state.stop; i++) {
+        const { version: v, source, truth } = todo[i];
+        $('setStatus').textContent = `Version ${i + 1} of ${todo.length}…`;
+        const r = await runSample('funhouse', `${name} #${v.n}`, mode === 'app', { url: `${FUNHOUSE}image?set=${encodeURIComponent(name)}&n=${v.n}`, quad: mode === 'perfect' ? v.corners : null, thumb: true, statusId: 'setStatus' });
+        const score = scoreSample(r, { ...truth, edgesOk: null, hadQuad: !!r.quad });
+        const row = versionRow(v, score, truth);
+        rows.push(row); results.push(r);
+        const { diffs, confusions: _, ...slim } = score;   // the saved run keeps numbers, not what the card says
+        scores.push({ ...slim, n: v.n, source, sample: `${name}/${v.file}` });
+        const tr = document.createElement('tr'); tr.innerHTML = versionHtml(todo[i], row, r); $('setRows').querySelector('tbody').append(tr);
+        $('setProgressFill').style.width = `${Math.round(((i + 1) / todo.length) * 100)}%`;
+    }
+    const stopped = state.stop;
+    if (!rows.length) { $('setStatus').textContent = noKey.length ? `Nothing scored: no answer key for ${noKey.join(', ')}.` : 'Nothing scored.'; done(); return; }
+    const card = setScorecard(rows, set.settings);
+    const info = { set: name, build: state.build.short, mode, scored: rows.length, total: keys.length };
+    const md = scorecardMd(card, info) + (noKey.length ? `\nSkipped (no answer key yet): ${keys.length - todo.length} versions` : '') + (stopped ? '\nStopped early.' : '');
+    $('setCard').innerHTML = scorecardHtml(card); $('setMd').value = md; $('setResults').classList.remove('hidden');
+    $('setStatus').textContent = `${stopped ? 'Stopped' : 'Done'}: ${rows.length} of ${keys.length} versions scored${noKey.length ? `, ${keys.length - todo.length} skipped (no answer key for ${noKey.join(', ')})` : ''}.`;
+    // Only the ten worst versions keep a picture of what was read
+    const worst = rows.map((row, i) => ({ row, r: results[i] })).sort((a, b) => a.row.values.chars - b.row.values.chars).slice(0, 10);
+    const reportHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>vCGE set run ${esc(name)} ${esc(state.build.short)}</title><style>body{font:14px/1.5 system-ui,sans-serif;margin:24px;color:#14181f}table{border-collapse:collapse}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e3e6ea}tr.few td{color:#8a929c}figure{display:inline-block;margin:8px}img{max-width:320px;border:1px solid #e3e6ea}</style></head><body><h1>Reading Room set run</h1><p>Set <b>${esc(name)}</b> (seed ${esc(set.seed)}), build <code>${esc(state.build.short)}</code>, ${mode === 'perfect' ? 'perfect crop' : 'as the app does it'}.</p>${scorecardHtml(card)}<h2>The ten worst versions</h2>${worst.map(w => `<figure><img src="${w.r.cropUrl}" alt=""><figcaption>#${w.row.n}: ${pct(w.row.values.chars)}, ${esc(effectWords(w.row.effects))}</figcaption></figure>`).join('')}<pre>${esc(md)}</pre></body></html>`;
+    const turnedDown = rows.filter(x => x.values.turnedDown).length;
+    const summary = { kind: 'set', set: name, seed: set.seed, mode, samples: rows.length, total: keys.length, charAccuracy: card.all.mean.chars, linesExact: scores.reduce((n, x) => n + x.linesExact, 0), linesTotal: scores.reduce((n, x) => n + x.linesTotal, 0), failed: turnedDown };
+    try {
+        const saved = await api('runs', { method: 'POST', body: JSON.stringify({ build: state.build.short, subject: state.build.subject, when: new Date().toISOString(), kind: 'set', set: name, seed: set.seed, mode, scores, rows, scorecard: card, summary, summaryMd: md, reportHtml }) });
+        $('setSaved').innerHTML = `Saved on the lab: <a href="${ROOT}${esc(saved.path)}report.html">report</a> (${esc(saved.path)}).`;
+        await loadRuns();
+    } catch (e) {
+        $('setSaved').textContent = `Not saved: ${e.message}`;
+    }
+    const all = card.all.mean.chars, worstGroup = card.groups.find(g => g.trusted);
+    say(stopped ? "Stopped. The versions I did read are scored below."
+        : `${pct(all)} of characters right across the set.${worstGroup ? ` ${worstGroup.label} hurt the most.` : ` No group has ${MIN_TRUSTED} versions yet, so I won't blame any one mirror.`}`);
+    done();
+}
+
+// ---- Compare two set runs ------------------------------------------------------------------------------------------
+
+/** Two runs' scorecards side by side, by group: characters right in each and the change. */
+export function compareCards(a, b) {
+    const byKey = new Map(b.groups.map(g => [g.key, g]));
+    const rows = [{ label: 'every version', a: a.all, b: b.all }, ...a.groups.map(g => ({ label: g.label, a: g, b: byKey.get(g.key) || null }))];
+    for (const g of b.groups) if (!a.groups.some(x => x.key === g.key)) rows.push({ label: g.label, a: null, b: g });
+    return rows.map(r => ({ label: r.label, nA: r.a ? r.a.n : 0, nB: r.b ? r.b.n : 0, charsA: r.a ? r.a.mean.chars : null, charsB: r.b ? r.b.mean.chars : null,
+        change: r.a && r.b && r.a.mean.chars != null && r.b.mean.chars != null ? r.b.mean.chars - r.a.mean.chars : null }));
+}
+
+async function compareRuns() {
+    const ticked = Array.from(document.querySelectorAll('#runsTable input.cmp:checked')).map(x => JSON.parse(x.value));
+    if (ticked.length !== 2) return;
+    const [a, b] = ticked.sort((x, y) => x.when.localeCompare(y.when));
+    const get = async (r) => { const res = await fetch(`${ROOT}bench/data/runs/${encodeURIComponent(r.build)}/${encodeURIComponent(r.when)}/scorecard.json`, { cache: 'no-store' }); if (!res.ok) throw new Error(`scorecard for ${r.build} not found`); return res.json(); };
+    try {
+        const rows = compareCards(await get(a), await get(b));
+        const p = (x) => (x == null ? '–' : pct(x));
+        const ch = (x) => (x == null ? '–' : `<span class="${x > 0.005 ? 'up' : x < -0.005 ? 'down' : ''}">${x > 0 ? '+' : ''}${Math.round(x * 100)}</span>`);
+        $('compare').innerHTML = `<h3>Set ${esc(a.set)}: <code>${esc(a.build)}</code> then <code>${esc(b.build)}</code></h3><table class="card"><thead><tr><th>Group</th><th>Versions</th><th>${esc(a.build)} characters right</th><th>${esc(b.build)} characters right</th><th>Change (points)</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${r.nA || r.nB}</td><td>${p(r.charsA)}</td><td>${p(r.charsB)}</td><td>${ch(r.change)}</td></tr>`).join('')}</tbody></table>`;
+        $('compare').classList.remove('hidden');
+    } catch (e) {
+        $('compare').textContent = `Could not compare: ${e.message}`; $('compare').classList.remove('hidden');
+    }
+}
+
+function onCompareTick() {
+    const ticked = Array.from(document.querySelectorAll('#runsTable input.cmp:checked')).map(x => JSON.parse(x.value));
+    const sameSet = ticked.length === 2 && ticked[0].set === ticked[1].set;
+    $('compareBtn').disabled = !sameSet;
+    $('compareNote').textContent = ticked.length === 2 && !sameSet ? 'Pick two runs of the same set.' : '';
 }
 
 // ---- Boot ----------------------------------------------------------------------------------------------------------
@@ -399,5 +652,8 @@ if (typeof document !== 'undefined' && $('buildSelect')) {
     $('runBtn').addEventListener('click', () => runAll().catch(e => { $('runStatus').textContent = `Run failed: ${e.message}`; $('runBtn').disabled = false; $('stopBtn').disabled = true; }));
     $('stopBtn').addEventListener('click', () => { state.stop = true; $('stopBtn').disabled = true; });
     $('goBtn').addEventListener('click', go);
-    Promise.all([loadBuilds(), loadSamples(), loadRuns()]).catch(e => { $('runStatus').textContent = `The bench service is not answering: ${e.message}`; say("The archive isn't answering. Nothing to read until the lab's file service is back."); });
+    $('setRunBtn').addEventListener('click', () => runSet().catch(e => { $('setStatus').textContent = `Set run failed: ${e.message}`; $('setRunBtn').disabled = false; $('runBtn').disabled = false; $('setStopBtn').disabled = true; }));
+    $('setStopBtn').addEventListener('click', () => { state.stop = true; $('setStopBtn').disabled = true; });
+    $('compareBtn').addEventListener('click', compareRuns);
+    Promise.all([loadBuilds(), loadSamples(), loadRuns()]).then(loadSets).catch(e => { $('runStatus').textContent = `The bench service is not answering: ${e.message}`; say("The archive isn't answering. Nothing to read until the lab's file service is back."); });
 }
