@@ -27,6 +27,22 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: v
 .tag { font-size: .7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
 .tag.priv { border-color: #B45309; color: #B45309; }
 @media (prefers-reduced-motion: no-preference) { .card { transition: transform .2s; } .card:hover { transform: translateY(-2px); } }
+.spot { margin-top: 14px; padding: 4px 14px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--tint) 45%, var(--line));
+  background: color-mix(in srgb, var(--tint) 7%, var(--panel)); }
+.spot-row { display: flex; gap: 14px; align-items: flex-start; }
+.spot-row img { flex: none; border-radius: 14px; background: color-mix(in srgb, var(--tint) 18%, transparent); padding: 6px; }
+.spot .who { font-weight: 700; margin: 4px 0 6px; }
+.spot blockquote { margin: 8px 0 0; padding: 6px 12px; border-left: 4px solid var(--tint); font-style: italic; font-weight: 600; }
+.spot h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 12px 0 4px; }
+.signals { margin: 0; padding-left: 18px; }
+.chips { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 4px 10px 4px 26px; border: 1px solid var(--line); border-radius: 99px; font-size: .85rem; position: relative; }
+.chip::before { content: ""; position: absolute; left: 8px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 3px; }
+.t-vcge .chip-0::before { background: #E0B43A; } .t-vcge .chip-1::before { background: #5F6B7A; } .t-vcge .chip-2::before { background: #D8C3A0; }
+.t-vcge main { background-image: linear-gradient(color-mix(in srgb, #E0B43A 7%, transparent) 1px, transparent 1px),
+  linear-gradient(90deg, color-mix(in srgb, #E0B43A 7%, transparent) 1px, transparent 1px); background-size: 28px 28px; }
+.t-vcge .motto::before { content: "\25A0  "; }
+@media (max-width: 560px) { .spot-row { flex-direction: column; } }
 .t-vcge { --tint: #E0B43A; }
 .t-creative { --tint: #2E9E5B; }
 .t-marketing { --tint: #337BC7; }

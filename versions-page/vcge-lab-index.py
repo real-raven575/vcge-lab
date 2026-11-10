@@ -86,8 +86,9 @@ memory = json.dumps({
                'date': utc(versions[-1]['date']).strftime('%Y-%m-%d %H:%M UTC')} if versions else None,
 }).replace('<', '\\u003c')
 portal = os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www'))  # the Flight Deck is installed: link back to it
-back = ('<a class="back" href="/">&larr; Flight Deck</a> &middot; <a class="back" href="/menu/">&#9776; Menu</a>'
-        if portal else '')
+# The deck bar (the same menu on every Flight Deck page). Filled in by flight-deck/team-pages/build-team-pages.py.
+DECKBAR = '<!-- deckbar: made by flight-deck/team-pages/build-team-pages.py, edit it there --><nav class="deckbar" aria-label="Flight Deck menu"><a class="db-home" href="/"><span aria-hidden="true">✈</span> Flight Deck</a><a href="/menu/"><span aria-hidden="true">☰</span> Menu</a><a href="/desk/"><span aria-hidden="true">📜</span> Desk</a><details><summary><span aria-hidden="true">📇</span> Teams</summary><div class="db-list"><a href="/teams/vcge/"><span aria-hidden="true">🐘</span> Team vCGE</a><a href="/teams/creative/"><span aria-hidden="true">🐼</span> Team vCGE: Creative</a><a href="/teams/marketing/"><span aria-hidden="true">🦚</span> Team vCGE: Marketing</a><a href="/teams/homelab/"><span aria-hidden="true">🐧</span> Team HomeLab</a><a href="/teams/email/"><span aria-hidden="true">🐝</span> Team eMail</a><a href="/teams/history/"><span aria-hidden="true">🐿️</span> Team History</a><a href="/teams/finance/"><span aria-hidden="true">🐜</span> Team Finance</a><a href="/teams/vault/"><span aria-hidden="true">🦏</span> Team Vault</a><a href="/teams/auto-fixer/"><span aria-hidden="true">🐒</span> Team Auto-Fixer</a><a href="/teams/9to5/"><span aria-hidden="true">🤖</span> TEAM 9to5</a><a href="/teams/never-forget/"><span aria-hidden="true">🦒</span> TEAM Never Forget</a></div></details><details><summary><span aria-hidden="true">🐘</span> vCGE lab</summary><div class="db-list"><a href="/vcge/" aria-current="page"><span aria-hidden="true">🐘</span> The Elephant&#x27;s Memory</a><a href="/vcge/latest/"><span aria-hidden="true">🛫</span> Newest build</a><a href="/vcge/bench/"><span aria-hidden="true">🦉</span> The Reading Room</a><a href="/vcge/edge-bench/"><span aria-hidden="true">🐈</span> The Darkroom</a><a href="/vcge/logo-bench/"><span aria-hidden="true">🦎</span> The Paint Shop</a><a href="/vcge/funhouse/"><span aria-hidden="true">🎪</span> The Funhouse</a><a href="/vcge/shelf/"><span aria-hidden="true">📚</span> The Card Shelf</a><a href="/vcge/testing/"><span aria-hidden="true">🦝</span> Wipe Trials</a></div></details><span class="db-here">The Elephant&#x27;s Memory</span></nav><!-- /deckbar -->'
+back = ''
 
 ELEPHANT = '''<svg viewBox="0 0 96 80" width="76" height="64" aria-hidden="true" class="ele">
 <g class="body"><ellipse cx="54" cy="44" rx="30" ry="21"/><rect x="32" y="52" width="10" height="20" rx="4"/><rect x="46" y="54" width="10" height="18" rx="4"/>
@@ -193,7 +194,8 @@ for (const t of document.querySelectorAll('time[datetime]')) {
 '''
 
 head = ('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-        "<title>vCGE Lab: The Elephant's Memory</title><style>" + CSS + '</style></head><body><main>')
+        "<title>vCGE Lab: The Elephant's Memory</title><style>" + CSS + '</style>' + ('<link rel="stylesheet" href="/deckbar.css">' if portal else '') + '</head><body>'
+        + (DECKBAR if portal else '') + '<main>')
 page = head + f'''
 <header class="top">{back}<div class="mast"><button type="button" class="cs" id="cs" aria-label="Ask Cornerstone for another thought">{ELEPHANT}</button>
 <div><h1>The Elephant's Memory</h1><p class="tag">vCGE Lab &middot; kept by Cornerstone, PM &middot; every pushed version of vCGE, built on this machine</p></div></div></header>

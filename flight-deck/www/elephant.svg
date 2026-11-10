@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Cornerstone the Elephant</title>
+  <!-- Cornerstone the Elephant (PM-vCGE-00, Team vCGE), hand-written SVG: slate hide, sunrise-gold ear tips, the gold "00" cornerstone badge. -->
+  <path d="M14 18c-9 2-12 14-6 22 4 5 10 5 13 2" fill="#7A8594" stroke="#E0B43A" stroke-width="2.5"/>
+  <path d="M50 18c9 2 12 14 6 22-4 5-10 5-13 2" fill="#7A8594" stroke="#E0B43A" stroke-width="2.5"/>
+  <circle cx="32" cy="28" r="18" fill="#8B96A5"/>
+  <path d="M28 38c-2 8-1 14 3 18 2 2 5 1 4-2-2-4-2-9 0-14" fill="#8B96A5"/>
+  <path d="M24 40c-3 3-7 3-9 1M40 40c3 3 7 3 9 1" fill="none" stroke="#F4EBD9" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="25" cy="25" r="2.4" fill="#2A1E12"/><circle cx="39" cy="25" r="2.4" fill="#2A1E12"/>
+  <path d="M22 20c2-2 5-2 6 0M36 20c2-2 5-2 6 0" fill="none" stroke="#5A6475" stroke-width="1.5" stroke-linecap="round"/>
+  <rect x="44" y="44" width="16" height="16" rx="2" fill="#E0B43A" stroke="#8A6A12" stroke-width="1.5"/>
+  <text x="52" y="56" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#2A1E12" text-anchor="middle">00</text>
+</svg>
