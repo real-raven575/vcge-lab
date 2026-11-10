@@ -186,6 +186,7 @@ TOOLS = {
     ('Builds', 'The Elephant\'s Memory', 'Every build, newest first', '/vcge/', False),
     ('Builds', 'Newest build', 'Open the app as it is right now', '/vcge/latest/', False),
     ('Benches', 'The Reading Room', 'Glyph\'s OCR bench', '/vcge/bench/', False),
+    ('Benches', 'The Scriptorium', 'Glyph\'s handwriting bench', '/vcge/bench/handwriting.html', False),
     ('Benches', 'The Darkroom', 'Iris\'s edge bench', '/vcge/edge-bench/', False),
     ('Benches', 'The Paint Shop', 'Flipside\'s logo bench', '/vcge/logo-bench/', False),
     ('Benches', 'The Funhouse', 'Iris\'s tricky-photo maker', '/vcge/funhouse/', False),
@@ -234,6 +235,7 @@ TOOLS = {
     ('How-to guides', 'Leaf Seat Airbag Check', 'Picture guide', 'https://claude.ai/artifact/DZCM2ftWvToV3XKFwbVg7J', True),
   ],
   'history': [
+    ('Read', 'The Stash', 'Team History\'s wiki: the Herd timeline, the story and every record (on the deck)', '/teams/history/stash/', False),
     ('Read', 'Herd Glossary (v2)', 'Every Herd word, explained', 'https://docs.google.com/document/d/1ywVm0pJdsssXg153wSZAmUXqH7dyTSd9D8TTFxQK6HU/edit', True),
     ('Read', 'Meet the Herd', 'Who is who', 'https://drive.google.com/file/d/1dQr4vbUWb8x3qIi1RqofyqpFK7_uxkO8/view', True),
     ('Read', 'W45 Field Notes', 'PDF', 'https://drive.google.com/file/d/1DcOlo-m9rTB8GhHvKOUYJiwzAwv3UvSJ/view', True),
@@ -316,7 +318,8 @@ E = html.escape
 # and (between the deckbar markers) the hand-written pages listed in BAR_PAGES. Run with --also FILE to
 # refresh a page kept outside git (the Darkroom, the Funhouse).
 LAB = [('🐘', "The Elephant's Memory", '/vcge/'), ('🛫', 'Newest build', '/vcge/latest/'),
-       ('🦉', 'The Reading Room', '/vcge/bench/'), ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
+       ('🦉', 'The Reading Room', '/vcge/bench/'), ('✍️', 'The Scriptorium', '/vcge/bench/handwriting.html'),
+       ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
        ('🦎', 'The Paint Shop', '/vcge/logo-bench/'), ('🎪', 'The Funhouse', '/vcge/funhouse/'),
        ('📚', 'The Card Shelf', '/vcge/shelf/'), ('📬', 'Card Inbox', '/vcge/inbox/'), ('🦝', 'Wipe Trials', '/vcge/testing/')]
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -324,11 +327,13 @@ BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you ar
   'flight-deck/www/index.html': ('/', None),
   'flight-deck/www/desk/index.html': ('/desk/', 'Desk'),
   'bench/www/index.html': ('/vcge/bench/', 'The Reading Room'),
+  'bench/www/handwriting.html': ('/vcge/bench/handwriting.html', 'The Scriptorium'),
   'card-shelf/www/index.html': ('/vcge/shelf/', 'The Card Shelf'),
   'card-inbox/www/index.html': ('/vcge/inbox/', 'The Card Inbox'),
   'logo-bench/www/index.html': ('/vcge/logo-bench/', 'The Paint Shop'),
   'wipe-trials/www/index.html': ('/vcge/testing/', 'Wipe Trials'),
   'versions-page/vcge-lab-index.py': ('/vcge/', "The Elephant's Memory"),
+  'flight-deck/www/teams/history/stash/index.html': ('/teams/history/stash/', 'The Stash'),   # Team History's wiki (HIST-0031), their own build; only the bar is ours
 }
 ALSO = {'edge-bench': ('/vcge/edge-bench/', 'The Darkroom'), 'funhouse': ('/vcge/funhouse/', 'The Funhouse')}
 
