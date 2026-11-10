@@ -110,3 +110,26 @@ test('every lab tool page has a breadcrumb back to the deck, the lab and the men
     assert.match(crumb, /aria-current="page"/);
   }
 });
+
+// Windows 10 draws emoji only up to Emoji 12.0; newer ones show as an empty box (raven575, 11-10: the Team page
+// card 🪪 14.0, the Funhouse mirror 🪞 13.0, the peanut jar 🫙 14.0). These ranges hold the Emoji 13.0+ pictographs.
+const TOO_NEW = [[0x1FA74, 0x1FA77], [0x1FA7B, 0x1FA7F], [0x1FA83, 0x1FA8F], [0x1FA96, 0x1FAFF], [0x1F6D6, 0x1F6DF],
+  [0x1F6FB, 0x1F6FF], [0x1F7F0, 0x1F7F0], [0x1F90C, 0x1F90C], [0x1F972, 0x1F972], [0x1F977, 0x1F979], [0x1F9A3, 0x1F9A4],
+  [0x1F9AB, 0x1F9AD], [0x1F9CB, 0x1F9CC], [0x1F9DE, 0x1F9DF]];
+test('no page uses an emoji newer than Emoji 12.0 (Windows 10 shows a box)', () => {
+  const root = path.join(__dirname, '..', '..');
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {
+    const p = path.join(d, e.name);
+    if (e.isDirectory()) return ['.git', 'node_modules', 'test'].includes(e.name) ? [] : walk(p);
+    return /\.(html|css|js|py|json|sh)$/.test(e.name) ? [p] : [];
+  });
+  for (const f of walk(root)) {
+    const t = fs.readFileSync(f, 'utf8').replace(/&#(x?)([0-9a-f]+);/gi, (_, x, n) => String.fromCodePoint(parseInt(n, x ? 16 : 10)));
+    for (const ch of t) {
+      const c = ch.codePointAt(0);
+      if (c < 0x1F000) continue;
+      const bad = TOO_NEW.find(([a, b]) => c >= a && c <= b);
+      assert.ok(!bad, `${path.relative(root, f)}: U+${c.toString(16).toUpperCase()} ${ch} is newer than Emoji 12.0`);
+    }
+  }
+});
