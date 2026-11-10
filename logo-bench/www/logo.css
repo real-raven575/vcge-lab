@@ -69,3 +69,5 @@ select { background: var(--panel-2); color: var(--text); border: 1px solid var(-
 .shape a { color: #1F6B35; }
 
 @media (prefers-reduced-motion: reduce) { #progressFill { transition: none; } }
+.back a { color: inherit; text-decoration: none; }
+.back a:hover { text-decoration: underline; }

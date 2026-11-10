@@ -72,7 +72,7 @@ def row(link, label, m):
 
 now = when(datetime.now(timezone.utc))
 # When the lab has a Flight Deck (a front page for several teams, see flight-deck/), link back to it.
-back = '<p><a href="/">&larr; Flight Deck</a></p>' if os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www')) else ''
+back = '<p><a href="/">&larr; Flight Deck</a> &middot; <a href="/menu/">Menu</a></p>' if os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www')) else ''
 page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>vCGE Lab</title><style>
 body{{font:14px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px;background:#f6f7f9;color:#14181f}}

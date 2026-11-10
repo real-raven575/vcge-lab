@@ -40,3 +40,5 @@ button, input { font: inherit; }
 .tile .name { font-size: .8rem; overflow-wrap: anywhere; }
 .tile .meta { font-size: .75rem; color: var(--dim); }
 .tile .acts { display: flex; flex-wrap: wrap; gap: .3rem; }
+.back a { color: inherit; text-decoration: none; }
+.back a:hover { text-decoration: underline; }
