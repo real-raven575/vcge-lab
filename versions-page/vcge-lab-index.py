@@ -72,7 +72,9 @@ def row(link, label, m):
 
 now = when(datetime.now(timezone.utc))
 # When the lab has a Flight Deck (a front page for several teams, see flight-deck/), link back to it.
-back = '<p><a href="/">&larr; Flight Deck</a> &middot; <a href="/menu/">Menu</a></p>' if os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www')) else ''
+# The deck bar (the same menu on every Flight Deck page). Filled in by flight-deck/team-pages/build-team-pages.py.
+DECKBAR = '<!-- deckbar: made by flight-deck/team-pages/build-team-pages.py, edit it there --><nav class="deckbar" aria-label="Flight Deck menu"><a class="db-home" href="/">Flight Deck</a><a href="/menu/">Menu</a><a href="/desk/">Desk</a><details><summary>Teams</summary><div class="db-list"><a href="/teams/vcge/">Team vCGE</a><a href="/teams/creative/">Team vCGE: Creative</a><a href="/teams/marketing/">Team vCGE: Marketing</a><a href="/teams/homelab/">Team HomeLab</a><a href="/teams/email/">Team eMail</a><a href="/teams/history/">Team History</a><a href="/teams/finance/">Team Finance</a><a href="/teams/vault/">Team Vault</a><a href="/teams/auto-fixer/">Team Auto-Fixer</a><a href="/teams/9to5/">TEAM 9to5</a><a href="/teams/never-forget/">TEAM Never Forget</a></div></details><details><summary>vCGE lab</summary><div class="db-list"><a href="/vcge/" aria-current="page">The Elephant&#x27;s Memory</a><a href="/vcge/latest/">Newest build</a><a href="/vcge/bench/">The Reading Room</a><a href="/vcge/edge-bench/">The Darkroom</a><a href="/vcge/logo-bench/">The Paint Shop</a><a href="/vcge/funhouse/">The Funhouse</a><a href="/vcge/shelf/">The Card Shelf</a><a href="/vcge/testing/">Wipe Trials</a></div></details><span class="db-here">The Elephant&#x27;s Memory</span></nav><!-- /deckbar -->'
+back = DECKBAR if os.path.isdir(os.path.join(os.path.dirname(LAB), 'portal', 'www')) else ''
 page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>vCGE Lab</title><style>
 body{{font:14px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px;background:#f6f7f9;color:#14181f}}
@@ -81,8 +83,8 @@ main{{max-width:1000px;margin:auto}} h1{{margin:0 0 4px}} h2{{margin-top:28px}} 
 .wrap{{overflow-x:auto}} table{{border-collapse:collapse;width:100%;background:#fff}} th,td{{text-align:left;padding:8px 10px;border-bottom:1px solid #e3e6ea;vertical-align:top}}
 th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#5b6472}} a{{color:#0b63c5}} .ok{{color:#13803a}} .ver{{white-space:nowrap;font-variant-numeric:tabular-nums}} .local{{display:block;color:#5b6472;font-size:12px}} p .local{{display:inline;font-size:inherit}} p .local::before{{content:' / '}} .bad{{color:#b42318;font-weight:600}}
 @media (prefers-color-scheme:dark){{body{{background:#0f1217;color:#e6e8eb}} table,.fresh{{background:#161a21}} .fresh{{border-color:#262c36}} th,td{{border-color:#262c36}} p,th,.local{{color:#9aa3b0}} a{{color:#6cb2ff}}}}
-</style></head><body><main>
-{back}<h1>vCGE Lab</h1><p>Every pushed version of vCGE, built on this machine. <a href="latest/">Open the newest build</a>. Updated {now}.</p>
+</style>{'<link rel="stylesheet" href="/deckbar.css">' if back else ''}</head><body>{back}<main>
+<h1>vCGE Lab</h1><p>Every pushed version of vCGE, built on this machine. <a href="latest/">Open the newest build</a>. Updated {now}.</p>
 <div class="fresh"><p><strong>Start fresh.</strong> All versions on this address share one saved vault and settings (browsers keep data per site, not per folder), so a vault made in one version is the vault every version asks for. This deletes everything this browser saved for the lab: the vault, the session, settings and cached files.</p>
 <a class="btn" href="reset.html" onclick="return confirm('Delete everything this browser saved for the vCGE lab (vault, settings, cache)? This cannot be undone.')">Start fresh: clear this browser's lab data</a></div>
 <h2>Branches</h2><div class="wrap"><table><tr><th>Branch</th><th>Commit</th><th>Version</th><th>Change</th><th>Committed</th><th>Unit tests</th><th></th></tr>

@@ -56,7 +56,7 @@ test('each plain team page has the five sections, links every team, stays offlin
     const t = fs.readFileSync(path.join(teamsDir, s, 'index.html'), 'utf8');
     for (const h of ['What we do', 'Crew', 'The plan', 'What we can reach', 'Logbook']) assert.ok(t.includes(`<h2>${h}</h2>`), `${s}: ${h}`);
     for (const o of slugs) assert.ok(t.includes(`href="../${o}/"`), `${s} -> ${o}`);
-    assert.ok(t.includes('href="../../"'));
+    assert.ok(t.includes('<nav class="deckbar"') && t.includes('href="/"'), `${s}: deck bar back to the deck`);
     assert.match(t, /script-src 'none'/);
     assert.doesNotMatch(t, /style="/);
     assert.doesNotMatch(t, /\p{Extended_Pictographic}/u, `${s}: plain has no emoji`);
@@ -72,7 +72,7 @@ test('the deck and every team page open the menu', () => {
   assert.ok(page.includes('href="menu/"'));
   for (const s of slugs) {
     const t = fs.readFileSync(path.join(teamsDir, s, 'index.html'), 'utf8');
-    assert.ok(t.includes('href="../../menu/"'), `${s}: menu link`);
+    assert.ok(t.includes('href="/menu/"'), `${s}: menu link`);
   }
 });
 
@@ -85,7 +85,7 @@ test('the menu has every team, and its lab links match the deck tiles', () => {
   const deckTools = new Set([...page.matchAll(/href="(vcge\/[^"]*)"/g)].map((m) => m[1]));
   const menuLab = [...menu.matchAll(/href="\.\.\/(vcge\/[^"]*)"/g)].map((m) => m[1]);
   assert.deepEqual([...new Set(menuLab)].sort(), [...deckTools].sort());
-  assert.ok(menu.includes('href="../"'), 'back to the deck');
+  assert.ok(menu.includes('<nav class="deckbar"'), 'back to the deck');
   assert.match(menu, /script-src 'none'/);
   assert.doesNotMatch(menu, /style="/);
 });
@@ -93,22 +93,32 @@ test('the menu has every team, and its lab links match the deck tiles', () => {
 test('menu links that leave the lab are marked, never send a referrer, and use https', () => {
   for (const m of menu.matchAll(/<a href="([^"]+)"([^>]*)>(.*?)<\/a>/g)) {
     const [, href, attrs, label] = m;
-    if (href.startsWith('#') || href.startsWith('../')) continue;
+    if (href.startsWith('#') || href.startsWith('../') || href.startsWith('/')) continue;
     assert.match(href, /^https:\/\//, href);
     assert.match(attrs, /rel="noreferrer"/, href);
     assert.match(label, /outside the lab/, href);
   }
 });
 
-test('every lab tool page has a breadcrumb back to the deck, the lab and the menu', () => {
+test('every page carries the same deck bar: deck, Menu, Desk, all 11 teams and every lab tool (plain, no emoji)', () => {
   const root = path.join(__dirname, '..', '..');
-  for (const f of ['bench', 'card-shelf', 'logo-bench', 'wipe-trials']) {
-    const t = fs.readFileSync(path.join(root, f, 'www', 'index.html'), 'utf8');
-    const crumb = (t.match(/<nav class="back" aria-label="Breadcrumb">(.*?)<\/nav>/) || [])[1];
-    assert.ok(crumb, `${f}: breadcrumb`);
-    assert.ok(crumb.includes('href="../../"') && crumb.includes('href="../"') && crumb.includes('href="../../menu/"'), f);
-    assert.match(crumb, /aria-current="page"/);
+  const files = ['flight-deck/www/index.html', 'flight-deck/www/desk/index.html', 'flight-deck/www/menu/index.html',
+    'bench/www/index.html', 'card-shelf/www/index.html', 'logo-bench/www/index.html', 'wipe-trials/www/index.html',
+    ...slugs.map((s) => `flight-deck/www/teams/${s}/index.html`)];
+  const strip = (b) => b.replace(/ aria-current="page"/g, '').replace(/<span class="db-here">.*?<\/span>/, '');
+  let first;
+  for (const f of files) {
+    const t = fs.readFileSync(path.join(root, f), 'utf8');
+    const bar = (t.match(/<nav class="deckbar"[^]*?<\/nav>/) || [])[0];
+    assert.ok(bar, `${f}: deck bar`);
+    assert.doesNotMatch(bar, /\p{Extended_Pictographic}/u, `${f}: plain bar has no emoji`);
+    assert.ok(t.includes('<link rel="stylesheet" href="/deckbar.css">'), `${f}: bar style`);
+    assert.doesNotMatch(t, /<nav class="back"/, `${f}: old breadcrumb left`);
+    for (const h of ['/', '/menu/', '/desk/', '/vcge/', '/vcge/shelf/', ...slugs.map((s) => `/teams/${s}/`)]) assert.ok(bar.includes(`href="${h}"`), `${f}: ${h}`);
+    first ??= strip(bar);
+    assert.equal(strip(bar), first, `${f}: bar differs from the deck's`);
   }
+  assert.ok(fs.readFileSync(path.join(root, 'versions-page', 'vcge-lab-index.py'), 'utf8').includes('<nav class="deckbar"'));
 });
 
 // Windows 10 draws emoji only up to Emoji 12.0; newer ones show as an empty box (raven575, 11-10: the Team page
