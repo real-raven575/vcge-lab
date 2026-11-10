@@ -46,3 +46,21 @@ Sample photos and truth stay on your lab; they are not part of this repository.
 
 Lab layout for the test: `www/v/<commit>/` = the app repo at that commit plus a `version.json`,
 `www/latest -> v/<commit>`, and `www/bench/` = this folder's `www/`.
+
+## ✍️ The Scriptorium: the handwriting bench
+`www/handwriting.html` (+ `handwriting.js`, `handwriting.css`, `hwscore.js`), served at `/bench/handwriting.html`. It reads the
+**handwriting** set with one build's own MOD04 reader (no edge finding), and you type or confirm what is really written.
+Each sample is scored as one passage (line breaks ignored): characters right, characters right ignoring capitals, and
+words right, in a print/cursive × UPPER/lower/Mixed grid with the most common misreads. Style and case come from the
+saved truth, else the file name (`hw-cursive-lower-note1.jpg`), and can be changed per sample. Saving writes each
+sample's truth (`{ lines, hw: { style, case }, checked, unreadable }`) and a run with `summary.kind = 'handwriting'`
+through the same file service; the service needs no change.
+
+Install (add-on; the Reading Room's own files are not touched), through the sudo gate with this folder copied to
+`lab-installers/handwriting/` (an optional `samples/` folder with `manifest.json` beside it seeds samples and their text
+as "not checked yet"; samples never go in this repository):
+```
+sudo /usr/local/sbin/vcge-lab-run handwriting/vcge-lab-handwriting-install.sh
+```
+Tests: `node bench/test/hwscore.test.mjs` (scoring) and `node bench/test/handwriting.e2e.cjs <www>` (needs the stand-in
+on 18900 and the service on 8765, as above).

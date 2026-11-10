@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>vCGE Lab: The Scriptorium</title>
+<link rel="icon" href="owl.svg" type="image/svg+xml">
+<link rel="stylesheet" href="bench.css">
+<link rel="stylesheet" href="handwriting.css">
+<link rel="stylesheet" href="/deckbar.css">
+</head>
+<body>
+<!-- deckbar: made by flight-deck/team-pages/build-team-pages.py, edit it there --><nav class="deckbar" aria-label="Flight Deck menu"><a class="db-home" href="/"><span aria-hidden="true">✈</span> Flight Deck</a><a href="/menu/"><span aria-hidden="true">☰</span> Menu</a><a href="/desk/"><span aria-hidden="true">📜</span> Desk</a><details><summary><span aria-hidden="true">📇</span> Teams</summary><div class="db-list"><a href="/teams/vcge/"><span aria-hidden="true">🐘</span> Team vCGE</a><a href="/teams/creative/"><span aria-hidden="true">🐼</span> Team vCGE: Creative</a><a href="/teams/marketing/"><span aria-hidden="true">🦚</span> Team vCGE: Marketing</a><a href="/teams/homelab/"><span aria-hidden="true">🐧</span> Team HomeLab</a><a href="/teams/email/"><span aria-hidden="true">🐝</span> Team eMail</a><a href="/teams/history/"><span aria-hidden="true">🐿️</span> Team History</a><a href="/teams/finance/"><span aria-hidden="true">🐜</span> Team Finance</a><a href="/teams/vault/"><span aria-hidden="true">🦏</span> Team Vault</a><a href="/teams/auto-fixer/"><span aria-hidden="true">🐒</span> Team Auto-Fixer</a><a href="/teams/9to5/"><span aria-hidden="true">🤖</span> TEAM 9to5</a><a href="/teams/never-forget/"><span aria-hidden="true">🦒</span> TEAM Never Forget</a></div></details><details><summary><span aria-hidden="true">🐘</span> vCGE lab</summary><div class="db-list"><a href="/vcge/"><span aria-hidden="true">🐘</span> The Elephant&#x27;s Memory</a><a href="/vcge/latest/"><span aria-hidden="true">🛫</span> Newest build</a><a href="/vcge/bench/"><span aria-hidden="true">🦉</span> The Reading Room</a><a href="/vcge/bench/handwriting.html" aria-current="page"><span aria-hidden="true">✍️</span> The Scriptorium</a><a href="/vcge/edge-bench/"><span aria-hidden="true">🐈</span> The Darkroom</a><a href="/vcge/logo-bench/"><span aria-hidden="true">🦎</span> The Paint Shop</a><a href="/vcge/funhouse/"><span aria-hidden="true">🎪</span> The Funhouse</a><a href="/vcge/shelf/"><span aria-hidden="true">📚</span> The Card Shelf</a><a href="/vcge/testing/"><span aria-hidden="true">🦝</span> Wipe Trials</a></div></details><span class="db-here">The Scriptorium</span></nav><!-- /deckbar -->
+<header class="top">
+  <div class="mast">
+    <img src="owl.svg" alt="" class="owl" width="60" height="60">
+    <div>
+      <h1>The Scriptorium</h1>
+      <p class="tag">Glyph's handwriting bench &middot; MOD04 OCR &middot; English first, print and cursive</p>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="speech" role="status" aria-live="polite">
+  <img src="owl.svg" alt="" width="34" height="34">
+  <p id="glyphSays">Handwriting. Everyone's is different and mine is all feathers. Run the samples and tell me what they really say.</p>
+</div>
+
+<p class="lead">Reads every handwriting sample with one published build's own reader, in this browser. You type (or confirm) what is really written, and each sample is scored against it: characters right, characters right ignoring capitals, and whole words right, split by print or cursive and by UPPER, lower or Mixed case.</p>
+
+<section class="panel">
+  <h2><span class="step">1</span> Build</h2>
+  <div class="row">
+    <label class="field-inline">Build <select id="buildSelect"></select></label>
+    <span id="buildNote" class="note"></span>
+  </div>
+</section>
+
+<section class="panel">
+  <h2><span class="step">2</span> Samples <span id="countHand" class="count"></span></h2>
+  <div class="row">
+    <label class="upload">Add photos <input type="file" id="uploadHand" accept="image/*" multiple></label>
+    <span class="note">Name a file with <code>print</code> or <code>cursive</code> and <code>upper</code>, <code>lower</code> or <code>mixed</code> (like <code>hw-cursive-lower-note1.jpg</code>) and it is sorted for you; you can change it below.</span>
+  </div>
+  <div class="row filters" role="group" aria-label="Which samples to run">
+    <label class="field-inline">Style <select id="fStyle"><option value="">all</option><option value="print">print</option><option value="cursive">cursive</option></select></label>
+    <label class="field-inline">Case <select id="fCase"><option value="">all</option><option value="upper">UPPER</option><option value="lower">lower</option><option value="mixed">Mixed</option></select></label>
+    <label class="check"><input type="checkbox" id="fUnchecked"> Only samples you have not checked yet</label>
+  </div>
+  <p id="sampleNote" class="note"></p>
+</section>
+
+<section class="panel">
+  <h2><span class="step">3</span> Read them</h2>
+  <div class="row actions">
+    <button id="runBtn" class="btn primary">Run</button>
+    <button id="stopBtn" class="btn quiet" disabled>Stop</button>
+    <span id="runStatus" class="note mono"></span>
+  </div>
+  <div id="progress" class="progress hidden" aria-hidden="true"><div id="progressFill"></div></div>
+</section>
+
+<section id="results" class="hidden">
+  <h2 class="section-title"><span class="step">4</span> What's really written?</h2>
+  <p class="note">Each sample: the photo, what the reader got (red = wrong, compared with your text), and a box for what is really written. A box already filled from a sample's saved text is marked; check it and press <b>Looks right</b>, or fix it. Scores update as you type.</p>
+  <div id="rows"></div>
+  <div class="row sticky">
+    <button id="saveBtn" class="btn primary">Save what's written and score the run</button>
+    <span id="saveStatus" class="note"></span>
+  </div>
+</section>
+
+<section id="board" class="panel notebook hidden">
+  <h2><span class="step">5</span> Scoreboard</h2>
+  <div id="boardBody"></div>
+  <details><summary>Scoreboard as text (for the module thread)</summary><textarea id="boardMd" rows="14" readonly></textarea></details>
+</section>
+
+<section class="panel quiet">
+  <h2>Past handwriting runs</h2>
+  <table id="runsTable"><thead><tr><th>When (UTC)</th><th>Build</th><th>Samples</th><th>Characters</th><th>Ignoring capitals</th><th>Words</th><th>Gave up</th><th></th></tr></thead><tbody></tbody></table>
+</section>
+</main>
+
+<footer class="foot">Lab only: nothing here touches the app or its storage. Samples and what you type stay on the lab, never in a repository.</footer>
+<script type="module" src="handwriting.js"></script>
+</body>
+</html>

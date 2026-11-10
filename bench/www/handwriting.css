@@ -1,0 +1,27 @@
+/* The Scriptorium: Glyph's handwriting bench. Adds to bench.css (the Reading Room's colours and parts). Lab only. */
+.filters { flex-wrap: wrap; gap: .8rem 1.2rem; }
+.hwcard { border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; background: var(--panel); padding: 12px; margin: 0 0 12px; }
+.hwcard.checked { border-left-color: var(--phosphor); }
+.hwcard h3 { display: flex; gap: .5rem; align-items: center; margin-bottom: .6rem; flex-wrap: wrap; font: 600 .9rem var(--mono); word-break: break-all; }
+.tagchip { font: 600 .75rem var(--sans); color: var(--bg); background: var(--amber); border-radius: 999px; padding: 1px 8px; }
+.tagchip:empty { display: none; }
+.hw-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.hw-photo { width: 100%; height: auto; border-radius: 6px; background: #fff; }
+.readout { white-space: pre-wrap; word-break: break-word; font: 1rem/1.45 var(--mono); background: var(--panel-2); border-radius: 6px; padding: 8px; margin: .3rem 0; min-height: 3em; }
+.readout del { color: var(--red); text-decoration: line-through; }
+.readout ins { color: var(--phosphor); text-decoration: underline dotted; }
+.hw-truth textarea { width: 100%; font: 1rem/1.45 var(--mono); background: #0B1220; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 8px; margin-top: .3rem; resize: vertical; }
+.hw-truth textarea:focus-visible, .hw-truth select:focus-visible, .hw-truth button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.row.tight { gap: .5rem .8rem; flex-wrap: wrap; margin-top: .5rem; }
+.err:empty { display: none; }
+.big { font-size: 1.05rem; margin-bottom: .8rem; }
+.big .acc { font-size: 1.6rem; }
+.warn { color: var(--amber); }
+table.grid { border-collapse: collapse; width: 100%; margin: .4rem 0 1rem; }
+table.grid th, table.grid td { border: 1px solid var(--line); padding: 8px; text-align: center; vertical-align: top; }
+table.grid th { color: var(--amber); font-weight: 600; }
+table.grid td b { display: block; font-size: 1.15rem; color: var(--lamp); }
+table.grid td small { color: var(--dim); }
+#runsTable { width: 100%; border-collapse: collapse; }
+#runsTable td, #runsTable th { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+@media (max-width: 860px) { .hw-grid { grid-template-columns: 1fr; } table.grid th, table.grid td { padding: 4px; font-size: .85rem; } }
