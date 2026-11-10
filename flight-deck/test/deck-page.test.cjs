@@ -65,3 +65,48 @@ test('each team page has the five sections, links every other team, and stays of
     assert.doesNotMatch(t.replaceAll('TEAM Never Forget', ''), /never forget/i, `${s}: old tagline`);
   }
 });
+
+const menu = fs.readFileSync(path.join(www, 'menu', 'index.html'), 'utf8');
+
+test('the deck and every team page open the menu', () => {
+  assert.ok(page.includes('href="menu/"'));
+  for (const s of slugs) {
+    const t = fs.readFileSync(path.join(teamsDir, s, 'index.html'), 'utf8');
+    assert.ok(t.includes('href="../../menu/"'), `${s}: menu link`);
+  }
+});
+
+test('the menu has every team, and its lab links match the deck tiles', () => {
+  for (const s of slugs) {
+    assert.ok(menu.includes(`id="${s}"`), `${s}: section`);
+    assert.ok(menu.includes(`href="#${s}"`), `${s}: jump link`);
+    assert.ok(menu.includes(`href="../teams/${s}/"`), `${s}: team page`);
+  }
+  const deckTools = new Set([...page.matchAll(/href="(vcge\/[^"]*)"/g)].map((m) => m[1]));
+  const menuLab = [...menu.matchAll(/href="\.\.\/(vcge\/[^"]*)"/g)].map((m) => m[1]);
+  assert.deepEqual([...new Set(menuLab)].sort(), [...deckTools].sort());
+  assert.ok(menu.includes('href="../"'), 'back to the deck');
+  assert.match(menu, /script-src 'none'/);
+  assert.doesNotMatch(menu, /style="/);
+});
+
+test('menu links that leave the lab are marked, never send a referrer, and use https', () => {
+  for (const m of menu.matchAll(/<a href="([^"]+)"([^>]*)>(.*?)<\/a>/g)) {
+    const [, href, attrs, label] = m;
+    if (href.startsWith('#') || href.startsWith('../')) continue;
+    assert.match(href, /^https:\/\//, href);
+    assert.match(attrs, /rel="noreferrer"/, href);
+    assert.match(label, /opens outside the lab/, href);
+  }
+});
+
+test('every lab tool page has a breadcrumb back to the deck, the lab and the menu', () => {
+  const root = path.join(__dirname, '..', '..');
+  for (const f of ['bench', 'card-shelf', 'logo-bench', 'wipe-trials']) {
+    const t = fs.readFileSync(path.join(root, f, 'www', 'index.html'), 'utf8');
+    const crumb = (t.match(/<nav class="back" aria-label="Breadcrumb">(.*?)<\/nav>/) || [])[1];
+    assert.ok(crumb, `${f}: breadcrumb`);
+    assert.ok(crumb.includes('href="../../"') && crumb.includes('href="../"') && crumb.includes('href="../../menu/"'), f);
+    assert.match(crumb, /aria-current="page"/);
+  }
+});
