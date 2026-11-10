@@ -166,6 +166,12 @@ class ShelfTest(unittest.TestCase):
         self.assertEqual(self.call('GET', 'thumb?hash=' + h2, raw=True), (200, big))
         self.assertEqual(self.files('.thumbs'), [])                            # no half-written previews left
 
+    def test_thumb_sends_the_photo_when_the_preview_folder_cannot_be_made(self):
+        open(os.path.join(self.dir, '.thumbs'), 'w').close()   # stands in for a shelf folder the service may not write
+        big = drawn_png(800, 500)
+        h = self.call('PUT', 'upload?name=big.png', big)[1]['hash']
+        self.assertEqual(self.call('GET', 'thumb?hash=' + h, raw=True), (200, big))
+
     def test_delete_drops_the_thumb(self):
         h = self.call('PUT', 'upload?name=big.png', drawn_png(900, 500))[1]['hash']
         self.call('GET', 'thumb?hash=' + h, raw=True)
