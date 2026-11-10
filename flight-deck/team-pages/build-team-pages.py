@@ -190,6 +190,7 @@ TOOLS = {
     ('Benches', 'The Paint Shop', 'Flipside\'s logo bench', '/vcge/logo-bench/', False),
     ('Benches', 'The Funhouse', 'Iris\'s tricky-photo maker', '/vcge/funhouse/', False),
     ('Photos', 'The Card Shelf', 'The benches\' shared test photos', '/vcge/shelf/', False),
+    ('Photos', 'The Card Inbox', 'Drop a zip or clip of one card; every bench runs on every angle', '/vcge/inbox/', False),
     ('Testing', 'Wipe Trials', 'Ghost\'s cross-browser wipe test range', '/vcge/testing/', False),
   ],
   'homelab': [
@@ -321,13 +322,14 @@ E = html.escape
 LAB = [('🐘', "The Elephant's Memory", '/vcge/'), ('🛫', 'Newest build', '/vcge/latest/'),
        ('🦉', 'The Reading Room', '/vcge/bench/'), ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
        ('🦎', 'The Paint Shop', '/vcge/logo-bench/'), ('🎪', 'The Funhouse', '/vcge/funhouse/'),
-       ('📚', 'The Card Shelf', '/vcge/shelf/'), ('🦝', 'Wipe Trials', '/vcge/testing/')]
+       ('📚', 'The Card Shelf', '/vcge/shelf/'), ('📬', 'Card Inbox', '/vcge/inbox/'), ('🦝', 'Wipe Trials', '/vcge/testing/')]
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you are here")
   'flight-deck/www/index.html': ('/', None),
   'flight-deck/www/desk/index.html': ('/desk/', 'Desk'),
   'bench/www/index.html': ('/vcge/bench/', 'The Reading Room'),
   'card-shelf/www/index.html': ('/vcge/shelf/', 'The Card Shelf'),
+  'card-inbox/www/index.html': ('/vcge/inbox/', 'Card Inbox'),
   'logo-bench/www/index.html': ('/vcge/logo-bench/', 'The Paint Shop'),
   'wipe-trials/www/index.html': ('/vcge/testing/', 'Wipe Trials'),
   'versions-page/vcge-lab-index.py': ('/vcge/', "The Elephant's Memory"),
