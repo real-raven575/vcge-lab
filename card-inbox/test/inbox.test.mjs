@@ -13,7 +13,8 @@ const lab = mkdtempSync(join(tmpdir(), 'inbox-test-'));
 cpSync(join(repo, 'bench/www'), join(lab, 'bench'), { recursive: true });
 cpSync(join(repo, 'card-inbox/www'), join(lab, 'inbox'), { recursive: true });
 process.on('exit', () => rmSync(lab, { recursive: true, force: true }));
-const { sharpness, glareShare, toGrey, frameScore, pickFrames, voteLines, angleSummary } = await import(pathToFileURL(join(lab, 'inbox/inbox.js')).href);
+const { sharpness, glareShare, toGrey, frameScore, pickFrames, voteLines, angleSummary, fieldTally } = await import(pathToFileURL(join(lab, 'inbox/inbox.js')).href);
+const { scoreSample } = await import(pathToFileURL(join(lab, 'bench/bench.js')).href);
 
 const W = 32, H = 32;
 const stripes = (blur) => { const g = new Uint8Array(W * H); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) g[y * W + x] = blur ? 128 + (x % 8 < 4 ? 10 : -10) : (x % 2 ? 230 : 20); return g; };
@@ -57,4 +58,14 @@ test('angleSummary names the best and weakest angle', () => {
     const s = angleSummary([{ name: 'a', chars: 0.9 }, { name: 'b', chars: 0.5 }, { name: 'c', chars: null }]);
     assert.equal(s.n, 2); assert.equal(s.best.name, 'a'); assert.equal(s.weakest.name, 'b'); assert.ok(Math.abs(s.average - 0.7) < 1e-9);
     assert.equal(angleSummary([]), null);
+});
+
+test('fieldTally counts, per field the key has, the angles that got it right and whether the vote did', () => {
+    const truth = { lines: [{ text: 'Kalo Renmi', role: 'name' }, { text: '555-0123', role: 'phone' }, { text: 'kalo@velmar.test', role: 'email' }] };
+    const score = (lines) => scoreSample({ set: 'inbox', name: '', outcome: 'read', lines: lines.map(([text, role]) => ({ text, role })) }, { ...truth, edgesOk: true, hadQuad: true });
+    const a = score([['Kalo Renmi', 'name'], ['555-0123', 'phoneMobile'], ['kalo@velmar.test', 'email']]);
+    const b = score([['Kal0 Renmi', 'name'], ['555-0128', 'phone'], ['Kalo@Velmar.test', 'email']]);
+    const t = fieldTally([a, b], a, truth);
+    assert.deepEqual(t.map(x => [x.field, x.right, x.of, x.vote]), [['name', 1, 2, true], ['phone', 1, 2, true], ['email', 2, 2, true]]);
+    assert.deepEqual(fieldTally([b], null, truth).map(x => x.vote), [null, null, null]);
 });
