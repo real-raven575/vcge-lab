@@ -176,7 +176,7 @@ for (const t of document.querySelectorAll('time[datetime]')) {
     cs.classList.add('wave'); setTimeout(() => cs.classList.remove('wave'), 700);
   });
   const jar = document.getElementById('jar');
-  jar.textContent = `🫙 Peanut jar: ${mem.passed} of ${mem.count} builds passed their unit tests` + (mem.failed ? `, ${mem.failed} did not.` : '.');
+  jar.textContent = `🥜 Peanut jar: ${mem.passed} of ${mem.count} builds passed their unit tests` + (mem.failed ? `, ${mem.failed} did not.` : '.');
   jar.title = 'Cornerstone is saving them for release day.';
   // Type "remember" anywhere to walk down memory lane to the oldest build still on the shelf.
   const phrase = 'remember'; let typed = '';
