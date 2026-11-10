@@ -2,7 +2,7 @@
 # vCGE lab: installs (or updates) the OCR test bench on the lab VM. Idempotent; run again to update the files.
 #   1. copies the bench page to <LAB_ROOT>/www/bench/ (served by Caddy like every other lab file)
 #   2. makes the sample, truth and run folders under www/bench/data/ (owner <LAB_USER>)
-#   3. installs the file service as <LAB_ROOT>/bin/vcge-bench-api + a systemd unit (user <LAB_USER>, 127.0.0.1:<BENCH_PORT>)
+#   3. installs the file service as <LAB_ROOT>/bin/vcge-bench-api + a systemd unit (user <LAB_USER>, 127.0.0.1:<BENCH_PORT>); keeps an existing --cards-dir (Card Shelf link)
 #   4. adds "handle /bench/api/* { reverse_proxy 127.0.0.1:8765 }" to the Caddyfile (backup kept; validated first)
 #   5. adds an "OCR test bench" link to the versions page script vcge-lab-index (backup kept) and rebuilds the page
 # Nothing in the app repo or in any published build is touched. Undo lines are printed at the end.
@@ -32,7 +32,13 @@ for d in samples/business-cards samples/handwriting truth/business-cards truth/h
 echo "3. file service"
 install -d "$P/bin"
 install -o root -g root -m 755 "$HERE/vcge-bench-api.py" "$P/bin/vcge-bench-api"
-cat > /etc/systemd/system/vcge-bench-api.service <<UNIT
+UNITF=/etc/systemd/system/vcge-bench-api.service
+# Keep the Card Shelf link: if the unit already points the bench at a cards folder (--cards-dir, set by the
+# Card Shelf installer), carry it over, or a rerun of this installer would cut the bench off from the shelf.
+CARDS=
+[ -f "$UNITF" ] && CARDS=$(sed -n 's/^ExecStart=.*--cards-dir \([^ ]*\).*$/\1/p' "$UNITF" | head -n 1)
+[ -n "$CARDS" ] && echo "  OK   keeping the Card Shelf link (--cards-dir $CARDS)"
+cat > "$UNITF" <<UNIT
 [Unit]
 Description=vCGE lab OCR test bench file service (127.0.0.1:$PORT)
 After=network.target
@@ -40,11 +46,11 @@ After=network.target
 [Service]
 User=$U
 Group=$U
-ExecStart=/usr/bin/python3 $P/bin/vcge-bench-api --root $WWW --port $PORT
+ExecStart=/usr/bin/python3 $P/bin/vcge-bench-api --root $WWW --port $PORT${CARDS:+ --cards-dir $CARDS}
 Restart=on-failure
 NoNewPrivileges=true
 ProtectSystem=strict
-ReadWritePaths=$WWW/bench/data
+ReadWritePaths=$WWW/bench/data${CARDS:+ $CARDS}
 PrivateTmp=true
 
 [Install]
