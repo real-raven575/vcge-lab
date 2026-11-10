@@ -49,6 +49,11 @@ for d in "$HERE"/www/teams/*/; do
     s=$(basename "$d"); install -d -m 755 "$W/teams/$s"; install -m 644 "$d/index.html" "$W/teams/$s/index.html"; n=$((n + 1))
 done
 echo "  OK   front page, Menu, Desk page, deck bar style, $n team pages"
+ST=$HERE/../history-stash/index.html   # Team History's wiki (HIST-0031); not in git, shipped in the bundle
+if [ -f "$ST" ]; then
+    install -d -m 755 "$W/teams/history/stash"; install -m 644 "$ST" "$W/teams/history/stash/index.html"
+    echo "  OK   Team History's Stash at /teams/history/stash/"
+fi
 
 echo "[3/5] lab pages"
 BARS=$HERE/install/deckbar-pages.json
@@ -94,7 +99,7 @@ fi
 
 echo "[5/5] check"
 if [ -z "${DECK_TEST:-}" ]; then
-    for p in / /menu/ /desk/ /deckbar.css /teams/vcge/ /teams/never-forget/ /vcge/ /vcge/bench/ /vcge/shelf/ \
+    for p in / /menu/ /desk/ /deckbar.css /teams/vcge/ /teams/never-forget/ /teams/history/stash/ /vcge/ /vcge/bench/ /vcge/shelf/ \
              /vcge/logo-bench/ /vcge/testing/ /vcge/edge-bench/ /vcge/funhouse/; do
         c=$(curl -s -o /dev/null -w '%{http_code}' "$CHECK_URL$p" || true)
         [ "$c" = 200 ] && echo "  OK   $p 200" || echo "  WARN $p answered $c"
