@@ -21,7 +21,7 @@ def put(path, bar):
             t = re.sub(r"^back = \(?.*?if portal else ''\)?\n", "DECKBAR = ''\nback = ''\n", t, count=1, flags=re.M | re.S)
             t = t.replace("""'</style></head><body><main>')""", """'</style>' + ('<link rel="stylesheet" href="/deckbar.css">' if portal else '') + '</head><body>'
         + (DECKBAR if portal else '') + '<main>')""", 1)
-        if not re.search(r'^DECKBAR = ', t, flags=re.M) or '(DECKBAR if portal' not in t:
+        if not re.search(r'^DECKBAR = ', t, flags=re.M) or not ('(DECKBAR if portal' in t or 'back = DECKBAR' in t):
             raise SystemExit(f'{path}: could not find where the deck bar goes; nothing changed')
         t = re.sub(r'^DECKBAR = .*$', lambda m: 'DECKBAR = ' + repr(bar), t, count=1, flags=re.M)
     else:
