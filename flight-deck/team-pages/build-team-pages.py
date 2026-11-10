@@ -233,6 +233,7 @@ TOOLS = {
     ('How-to guides', 'Leaf Seat Airbag Check', 'Picture guide', 'https://claude.ai/artifact/DZCM2ftWvToV3XKFwbVg7J', True),
   ],
   'history': [
+    ('Read', 'The Stash', 'Team History\'s wiki: the Herd timeline, the story and every record (on the deck)', '/teams/history/stash/', False),
     ('Read', 'Herd Glossary (v2)', 'Every Herd word, explained', 'https://docs.google.com/document/d/1ywVm0pJdsssXg153wSZAmUXqH7dyTSd9D8TTFxQK6HU/edit', True),
     ('Read', 'Meet the Herd', 'Who is who', 'https://drive.google.com/file/d/1dQr4vbUWb8x3qIi1RqofyqpFK7_uxkO8/view', True),
     ('Read', 'W45 Field Notes', 'PDF', 'https://drive.google.com/file/d/1DcOlo-m9rTB8GhHvKOUYJiwzAwv3UvSJ/view', True),
@@ -316,7 +317,7 @@ E = html.escape
 # raven575 can move back and forth without hunting (raven575, 2026-11-10 22:08 UTC). It needs no script: the two
 # drop-downs are <details>. One source of truth: this file writes it into the generated pages, www/deckbar.css,
 # and (between the deckbar markers) the hand-written pages listed in BAR_PAGES. Run with --also FILE to
-# refresh a page kept outside git (the Darkroom, the Funhouse).
+# refresh a page kept outside git (the Darkroom, the Funhouse, Team History's Stash).
 LAB = [('🐘', "The Elephant's Memory", '/vcge/'), ('🛫', 'Newest build', '/vcge/latest/'),
        ('🦉', 'The Reading Room', '/vcge/bench/'), ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
        ('🦎', 'The Paint Shop', '/vcge/logo-bench/'), ('🎪', 'The Funhouse', '/vcge/funhouse/'),
@@ -331,7 +332,8 @@ BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you ar
   'wipe-trials/www/index.html': ('/vcge/testing/', 'Wipe Trials'),
   'versions-page/vcge-lab-index.py': ('/vcge/', "The Elephant's Memory"),
 }
-ALSO = {'edge-bench': ('/vcge/edge-bench/', 'The Darkroom'), 'funhouse': ('/vcge/funhouse/', 'The Funhouse')}
+ALSO = {'edge-bench': ('/vcge/edge-bench/', 'The Darkroom'), 'funhouse': ('/vcge/funhouse/', 'The Funhouse'),
+        'history-stash': ('/teams/history/stash/', 'The Stash')}   # Team History's wiki (HIST-0031), kept outside git
 
 
 def deckbar(here, here_name=None):
