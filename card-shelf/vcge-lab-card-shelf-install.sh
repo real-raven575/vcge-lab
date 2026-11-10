@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # vCGE lab: installs (or updates) the Card Shelf, the benches' shared photo place. Idempotent; run again to update.
-#   1. makes the shelf folders <SHELF_ROOT>/{holding,archive,active/ocr,active/logo,active/edges} (owner <LAB_USER>),
+#   1. makes the shelf folders <SHELF_ROOT>/{holding,archive,active/ocr,active/logo,active/edges,.thumbs} (owner <LAB_USER>),
 #      outside the web root and every git repo
 #   2. copies photos already on the benches onto the shelf (COPIES; the originals stay where they are):
 #      the OCR bench's business cards -> active/ocr, the edge bench's local inbox -> active/edges; only into an empty folder
@@ -30,7 +30,7 @@ id "$U" >/dev/null 2>&1 || { echo "  STOP no '$U' user on this machine (set LAB_
 case "$SH/" in "$WWW"/*) echo "  STOP SHELF_ROOT ($SH) is inside the web root; put it outside $WWW" >&2; exit 1;; esac
 
 echo "1. shelf folders"
-for d in holding archive active/ocr active/logo active/edges; do install -d -o "$U" -g "$U" -m 750 "$SH/$d"; done
+for d in holding archive active/ocr active/logo active/edges .thumbs; do install -d -o "$U" -g "$U" -m 750 "$SH/$d"; done
 echo "  OK   $SH"
 
 echo "2. copy photos already on the benches (originals stay)"

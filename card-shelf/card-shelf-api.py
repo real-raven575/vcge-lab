@@ -181,7 +181,10 @@ def make_thumb(p):
     dst = thumb_path(p['hash'])
     if os.path.isfile(dst):
         return dst
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    try:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+    except OSError:   # shelf folder not writable by the service: send the photo instead of failing
+        return None
     tmp = '%s.%d.%d.part' % (dst, os.getpid(), threading.get_ident())
     for resize in RESIZERS:
         try:
