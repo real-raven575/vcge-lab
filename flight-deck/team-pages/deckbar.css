@@ -1,0 +1,20 @@
+/* The deck bar: the same menu on top of every Flight Deck page. Made by flight-deck/team-pages/build-team-pages.py. */
+.deckbar { box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 8px auto 14px;
+  max-width: 1100px; padding: 6px 10px; background: #1B2230; color: #E6EAF0; border-bottom: 3px solid #E0B43A;
+  border-radius: 12px; font: 600 14px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif; position: relative; z-index: 50; text-align: left; }
+.deckbar a, .deckbar summary { color: #E6EAF0; text-decoration: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+.deckbar a:hover, .deckbar summary:hover, .deckbar a:focus-visible, .deckbar summary:focus-visible { background: #2A3446; outline: 2px solid #E0B43A; outline-offset: -2px; }
+.deckbar a[aria-current] { background: #E0B43A; color: #1B2230; }
+.deckbar .db-home { color: #F2CF63; }
+.deckbar details { position: relative; }
+.deckbar summary { list-style: none; }
+.deckbar summary::-webkit-details-marker { display: none; }
+.deckbar summary::after { content: " \25BE"; }
+.deckbar details[open] summary { background: #2A3446; }
+.deckbar .db-list { position: absolute; top: calc(100% + 6px); left: 0; display: grid; gap: 2px; min-width: 230px;
+  max-width: calc(100vw - 32px); max-height: 70vh; overflow: auto; padding: 6px; background: #1B2230;
+  border: 1px solid #3A4558; border-radius: 10px; box-shadow: 0 10px 28px rgba(0, 0, 0, .45); }
+.deckbar .db-here { margin-left: auto; padding: 6px 10px; color: #AEB8C8; font-weight: 500; }
+.deckbar .db-here::before { content: "You are here: "; color: #8A95A8; }
+@media (max-width: 560px) { .deckbar .db-here { margin-left: 0; width: 100%; } .deckbar details:last-of-type .db-list { left: auto; right: 0; } }
+@media print { .deckbar { display: none; } }

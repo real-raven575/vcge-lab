@@ -1,0 +1,9 @@
+/* Deck bar, plain edition. Made by flight-deck/team-pages/build-team-pages.py --plain. */
+.deckbar { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; margin: 8px 0 14px; padding: 6px 0;
+  border-bottom: 1px solid currentColor; font: 14px/1.4 system-ui, sans-serif; position: relative; z-index: 50; text-align: left; }
+.deckbar a[aria-current] { font-weight: 700; }
+.deckbar details { position: relative; }
+.deckbar summary { cursor: pointer; }
+.deckbar .db-list { position: absolute; top: 100%; left: 0; display: grid; gap: 4px; min-width: 220px; padding: 8px;
+  background: Canvas; color: CanvasText; border: 1px solid currentColor; }
+.deckbar .db-here::before { content: "You are here: "; }
