@@ -315,7 +315,7 @@ E = html.escape
 # raven575 can move back and forth without hunting (raven575, 2026-11-10 22:08 UTC). It needs no script: the two
 # drop-downs are <details>. One source of truth: this file writes it into the generated pages, www/deckbar.css,
 # and (between the deckbar markers) the hand-written pages listed in BAR_PAGES. Run with --also FILE to
-# refresh a page kept outside git (the Darkroom, the Funhouse, Team History's Stash).
+# refresh a page kept outside git (the Darkroom, the Funhouse).
 LAB = [('🐘', "The Elephant's Memory", '/vcge/'), ('🛫', 'Newest build', '/vcge/latest/'),
        ('🦉', 'The Reading Room', '/vcge/bench/'), ('✍️', 'The Scriptorium', '/vcge/bench/handwriting.html'),
        ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
@@ -331,9 +331,9 @@ BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you ar
   'logo-bench/www/index.html': ('/vcge/logo-bench/', 'The Paint Shop'),
   'wipe-trials/www/index.html': ('/vcge/testing/', 'Wipe Trials'),
   'versions-page/vcge-lab-index.py': ('/vcge/', "The Elephant's Memory"),
+  'flight-deck/www/teams/history/stash/index.html': ('/teams/history/stash/', 'The Stash'),   # Team History's wiki (HIST-0031), their own build; only the bar is ours
 }
-ALSO = {'edge-bench': ('/vcge/edge-bench/', 'The Darkroom'), 'funhouse': ('/vcge/funhouse/', 'The Funhouse'),
-        'history-stash': ('/teams/history/stash/', 'The Stash')}   # Team History's wiki (HIST-0031), kept outside git
+ALSO = {'edge-bench': ('/vcge/edge-bench/', 'The Darkroom'), 'funhouse': ('/vcge/funhouse/', 'The Funhouse')}
 
 
 def deckbar(here, here_name=None):
