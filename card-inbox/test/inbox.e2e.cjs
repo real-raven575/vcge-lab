@@ -98,6 +98,7 @@ const DRAW = `(c, tilt) => { const x = c.getContext('2d'); x.fillStyle = '#3a3f4
         ok(key.lines.length === 4 && key.lines[1].text === 'Kalo Renmi', 'the Reading Room key "<card>__card" has the 4 lines');
         ok(/\d+%/.test(await page.textContent('#angleRows td.num')), 'the angle now shows characters right');
         ok(/All angles voted/.test(await page.textContent('#summary')), 'the summary shows the vote');
+        ok(/Angles right/.test(await page.textContent('#summary')) && /fields right after the vote/.test(await page.textContent('#summary')), 'the summary shows the per-field scoreboard');
 
         // 3. a short clip of the same drawn card, recorded in the browser
         const webm = await page.evaluate(async (draw) => {

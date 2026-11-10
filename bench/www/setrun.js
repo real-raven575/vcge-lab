@@ -9,21 +9,35 @@
  */
 import { scorecard } from './scorecard.js';
 
-// Line roles grouped into the fields the scorecard reports (MOD05 LINE_ROLES).
+// Line roles grouped into the fields the scorecard reports (MOD05 LINE_ROLES). Title, fax and address joined the
+// scoreboard in accuracy round 1 (raven575's yes, 2026-11-10), so every field of a contact gets a number.
 export const FIELDS = Object.freeze({
     name: ['name'],
+    title: ['jobTitle'],
     company: ['organization'],
     phone: ['phone', 'phoneWork', 'phoneMobile', 'phoneHome'],
+    fax: ['phoneFax'],
     email: ['email'],
-    web: ['website']
+    web: ['website'],
+    address: ['street', 'unit', 'cityStateZip', 'address']
 });
+
+// How a read line and a key line of a field must agree: phone numbers by their digits (the app formats them anyway),
+// email and web addresses ignoring capitals, everything else letter for letter.
+const PHONE_FIELDS = new Set(['phone', 'fax']), CASELESS_FIELDS = new Set(['email', 'web']);
+export function sameValue(field, read, truth) {
+    const a = norm(read), b = norm(truth);
+    if (PHONE_FIELDS.has(field)) { const da = a.replace(/\D/g, ''), db = b.replace(/\D/g, ''); return !!db && da === db; }
+    if (CASELESS_FIELDS.has(field)) return a.toLowerCase() === b.toLowerCase();
+    return a === b;
+}
 export const MIN_TRUSTED = 10;   // groups with fewer versions are shown greyed: too few to trust
 
 const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
 
 /**
  * Which fields came out right, from a bench scoreSample() result: a field is right when every key line with one of its
- * roles was paired with a read line of the same field that reads exactly the same. null when the key has no such line.
+ * roles was paired with a read line of the same field that reads the same (sameValue). null when the key has no such line.
  */
 export function fieldsRight(score, truth) {
     const want = (truth.lines || []).filter(l => !l.drop);
@@ -32,7 +46,7 @@ export function fieldsRight(score, truth) {
         const keyLines = want.filter(l => roles.includes(l.role));
         if (!keyLines.length) { out[field] = null; continue; }
         if (score.outcome !== 'read') { out[field] = false; continue; }
-        out[field] = keyLines.every(k => (score.diffs || []).some(d => d.truth === norm(k.text) && roles.includes(d.roleRead) && d.ops.every(o => o.op === 'eq')));
+        out[field] = keyLines.every(k => (score.diffs || []).some(d => d.truth === norm(k.text) && roles.includes(d.roleRead) && sameValue(field, d.read, d.truth)));
     }
     return out;
 }
@@ -68,7 +82,7 @@ const pct = (x) => (x == null ? '–' : `${Math.round(x * 100)}%`);
 
 /** The text summary for a thread: numbers and effect names only, never what a card says. */
 export function scorecardMd(card, { set, build, mode, scored, total }) {
-    const line = (g) => `- ${g.label}: ${g.n} versions, ${pct(g.mean.chars)} characters right, name ${pct(g.mean.name)}, phone ${pct(g.mean.phone)}, email ${pct(g.mean.email)}, turned down ${pct(g.mean.turnedDown)}`;
+    const line = (g) => `- ${g.label}: ${g.n} versions, ${pct(g.mean.chars)} characters right, ${Object.keys(FIELDS).map(f => `${f} ${pct(g.mean[f])}`).join(', ')}, turned down ${pct(g.mean.turnedDown)}`;
     const worst = card.groups.filter(g => g.trusted).slice(0, 5);
     return [`Reading Room set run: set ${set}, build ${build}, ${mode === 'perfect' ? 'perfect crop' : 'as the app does it'}, ${scored} of ${total} versions scored`,
         line({ ...card.all, label: 'every version' }),

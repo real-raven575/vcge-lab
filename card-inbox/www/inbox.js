@@ -10,6 +10,7 @@
  * as photos. "All angles voted" keeps the lines most angles agree on: the test of many angles against one good photo.
  */
 import { scoreSample } from '../bench/bench.js';
+import { FIELDS, fieldsRight } from '../bench/setrun.js';
 
 const ROOT = typeof location === 'undefined' ? '/' : location.pathname.replace(/inbox\/.*$/, '');
 const API = `${ROOT}inbox/api/`;
@@ -367,10 +368,29 @@ function renderSummary() {
         const row = (label, a) => (a ? `<tr><td>${label}</td><td class="num">${a.n}</td><td class="num">${pct(a.average)}</td><td>${esc(a.best.name)} ${pct(a.best.chars)}</td><td>${esc(a.weakest.name)} ${pct(a.weakest.chars)}</td></tr>` : '');
         parts.push(`<div class="scroll"><table class="sum"><thead><tr><th>Characters right</th><th>Angles</th><th>Average</th><th>Best</th><th>Weakest</th></tr></thead><tbody>${row('Every angle', all)}${row('Photos', photos)}${row('Video frames', frames)}`
             + `${vs ? `<tr class="vote"><td>All angles voted</td><td class="num">${results.length}</td><td class="num">${pct(vs.charAccuracy)}</td><td colspan="2">${vs.linesExact} of ${vs.linesTotal} lines exact, ${vs.linesMissed} missed, ${vs.linesInvented} extra</td></tr>` : ''}</tbody></table></div>`);
+        parts.push(fieldBoard(results.map(x => scoreOf(x.r)), vs, truth));
     } else if (ran) {
         parts.push('<p class="note">Type the right answers below (or fill them from the vote and fix them) and press Save to see scores.</p>');
     }
     $('summary').innerHTML = parts.join('');
+}
+
+// The per-field scoreboard (accuracy round 1, raven575's yes 2026-11-10): for each field the key has, how many angles
+// got it right and whether the vote of all angles did. Field names only, never what the card says.
+export function fieldTally(scores, voted, truth) {
+    const per = scores.map(s => fieldsRight(s, truth)), vote = voted ? fieldsRight(voted, truth) : null;
+    return Object.keys(FIELDS).filter(f => per.some(r => r[f] !== null) || (vote && vote[f] !== null))
+        .map(f => ({ field: f, right: per.filter(r => r[f] === true).length, of: per.filter(r => r[f] !== null).length, vote: vote ? vote[f] : null }));
+}
+
+function fieldBoard(scores, voted, truth) {
+    const tally = fieldTally(scores, voted, truth);
+    if (!tally.length) return '';
+    const mark = (v) => (v == null ? '<span class="na">–</span>' : v ? '<span class="yes">✓</span>' : '<span class="no">✗</span>');
+    const rows = tally.map(t => `<tr><td>${esc(t.field)}</td><td class="num">${t.right} of ${t.of}</td><td class="num">${t.of ? pct(t.right / t.of) : '–'}</td><td>${mark(t.vote)}</td></tr>`).join('');
+    const right = tally.filter(t => t.vote).length;
+    return `<div class="scroll"><table class="sum"><thead><tr><th>Field</th><th>Angles right</th><th>Share</th><th>Vote right</th></tr></thead><tbody>${rows}</tbody></table></div>`
+        + (voted ? `<p><b>${right} of ${tally.length}</b> fields right after the vote.</p>` : '');
 }
 
 function roleOptions(value) {

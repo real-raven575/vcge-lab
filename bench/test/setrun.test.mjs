@@ -40,21 +40,25 @@ test('each version finds its source card by Shelf name; a source with no key is 
 
 test('fields: right only when every key line of that field reads exactly and lands in that field', () => {
     const t = truths['drawn-scan.jpg'];
-    assert.deepEqual(fieldsRight(scoreSample(perfect, t), t), { name: true, company: true, phone: true, email: true, web: null });
+    assert.deepEqual(fieldsRight(scoreSample(perfect, t), t), { name: true, title: null, company: true, phone: true, fax: null, email: true, web: null, address: true });
     const typo = readAs([['Velmar Studio', 'organization'], ['Kalo Renmi', 'name'], ['555-O123', 'phone'], ['kalo@velmar.test', 'notes']]);
-    assert.deepEqual(fieldsRight(scoreSample(typo, t), t), { name: true, company: true, phone: false, email: false, web: null });
+    assert.deepEqual(fieldsRight(scoreSample(typo, t), t), { name: true, title: null, company: true, phone: false, fax: null, email: false, web: null, address: false });
     // A phone read as a mobile number still counts as the phone field
     const mobile = readAs([['555-0123', 'phoneMobile']]);
     assert.equal(fieldsRight(scoreSample(mobile, t), t).phone, true);
     // A refused read gets every keyed field wrong
-    assert.deepEqual(fieldsRight(scoreSample(readAs([], 'blurry'), t), t), { name: false, company: false, phone: false, email: false, web: null });
-    assert.deepEqual(Object.keys(FIELDS), ['name', 'company', 'phone', 'email', 'web']);
+    assert.deepEqual(fieldsRight(scoreSample(readAs([], 'blurry'), t), t), { name: false, title: null, company: false, phone: false, fax: null, email: false, web: null, address: false });
+    assert.deepEqual(Object.keys(FIELDS), ['name', 'title', 'company', 'phone', 'fax', 'email', 'web', 'address']);
+    // Accuracy round 1: a phone counts by its digits (the app formats it), email and web ignore capitals
+    const formatted = readAs([['(555) 012-3', 'phoneWork'], ['Kalo@Velmar.test', 'email'], ['42 Tesqu St, Marpo', 'address']]);
+    const f = fieldsRight(scoreSample(formatted, t), t);
+    assert.equal(f.phone, true); assert.equal(f.email, true); assert.equal(f.address, true);
 });
 
 test('a version row: characters right, fields, and a refusal is "couldn\'t read", not an error', () => {
     const t = truths['drawn-scan.jpg'], v = set.versions[0];
     const ok = versionRow(v, scoreSample(perfect, t), t);
-    assert.deepEqual(ok, { n: v.n, effects: v.effects, values: { chars: 1, turnedDown: 0, name: 1, company: 1, phone: 1, email: 1, web: null } });
+    assert.deepEqual(ok, { n: v.n, effects: v.effects, values: { chars: 1, turnedDown: 0, name: 1, title: null, company: 1, phone: 1, fax: null, email: 1, web: null, address: 1 } });
     const refused = versionRow(v, scoreSample(readAs([], 'blurry'), t), t).values;
     assert.equal(refused.chars, 0); assert.equal(refused.turnedDown, 1);
     const crashed = versionRow(v, scoreSample(readAs([], 'error'), t), t).values;
@@ -95,4 +99,15 @@ test('compare: groups side by side with the change in characters right', () => {
     assert.equal(rows[1].change, 0);
     assert.equal(rows[2].charsB, null); assert.equal(rows[2].change, null);
     assert.equal(rows[3].charsA, null);
+});
+
+test('sameValue: phones by digits, email and web without capitals, other fields letter for letter', async () => {
+    const { sameValue } = await import('../www/setrun.js');
+    assert.ok(sameValue('phone', '(616) 555-0140', '616.555.0140'));
+    assert.ok(!sameValue('phone', '(616) 555-0141', '616.555.0140'));
+    assert.ok(!sameValue('fax', '', ''));
+    assert.ok(sameValue('email', 'Jo@Example.com', 'jo@example.com'));
+    assert.ok(sameValue('web', 'Example.com/Jo', 'example.com/jo'));
+    assert.ok(!sameValue('name', 'jo doe', 'Jo Doe'));
+    assert.ok(sameValue('name', 'Jo  Doe ', 'Jo Doe'));
 });
