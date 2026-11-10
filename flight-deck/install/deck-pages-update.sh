@@ -52,9 +52,10 @@ echo "  OK   front page, Menu, Desk page, deck bar style, $n team pages"
 
 echo "[3/5] lab pages"
 BARS=$HERE/install/deckbar-pages.json
-for pair in bench=/vcge/bench/ shelf=/vcge/shelf/ logo-bench=/vcge/logo-bench/ testing=/vcge/testing/ \
-            edge-bench=/vcge/edge-bench/ funhouse=/vcge/funhouse/; do
-    d=${pair%%=*}; url=${pair#*=}; P=$LAB/www/$d/index.html
+for pair in bench/index.html=/vcge/bench/ bench/handwriting.html=/vcge/bench/handwriting.html \
+            shelf/index.html=/vcge/shelf/ logo-bench/index.html=/vcge/logo-bench/ testing/index.html=/vcge/testing/ \
+            edge-bench/index.html=/vcge/edge-bench/ funhouse/index.html=/vcge/funhouse/; do
+    f=${pair%%=*}; url=${pair#*=}; P=$LAB/www/$f
     if [ ! -f "$P" ]; then echo "  WARN $P not found; skipped"; continue; fi
     [ -e "$P.before-deckbar" ] || cp -p "$P" "$P.before-deckbar"
     python3 "$HERE/install/put_deckbar.py" "$BARS" "$P=$url"
@@ -94,7 +95,7 @@ fi
 
 echo "[5/5] check"
 if [ -z "${DECK_TEST:-}" ]; then
-    for p in / /menu/ /desk/ /deckbar.css /teams/vcge/ /teams/never-forget/ /vcge/ /vcge/bench/ /vcge/shelf/ \
+    for p in / /menu/ /desk/ /deckbar.css /teams/vcge/ /teams/never-forget/ /vcge/ /vcge/bench/ /vcge/bench/handwriting.html /vcge/shelf/ \
              /vcge/logo-bench/ /vcge/testing/ /vcge/edge-bench/ /vcge/funhouse/; do
         c=$(curl -s -o /dev/null -w '%{http_code}' "$CHECK_URL$p" || true)
         [ "$c" = 200 ] && echo "  OK   $p 200" || echo "  WARN $p answered $c"
@@ -102,4 +103,4 @@ if [ -z "${DECK_TEST:-}" ]; then
 fi
 echo
 echo "  Done. Undo: rm -rf $W && cp -a $BAK $W; cp -p $F.before-deckbar $F && sudo -u $LAB_USER $F $LAB/www;"
-echo "        for d in bench shelf logo-bench testing edge-bench funhouse; do cp -p $LAB/www/\$d/index.html.before-deckbar $LAB/www/\$d/index.html; done"
+echo "        for f in bench/index.html bench/handwriting.html shelf/index.html logo-bench/index.html testing/index.html edge-bench/index.html funhouse/index.html; do cp -p $LAB/www/\$f.before-deckbar $LAB/www/\$f; done"
