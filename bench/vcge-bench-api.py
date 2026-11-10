@@ -3,7 +3,7 @@
 
 Runs as the lab user on 127.0.0.1:8765; Caddy forwards /bench/api/* to it. It does only what a static web server
 cannot: list the published builds and the sample library, accept sample uploads, keep each sample's corrected truth,
-and store a run's results and report. Everything lives under <www>/bench/data, except the business cards when
+and store a run's results and report (a Funhouse set run also keeps its scorecard.json). Everything lives under <www>/bench/data, except the business cards when
 --cards-dir points at the Card Shelf's OCR folder (<shelf>/active/ocr); the page loads every photo through
 /bench/api/photo. It logs counts and names only, never what a card says.
 
@@ -199,6 +199,9 @@ class Handler(BaseHTTPRequestHandler):
         folder = os.path.join(DATA, 'runs', build, ts)
         os.makedirs(folder, exist_ok=True)
         report = run.pop('reportHtml', '')
+        card = run.pop('scorecard', None)   # a set run's scorecard by effect, read back by the page's Compare
+        if card is not None:
+            with open(os.path.join(folder, 'scorecard.json'), 'w') as f: json.dump(card, f, indent=1)
         with open(os.path.join(folder, 'results.json'), 'w') as f: json.dump(run, f, indent=1)
         with open(os.path.join(folder, 'summary.json'), 'w') as f: json.dump(run.get('summary', {}), f, indent=1)
         with open(os.path.join(folder, 'report.html'), 'w') as f: f.write(report)

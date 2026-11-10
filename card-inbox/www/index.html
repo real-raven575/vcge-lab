@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>vCGE Lab: The Card Inbox</title>
+<link rel="stylesheet" href="inbox.css">
+<link rel="stylesheet" href="/deckbar.css">
+</head>
+<body>
+<!-- deckbar: made by flight-deck/team-pages/build-team-pages.py, edit it there --><nav class="deckbar" aria-label="Flight Deck menu"><a class="db-home" href="/"><span aria-hidden="true">✈</span> Flight Deck</a><a href="/menu/"><span aria-hidden="true">☰</span> Menu</a><a href="/desk/"><span aria-hidden="true">📜</span> Desk</a><details><summary><span aria-hidden="true">📇</span> Teams</summary><div class="db-list"><a href="/teams/vcge/"><span aria-hidden="true">🐘</span> Team vCGE</a><a href="/teams/creative/"><span aria-hidden="true">🐼</span> Team vCGE: Creative</a><a href="/teams/marketing/"><span aria-hidden="true">🦚</span> Team vCGE: Marketing</a><a href="/teams/homelab/"><span aria-hidden="true">🐧</span> Team HomeLab</a><a href="/teams/email/"><span aria-hidden="true">🐝</span> Team eMail</a><a href="/teams/history/"><span aria-hidden="true">🐿️</span> Team History</a><a href="/teams/finance/"><span aria-hidden="true">🐜</span> Team Finance</a><a href="/teams/vault/"><span aria-hidden="true">🦏</span> Team Vault</a><a href="/teams/auto-fixer/"><span aria-hidden="true">🐒</span> Team Auto-Fixer</a><a href="/teams/9to5/"><span aria-hidden="true">🤖</span> TEAM 9to5</a><a href="/teams/never-forget/"><span aria-hidden="true">🦒</span> TEAM Never Forget</a></div></details><details><summary><span aria-hidden="true">🐘</span> vCGE lab</summary><div class="db-list"><a href="/vcge/"><span aria-hidden="true">🐘</span> The Elephant&#x27;s Memory</a><a href="/vcge/latest/"><span aria-hidden="true">🛫</span> Newest build</a><a href="/vcge/bench/"><span aria-hidden="true">🦉</span> The Reading Room</a><a href="/vcge/bench/handwriting.html"><span aria-hidden="true">✍️</span> The Scriptorium</a><a href="/vcge/edge-bench/"><span aria-hidden="true">🐈</span> The Darkroom</a><a href="/vcge/logo-bench/"><span aria-hidden="true">🦎</span> The Paint Shop</a><a href="/vcge/funhouse/"><span aria-hidden="true">🎪</span> The Funhouse</a><a href="/vcge/shelf/"><span aria-hidden="true">📚</span> The Card Shelf</a><a href="/vcge/inbox/" aria-current="page"><span aria-hidden="true">📬</span> Card Inbox</a><a href="/vcge/testing/"><span aria-hidden="true">🦝</span> Wipe Trials</a></div></details><span class="db-here">The Card Inbox</span></nav><!-- /deckbar -->
+<header class="top">
+  <h1>📬 The Card Inbox</h1>
+  <p class="tag">One card, every angle. Drop a zip, photos or a short clip; every bench runs on every angle; type the right answers once.</p>
+</header>
+
+<main>
+<section class="panel" aria-labelledby="dropTitle">
+  <h2 id="dropTitle">📥 Drop a card</h2>
+  <div class="row">
+    <label class="field">Card nickname <input id="cardName" type="text" maxlength="40" autocomplete="off" placeholder="e.g. card-12 (never a real name)"></label>
+    <label class="field">Build <select id="inboxBuild"></select></label>
+    <span id="inboxBuildNote" class="note"></span>
+  </div>
+  <label id="dropZone" class="drop" for="fileInput">
+    <span class="big">Drop a zip, photos or a 3 to 5 second clip here</span>
+    <span class="note">or tap to pick files. Photos go on the Card Shelf for every bench; clips stay here and give their best frames.</span>
+    <input id="fileInput" type="file" multiple accept=".zip,image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm">
+  </label>
+  <p class="note">Pilots can also copy <code>&lt;card&gt;.zip</code> or a <code>&lt;card&gt;/</code> folder into the inbox's <code>drop/</code> folder on the lab; it is picked up within a minute.</p>
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+</section>
+
+<section class="panel" aria-labelledby="cardsTitle">
+  <h2 id="cardsTitle">🃏 Cards</h2>
+  <ul id="cardList" class="cards"><li class="empty">Loading…</li></ul>
+</section>
+
+<section id="cardPanel" class="panel" hidden aria-labelledby="cardTitle">
+  <h2><span aria-hidden="true">🃏</span> <span id="cardTitle"></span></h2>
+  <div class="row">
+    <button id="runBtn" class="btn primary" type="button">Run new angles</button>
+    <button id="againBtn" class="btn" type="button">Run again</button>
+    <button id="stopBtn" class="btn quiet" type="button" disabled>Stop</button>
+    <button id="pickBtn" class="btn" type="button" hidden>🎞 Pick frames from the clip</button>
+  </div>
+  <p id="clipNote" class="note"></p>
+  <div id="summary"></div>
+  <div class="scroll"><table class="angles">
+    <thead><tr><th></th><th>Angle</th><th>Name</th><th>Edges</th><th>Read</th><th>Characters right</th><th>Lines exact</th><th>Logo</th><th></th></tr></thead>
+    <tbody id="angleRows"></tbody>
+  </table></div>
+
+  <h3>✍ The right answers (once for the whole card)</h3>
+  <p class="note">One row per line on the card. Fill from the vote, fix what is wrong, and save; every angle is scored on it, here and in the Reading Room.</p>
+  <div id="truthLines" class="truth"></div>
+  <div class="row">
+    <button id="addLine" class="btn quiet" type="button">+ Line</button>
+    <button id="fillVote" class="btn" type="button">Fill from the vote</button>
+    <button id="saveTruth" class="btn primary" type="button">Save the answers</button>
+    <span id="truthNote" class="note" role="status"></span>
+  </div>
+</section>
+</main>
+<script type="module" src="inbox.js"></script>
+</body>
+</html>
