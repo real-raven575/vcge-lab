@@ -3,7 +3,7 @@
 The test lab for **vCGE** (vCard Generator Engine), the app that turns a photo of a business card into a phone
 contact, entirely on the device. *Operation: Never Lose Contact.*
 
-Created by raven575 and Team vCGE (Claude).
+Created by raven575 and the Herd of Helpers: Team vCGE (Claude) and Gemini.
 
 The lab is a small web server on a machine you control. Every build of the app is published there, one folder per
 commit, and a few tools sit beside the builds to test them:
@@ -13,6 +13,8 @@ commit, and a few tools sit beside the builds to test them:
 | 🦉 The Reading Room (OCR bench) | `bench/` | Runs one build's own edge finder, OCR reader and field mapper over a library of card photos in your browser, lets you correct the result, and scores it. |
 | 🦝 Wipe Trials | `wipe-trials/` | A step-by-step manual test guide (first trial: cross-browser wipe) that files a Markdown report on the lab. |
 | 🐘 Versions page | `versions-page/` | The lab's front page: every published build, newest first, with UTC and local times and a version number. |
+| ✍️ The Scriptorium (handwriting bench) | `bench/` (`handwriting.html`) | Reads a set of handwritten samples with one build's own reader and scores characters and words. |
+| 📬 The Card Inbox | `card-inbox/` | Drop a zip, photos or a short clip of one card; every bench runs on every angle and each angle is scored. |
 | 🦎 The Paint Shop (logo bench) | `logo-bench/` | Finds the likely logo on each card photo, lets you confirm or correct it, and redraws it as a small flat SVG. |
 | 📚 The Card Shelf | `card-shelf/` | One shared store of bench photos (Holding, Active, Archive) that every bench reads from. |
 | 📬 The Desk | `flight-deck/www/desk/` | raven575's Rules, Welcome and Copy-paste Inbox, read from one private Google Sheet after you sign in. |
@@ -20,6 +22,12 @@ commit, and a few tools sit beside the builds to test them:
 
 Two more benches run on the lab, 🐈 the Darkroom (edge bench) and 🎪 the Funhouse (tricky-photo maker); their source
 stays with Iris (Camera) for now and comes to this repository later.
+
+## Status (November 2026)
+
+- The app it tests, vCGE, is in **public beta at 0.8.1** ([live page](https://real-raven575.github.io/vCGE-Master/)). The lab follows the app's `main` builds.
+- Working now: the Reading Room with a field-by-field Scoreboard (accuracy round 1), the Scriptorium, the Card Inbox, the Card Shelf, Wipe Trials, the Paint Shop and the Flight Deck with a page per Herd team.
+- Still to come: the Darkroom and the Funhouse move into this repository from Iris's bench.
 
 The lab never becomes part of the app. Nothing here is built into vCGE, and the app's own rules (no internet,
 nothing stored) are not loosened to make testing easier.
@@ -96,7 +104,7 @@ service, the page and the scoring are generic, so the lab can be reused for othe
 
 ## Credits
 
-Created by **raven575** and **Team vCGE (Claude)**. The crew who keep the lab lights on:
+Created by **raven575** and the **Herd of Helpers**: **Team vCGE (Claude)** and **Gemini**. The crew who keep the lab lights on:
 
 | | Call sign | Post |
 |---|---|---|
@@ -110,6 +118,14 @@ Created by **raven575** and **Team vCGE (Claude)**. The crew who keep the lab li
 | 🦓 | Checkers | QR. Black and white and read all over. |
 | 🦅 | Airlock | Export. The one way out, and only when you press the button. |
 
+**Made with AI.** Most of the code and text here was written by AI models (Claude by Anthropic, and Gemini by Google)
+working for raven575, who reviews and approves every change. Test it before you rely on it.
+
+## Feedback
+
+Found a bug or have an idea? [Open an issue on GitHub](https://github.com/real-raven575/vcge-lab/issues/new/choose).
+Please never attach a real business card photo or anyone's real contact details: describe the problem or use made-up data.
+
 ## Licence
 
-MIT, see [LICENSE](LICENSE). Keep the credit "raven575 and Team vCGE" with any copy.
+MIT, see [LICENSE](LICENSE). Keep the credit "raven575 and Team vCGE" with any copy. © 2026 raven575, Herd of Helpers (Claude) & Gemini.
