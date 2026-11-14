@@ -58,7 +58,7 @@ fi
 echo "[3/5] lab pages"
 BARS=$HERE/install/deckbar-pages.json
 for pair in bench=/vcge/bench/ shelf=/vcge/shelf/ logo-bench=/vcge/logo-bench/ testing=/vcge/testing/ \
-            edge-bench=/vcge/edge-bench/ funhouse=/vcge/funhouse/; do
+            edge-bench=/vcge/edge-bench/ funhouse=/vcge/funhouse/ inbox=/vcge/inbox/ testbench=/vcge/testbench/; do
     d=${pair%%=*}; url=${pair#*=}; P=$LAB/www/$d/index.html
     if [ ! -f "$P" ]; then echo "  WARN $P not found; skipped"; continue; fi
     [ -e "$P.before-deckbar" ] || cp -p "$P" "$P.before-deckbar"
