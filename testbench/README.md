@@ -8,9 +8,12 @@ One engine, one bench per team. raven575 works down a bench instead of hunting t
   and **Copy my results** (plain text to paste into the card's thread).
 - **Interactive** cards name a thread: raven575 posts what each step shows there before going on, so Claude can
   check it step by step.
+- **Needs my yes/no** cards carry `decision: {ask, where?, label?, link}`: a one-tap button, on the closed card too,
+  to the exact place the choice is answered (a PR, a Run button, or claude.ai with the thread named in `where`).
+  Links are https only. Every card waiting on a raven575 choice must have one.
 - **Automatic** lines read the newest real GitHub Actions run (workflow + branch, or one job) every 15 minutes and on
   "Check CI now": jobs green, the failed job and step, the build, a link to the run.
-- Filters (Still to do, All, Mine, Robot, Interactive, Failed, Passed), an overall progress bar and one per card.
+- Filters (Still to do, All, Needs my yes/no, Mine, Robot, Interactive, Failed, Passed), an overall progress bar and one per card.
 
 Pages: `/vcge/testbench/` (vCGE) and `/vcge/testbench/?bench=auto-fixer` (Auto-Fixer).
 
@@ -19,7 +22,7 @@ Pages: `/vcge/testbench/` (vCGE) and `/vcge/testbench/?bench=auto-fixer` (Auto-F
   `testbench/api/`. Every call takes `?bench=` (default `vcge`). `GET items`, `GET evidence?id=&hash=`,
   `PUT step?id=&n= {result: pass|fail|skip|"", note, robot?}`, `PUT status?id= {status}`, `POST note?id= {text}`,
   `PUT evidence?id=&name=[&step=]` (a PNG, JPEG, WebP or GIF, checked by its bytes, up to 15 MB),
-  `POST item {title, steps, area?, why?, link?, interactive?, thread?, robotSteps?}`, `POST refresh` (read CI now).
+  `POST item {title, steps, area?, why?, link?, interactive?, thread?, robotSteps?, decisionLink?}`, `POST refresh` (read CI now).
   Its only outside call is a read of public GitHub Actions results from api.github.com. Logs carry method and path only.
 - `benches/<team>.json`: each bench's seed: title, theme, section names and its cards. Kept in git: names and
   steps only. A step is a string or `{text, who: human|robot, section, robot, resultAt, state}`; a robot's `state`

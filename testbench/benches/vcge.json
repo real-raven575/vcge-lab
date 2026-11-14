@@ -31,8 +31,8 @@
    "section": "raven",
    "title": "Redesign step 4: the green GO button",
    "area": "MOD01 Shell",
-   "why": "Step 4 is built and tested (green GO circle on Welcome, read without the OK press, one review page with Make it fancy / Just the contact) but not pushed yet.",
-   "where": "Waiting on your typed push line in the redesign thread. Then the newest lab build.",
+   "why": "Step 4 is merged (PR #35, 20:41 UTC 11-14): green GO circle on Welcome, read without the OK press, one review page with Make it fancy / Just the contact. Not tried by hand yet.",
+   "where": "The newest lab build (the public site gets it at the next Pages run).",
    "steps": [
     "On Welcome, press the green GO circle and take a photo of a card.",
     "It should read by itself, without pressing OK, and land on one review page.",
@@ -40,11 +40,12 @@
     "Go back, press ⚡ Just the contact: you should land on Share.",
     "Check Step by step still works the old way."
    ],
-   "status": "waiting",
+   "status": "ready",
    "interactive": {
     "thread": "Make vCGE easy and premium on every screen",
     "how": "After each step, post what the screen shows (a screenshot is best) so the Shell thread can check the flow before step 5 starts."
-   }
+   },
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/35"
   },
   {
    "id": "redesign-5-7",
@@ -77,6 +78,12 @@
    "interactive": {
     "thread": "Add high-contrast QR styles",
     "how": "Your answer to step 4 settles the open choice card there."
+   },
+   "decision": {
+    "ask": "Should the QR styles also show on the Card screen?",
+    "where": "the choice card in the thread \"Add high-contrast QR styles\"",
+    "label": "Open Claude, then that thread",
+    "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2"
    }
   },
   {
@@ -211,7 +218,13 @@
     "Open the public site and note the version it shows.",
     "Check the Card screen has the card-maker tabs (that proves step 2 is there)."
    ],
-   "status": "ready"
+   "status": "ready",
+   "decision": {
+    "ask": "Run the Pages deploy on main?",
+    "where": "press Run workflow, branch main",
+    "label": "Open the Pages Run button",
+    "link": "https://github.com/real-raven575/vCGE-Master/actions/workflows/pages.yml"
+   }
   },
   {
    "id": "scriptorium-samples",
@@ -259,6 +272,18 @@
     "thread": "the camera thread",
     "how": "If a step fails, post a screen recording or screenshot of that step before going on."
    }
+  },
+  {
+   "id": "passkey-approvals",
+   "section": "raven",
+   "title": "Later: passkey sign-in for page-level approvals",
+   "area": "PM",
+   "status": "waiting",
+   "why": "You asked (21:05 UTC 11-14) to list this for later: answer yes/no choices right on this page, signed in with a passkey, instead of opening Claude. Not started; until then each choice links to claude.ai.",
+   "where": "Not built yet.",
+   "steps": [
+    "Say when to start it, and it gets its own thread and real steps."
+   ]
   },
   {
    "id": "ci-main",

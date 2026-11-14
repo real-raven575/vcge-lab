@@ -64,6 +64,7 @@ function standIn() {
         for (let i = 0; i < 50; i++) { try { await fetch(`http://127.0.0.1:${PORTS.api}/testbench/api/health`); break; } catch { await new Promise(r => setTimeout(r, 100)); } }
         browser = await chromium.launch();
         const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 } });
+        await ctx.route(/^https:\/\//, r => r.abort());   // decision links open new tabs; never leave the machine
         await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: `http://127.0.0.1:${PORTS.web}` });
         const page = await ctx.newPage();
         const errors = []; page.on('pageerror', e => errors.push(e.message));
@@ -84,6 +85,19 @@ function standIn() {
         ok(await page.locator('#ravenList .inter:visible').count() === 0, 'closed tests hide their body');
         await page.locator('#ravenList > li.item summary').first().click();
         ok(await page.locator('#ravenList .inter').first().textContent().then(t => t.includes(SEED.find(i => i.interactive).interactive.thread)), 'an interactive test names the thread to report in');
+        await page.click('[data-filter=open]');
+
+        // Decisions: every yes/no waiting on raven575 has a one-tap link, even with the card closed
+        const asks = seedRaven.filter(i => i.decision && i.status !== 'pass');
+        await page.click('[data-filter=decide]');
+        ok(asks.length > 0 && await raven.count() === asks.length, `👉 filter shows the ${asks.length} tests that need a yes or no`);
+        for (const a of asks) {
+            const link = page.locator(`li.item[data-id="${a.id}"] summary a.decide`);
+            ok(await link.getAttribute('href') === a.decision.link && await link.getAttribute('target') === '_blank', `"${a.title}" links straight to where it is answered`);
+        }
+        ok(await page.locator('#tally').textContent().then(t => t.includes(`${asks.length} need your yes or no`)), 'the tally counts the yes/no choices');
+        await page.locator(`li.item[data-id="${asks[0].id}"] summary a.decide`).click();
+        ok(await page.locator(`li.item[data-id="${asks[0].id}"] details`).evaluate(d => !d.open), 'tapping the link does not fold the card open');
         await page.click('[data-filter=open]');
 
         // Steps: results and notes persist on the server

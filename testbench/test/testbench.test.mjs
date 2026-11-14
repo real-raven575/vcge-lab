@@ -1,7 +1,7 @@
 // Test Bench page helpers:  node --test testbench/test/testbench.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf } from '../www/testbench.js';
+import { safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf } from '../www/testbench.js';
 
 const hand = { id: 'h', section: 'raven', title: 'Hands-on', status: 'ready', steps: ['open it', 'press GO', 'look'],
     stepResults: { 0: { result: 'pass', note: '' }, 1: { result: 'fail', note: 'froze' } },
@@ -38,6 +38,17 @@ test('tally for the header', () => {
     assert.deepEqual(t.raven, { ready: 1, waiting: 1, pass: 0, fail: 0, blocked: 0 });
     assert.deepEqual(t.auto, { pass: 1, fail: 1, waiting: 1 });
     assert.equal(t.interactive, 1);
+    assert.equal(t.decide, 0);
+});
+
+test('decision links: https only, counted and filtered while open', () => {
+    const ask = { ...hand, id: 'd', decision: { ask: 'Run it?', link: 'https://example.org/run' } };
+    const done = { ...ask, id: 'dp', status: 'pass' };
+    const bad = { ...hand, id: 'db', decision: { link: 'javascript:alert(1)' } };
+    assert.equal(safeLink('https://example.org/x'), 'https://example.org/x');
+    for (const u of ['javascript:alert(1)', 'http://example.org', 'https://a b', '', null, 7]) assert.equal(safeLink(u), null);
+    assert.deepEqual([hand, ask, done, bad].filter(i => matches(i, 'decide')).map(i => i.id), ['d']);
+    assert.equal(tally([hand, ask, done, bad]).decide, 1);
 });
 
 test('results text to paste into a thread', () => {

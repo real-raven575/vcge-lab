@@ -23,6 +23,7 @@
     <button class="chip" type="button" data-filter="all">All</button>
     <button class="chip" type="button" data-filter="human">Mine</button>
     <button class="chip" type="button" data-filter="robot">Robot</button>
+    <button class="chip" type="button" data-filter="decide">Needs my yes/no</button>
     <button class="chip" type="button" data-filter="interactive">Interactive</button>
     <button class="chip" type="button" data-filter="fail">Failed</button>
     <button class="chip" type="button" data-filter="pass">Passed</button>
@@ -32,7 +33,7 @@
 <main>
 <section class="panel" aria-labelledby="ravenTitle">
   <h2 id="ravenTitle"><span id="ravenName">Needs raven575</span> <span class="note">hands-on checks, top to bottom</span></h2>
-  <p class="note">YOU steps are yours; ROBOT steps a Claude robot runs and fills in. <b>Interactive</b> means: post what each step shows in the named thread before going on, so Claude can check it step by step.</p>
+  <p class="note">YOU steps are yours; ROBOT steps a Claude robot runs and fills in. <b>Interactive</b> means: post what each step shows in the named thread before going on, so Claude can check it step by step. <b>Needs my yes/no</b> means a choice waits on you; its button opens the place to answer it.</p>
   <ol id="ravenList" class="items"><li class="empty">Loading…</li></ol>
 </section>
 
@@ -54,6 +55,8 @@
     <label class="field">Steps, one per line <textarea name="steps" rows="4" required></textarea></label>
     <label class="check"><input name="interactive" type="checkbox"> Interactive, report each step in thread:</label>
     <input name="thread" type="text" maxlength="120" placeholder="thread name" aria-label="Thread name">
+    <label>Needs a yes or no from you? Link to where you answer it:
+      <input name="decisionLink" type="url" maxlength="300" placeholder="https://… (claude.ai, a PR, a Run button)"></label>
     <div class="row"><button class="btn primary" type="submit">Add it</button><span id="addNote" class="note" role="status"></span></div>
   </form>
 </section>

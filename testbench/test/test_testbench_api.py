@@ -149,6 +149,11 @@ class TestBench(unittest.TestCase):
         it = self.items()['p-dark-mode-check']
         self.assertEqual((it['section'], [x['text'] for x in it['steps']], it['interactive']['thread']), ('raven', ['open', 'look'], 'Shell'))
         self.assertEqual(call(self.base, 'POST', '/testbench/api/item', {'title': '', 'steps': ['a']})[0], 400)
+        _, r3 = call(self.base, 'POST', '/testbench/api/item', {'title': 'Pick a look', 'steps': ['pick'], 'decisionLink': 'https://example.org/card'})
+        _, r4 = call(self.base, 'POST', '/testbench/api/item', {'title': 'Bad link', 'steps': ['x'], 'decisionLink': 'javascript:alert(1)'})
+        it = self.items()
+        self.assertEqual(it[r3['id']]['decision'], {'ask': 'Pick a look', 'link': 'https://example.org/card'})
+        self.assertNotIn('decision', it[r4['id']])
 
     def test_ci_results_from_github(self):
         r = call(self.base, 'POST', '/testbench/api/refresh')[1]
