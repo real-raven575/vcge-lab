@@ -171,7 +171,13 @@
     }
    ],
    "status": "ready",
-   "order": 0
+   "order": 0,
+   "decision": {
+    "ask": "Give the merge yes for #29?",
+    "where": "after the 👤 steps pass",
+    "label": "Open PR #29",
+    "link": "https://github.com/real-raven575/auto-fix_Win10-11/pull/29"
+   }
   },
   {
    "id": "pr-39",

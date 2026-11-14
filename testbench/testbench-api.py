@@ -215,6 +215,9 @@ def new_item(b, s, req):
     thread = clean_text(req.get('thread'), 120)
     if req.get('interactive') and thread:
         item['interactive'] = {'thread': thread, 'how': 'Report what each step shows in that thread before going on.'}
+    dlink = clean_text(req.get('decisionLink'), 300)
+    if dlink and dlink.startswith('https://'):   # a yes or no waits on raven575: the page shows a one-tap link to answer it
+        item['decision'] = {'ask': title, 'link': dlink}
     return item, None
 
 

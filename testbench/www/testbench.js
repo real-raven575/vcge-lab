@@ -54,16 +54,23 @@ export function matches(item, filter) {
     if (filter === 'human') return who('human');
     if (filter === 'robot') return item.section === 'auto' || who('robot');
     if (filter === 'interactive') return Boolean(item.interactive);
+    if (filter === 'decide') return Boolean(safeLink(item.decision?.link)) && s !== 'pass';
     if (filter === 'open') return s !== 'pass';
     return s === filter;
 }
 
+/** A link the page will show: https only, so a seed or an added test can never carry a script link. */
+export function safeLink(url) {
+    return typeof url === 'string' && /^https:\/\/\S+$/.test(url) ? url : null;
+}
+
 /** Counts for the header: hands-on by status, automatic green/red. */
 export function tally(items) {
-    const t = { raven: { ready: 0, waiting: 0, pass: 0, fail: 0, blocked: 0 }, auto: { pass: 0, fail: 0, waiting: 0 }, interactive: 0 };
+    const t = { raven: { ready: 0, waiting: 0, pass: 0, fail: 0, blocked: 0 }, auto: { pass: 0, fail: 0, waiting: 0 }, interactive: 0, decide: 0 };
     for (const it of items) {
         t[it.section === 'auto' ? 'auto' : 'raven'][statusOf(it)]++;
         if (it.interactive && statusOf(it) !== 'pass') t.interactive++;
+        if (safeLink(it.decision?.link) && statusOf(it) !== 'pass') t.decide++;
     }
     return t;
 }
@@ -135,6 +142,7 @@ function render() {
         el('span', { text: `🙋 ${t.raven.ready} ready` }), el('span', { text: `⏳ ${t.raven.waiting} waiting` }),
         el('span', { text: `❌ ${t.raven.fail} failed` }), el('span', { text: `✅ ${t.raven.pass} passed` }),
         el('span', { text: `🔁 ${t.interactive} interactive open` }),
+        t.decide ? el('span', { class: 'decide-count', text: `👉 ${t.decide} need your yes or no` }) : null,
         el('span', { text: `🤖 ${t.auto.pass} green · ${t.auto.fail} red` }));
     const show = page.items.filter(it => matches(it, page.filter));
     const raven = show.filter(it => it.section !== 'auto');
@@ -150,9 +158,17 @@ function shell(it, num, summaryKids, bodyKids) {
     const d = el('details', { open: page.open.has(it.id), ontoggle: () => (d.open ? page.open.add(it.id) : page.open.delete(it.id)) },
         el('summary', {}, el('span', { class: 'num', text: num }), el('span', { class: 'ttl' }, it.title,
             it.interactive ? el('span', { class: 'badge', text: '🔁 Interactive' }) : null),
-        el('span', { class: `pill ${s}`, text: `${STATUS[s][0]} ${STATUS[s][1]}` }), ...summaryKids),
+        el('span', { class: `pill ${s}`, text: `${STATUS[s][0]} ${STATUS[s][1]}` }), ...summaryKids, decideLink(it, 'decide-sum')),
         el('div', { class: 'body' }, ...bodyKids));
     return el('li', { class: 'item', 'data-status': s, 'data-id': it.id }, d);
+}
+
+/** The one-tap link to where raven575 answers a yes or no (claude.ai, a PR, a Run button). */
+function decideLink(it, cls) {
+    const href = safeLink(it.decision?.link);
+    if (!href || statusOf(it) === 'pass') return null;
+    return el('a', { class: `decide ${cls}`, href, target: '_blank', rel: 'noopener noreferrer', onclick: e => e.stopPropagation(),
+        text: `👉 ${it.decision.label || 'Answer here'} ↗` });
 }
 
 function ravenItem(it, num) {
@@ -168,8 +184,10 @@ function ravenItem(it, num) {
         steps.push(stepRow(it, st, i));
     });
     return shell(it, `${num}.`, [el('span', { class: 'sub', text: `${it.area || ''} · ${done} of ${n} steps done${it.updated ? ` · last ${when(it.updated)}` : ''}` }), bar], [
+        safeLink(it.decision?.link) ? el('p', { class: 'decide-box' }, el('b', { text: '👉 Needs your yes or no: ' }),
+            it.decision.ask || it.title, it.decision.where ? ` (${it.decision.where})` : '', ' ', decideLink(it, 'decide-body')) : null,
         it.why ? el('p', { class: 'note', text: it.why }) : null,
-        it.link ? el('p', {}, el('a', { href: it.link, target: '_blank', rel: 'noopener noreferrer', text: 'Open the PR ↗' })) : null,
+        safeLink(it.link) ? el('p', {}, el('a', { href: it.link, target: '_blank', rel: 'noopener noreferrer', text: 'Open the PR ↗' })) : null,
         it.where ? el('p', {}, el('b', { text: 'Where: ' }), it.where) : null,
         it.interactive ? el('p', { class: 'inter' }, el('b', { text: `🔁 Interactive: report each step in ${it.interactive.thread}. ` }), it.interactive.how || '') : null,
         el('h4', { text: 'Steps' }),
@@ -288,7 +306,8 @@ function wire() {
         const f = new FormData(e.target);
         try {
             const r = await send('POST', 'item', { title: f.get('title'), area: f.get('area'), why: f.get('why'),
-                steps: String(f.get('steps')).split('\n').map(s => s.trim()).filter(Boolean), interactive: f.get('interactive') === 'on', thread: f.get('thread') });
+                steps: String(f.get('steps')).split('\n').map(s => s.trim()).filter(Boolean), interactive: f.get('interactive') === 'on', thread: f.get('thread'),
+                decisionLink: f.get('decisionLink') });
             e.target.reset(); $('addNote').textContent = 'Added.'; page.open.add(r.id); await load();
         } catch (err) { $('addNote').textContent = err.message; }
     });
