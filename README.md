@@ -15,6 +15,7 @@ commit, and a few tools sit beside the builds to test them:
 | 🐘 Versions page | `versions-page/` | The lab's front page: every published build, newest first, with UTC and local times and a version number. |
 | 🦎 The Paint Shop (logo bench) | `logo-bench/` | Finds the likely logo on each card photo, lets you confirm or correct it, and redraws it as a small flat SVG. |
 | 📚 The Card Shelf | `card-shelf/` | One shared store of bench photos (Holding, Active, Archive) that every bench reads from. |
+| 🧪 The Test Bench | `testbench/` | Every open test in one list, one bench per team (vCGE, Auto-Fixer): hands-on steps with Pass/Fail/Skip, notes and pictures saved on the lab, and the real CI results. |
 | 📬 The Desk | `flight-deck/www/desk/` | raven575's Rules, Welcome and Copy-paste Inbox, read from one private Google Sheet after you sign in. |
 | ✈ Flight Deck | `flight-deck/` | A front page above the lab when one server holds several teams: one tile per team, each team in its own folder, address and port block. |
 
