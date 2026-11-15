@@ -122,6 +122,18 @@ function standIn() {
         await item.locator('.shots img').first().evaluate(img => img.decode());
         ok(await item.locator('.shots img').first().evaluate(img => img.naturalWidth === 8), 'the picture is served back and drawn');
         ok(await item.locator('.shots a').nth(1).textContent().then(t => t.includes('step 2')), 'a step picture says which step');
+        // Typed text is never lost: it saves by itself, and survives a redraw (an upload) before it is saved
+        await step(2).locator('textarea').fill('Saved without pressing anything');
+        await step(2).locator('.saved').filter({ hasText: /^saved/ }).waitFor();
+        ok(true, 'a step note saves by itself, no button needed');
+        await step(3).locator('textarea').fill('Typed, then a picture went up');
+        await item.locator('.notes textarea').fill('A card note not added yet');
+        await item.locator('.drop input[type=file]').setInputFiles({ name: 'third.png', mimeType: 'image/png', buffer: Buffer.concat([png(), Buffer.from('yy')]) });
+        await page.waitForFunction(id => document.querySelectorAll(`li.item[data-id="${id}"] .shots img`).length === 3, first.id);
+        ok(await step(3).locator('textarea').inputValue() === 'Typed, then a picture went up', 'a step note typed before an upload is still there after it');
+        ok(await item.locator('.notes textarea').inputValue() === 'A card note not added yet' && await item.locator('.notes .note').textContent().then(t => t.includes('not saved yet')), 'an unsent card note stays and says it is not saved yet');
+        await step(3).locator('.saved').filter({ hasText: /^saved/ }).waitFor();
+        await item.locator('.notes textarea').fill('');
         await item.locator('.drop input[type=file]').setInputFiles({ name: 'fake.png', mimeType: 'image/png', buffer: Buffer.from('<svg/>') });
         await item.locator('.drop + .note').filter({ hasText: 'photos and screenshots only' }).waitFor();
         ok(true, 'a file that is not a picture is refused with a reason');
@@ -130,12 +142,13 @@ function standIn() {
         await item.locator('summary').click();
         ok(await step(0).getByRole('button', { name: 'Pass', exact: true }).getAttribute('aria-pressed') === 'true', 'step 1 result kept after a reload');
         ok(await step(1).locator('textarea').inputValue() === 'The tabs showed, the mini card <b>jumped</b>', 'step 2 note kept after a reload');
-        ok(await item.locator('.shots img').count() === 2 && await item.locator('.log li').textContent().then(t => t.includes('Tried on the phone')), 'pictures and notes kept after a reload');
+        ok(await step(2).locator('textarea').inputValue() === 'Saved without pressing anything' && await step(3).locator('textarea').inputValue() === 'Typed, then a picture went up', 'notes that saved by themselves are kept after a reload');
+        ok(await item.locator('.shots img').count() === 3 && await item.locator('.log li').textContent().then(t => t.includes('Tried on the phone')), 'pictures and notes kept after a reload');
 
         // Copy my results
         await item.getByRole('button', { name: 'Copy my results' }).click();
         const copied = await page.evaluate(() => navigator.clipboard.readText());
-        ok(copied.includes(`Test Bench: ${first.title}`) && copied.includes('Fail: The tabs showed') && copied.includes('Pictures on the lab Test Bench: 2'), 'Copy my results gives the steps, results, notes and picture count');
+        ok(copied.includes(`Test Bench: ${first.title}`) && copied.includes('Fail: The tabs showed') && copied.includes('Pictures on the lab Test Bench: 3'), 'Copy my results gives the steps, results, notes and picture count');
 
         // Status: Passed leaves "Still to do"
         await item.locator('select').selectOption('pass');

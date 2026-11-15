@@ -222,8 +222,11 @@ def new_item(b, s, req):
 
 
 class Handler(BaseHTTPRequestHandler):
-    def log_message(self, fmt, *args):   # method and path only
+    def log_message(self, fmt, *args):   # method and path only (never the query, a note or a picture)
         print('%s %s' % (self.command, urllib.parse.urlparse(self.path).path), flush=True)
+
+    def log_request(self, code='-', size='-'):   # one line per call, with its answer, so a refused save shows in the journal
+        print('%s %s %s' % (self.command, urllib.parse.urlparse(self.path).path, getattr(code, 'value', code)), flush=True)
 
     def send_json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode()
