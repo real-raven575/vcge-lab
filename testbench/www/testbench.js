@@ -94,7 +94,10 @@ export const when = iso => (iso ? `${iso.slice(0, 16).replace('T', ' ')} UTC` : 
 // ---- Page ---------------------------------------------------------------------------------------------------------
 
 const $ = id => document.getElementById(id);
-const page = { items: [], filter: 'open', open: new Set(), bench: {} };
+const page = { items: [], filter: 'open', open: new Set(), bench: {}, drafts: new Map(), timers: new Map() };
+
+/* Typed text lives in page.drafts until the server has it, so a redraw (after any save or upload) never wipes it. */
+if (typeof window !== 'undefined') window.addEventListener('beforeunload', e => { if (page.drafts.size) { e.preventDefault(); e.returnValue = ''; } });
 
 function el(tag, props = {}, ...kids) {
     const e = document.createElement(tag);
@@ -200,15 +203,36 @@ function ravenItem(it, num) {
 function stepRow(it, st, i) {
     const rec = it.stepResults?.[i] || {};
     const robotLine = rec.robot || st.robot;
-    const note = el('textarea', { rows: 2, placeholder: 'What I saw (or paste the output)', 'aria-label': `What I saw at step ${i + 1}` });
-    note.value = rec.note || '';
-    const saved = el('span', { class: 'saved', role: 'status', text: rec.at ? `saved ${when(rec.at)}` : '' });
-    const save = async result => {
-        try {
-            await send('PUT', `step?${q(it.id, `&n=${i}`)}`, { result, note: note.value });
-            saved.textContent = 'saved'; await load();
-        } catch (e) { saved.textContent = `not saved: ${e.message}`; }
+    const key = `${it.id}|${i}`;
+    const note = el('textarea', { rows: 2, placeholder: 'What I saw (or paste the output). Saves by itself.', 'aria-label': `What I saw at step ${i + 1}` });
+    note.value = page.drafts.has(key) ? page.drafts.get(key) : rec.note || '';
+    const saved = el('span', { class: 'saved', role: 'status',
+        text: page.drafts.has(key) ? 'not saved yet' : rec.at ? `✓ saved ${when(rec.at)}` : '' });
+    const put = async result => {
+        const text = page.drafts.has(key) ? page.drafts.get(key) : note.value;
+        await send('PUT', `step?${q(it.id, `&n=${i}`)}`, { result, note: text });
+        if (page.drafts.get(key) === text) page.drafts.delete(key);
     };
+    const save = async result => {   // a Pass / Fail / Skip tap: save, then redraw
+        clearTimeout(page.timers.get(key));
+        saved.textContent = 'saving…';
+        try { await put(result); await load(); } catch (e) { saved.textContent = `⚠ not saved: ${e.message}`; }
+    };
+    const autosave = async () => {   // typing: save quietly, no redraw, so the keyboard stays up
+        clearTimeout(page.timers.get(key));
+        if (!page.drafts.has(key)) return;
+        try {
+            const r = it.stepResults?.[i]?.result || '';
+            await put(r);
+            it.stepResults = { ...(it.stepResults || {}), [i]: { ...(it.stepResults?.[i] || {}), result: r, note: note.value, at: new Date().toISOString() } };
+            if (!page.drafts.has(key)) saved.textContent = '✓ saved';
+        } catch (e) { saved.textContent = `⚠ not saved: ${e.message}`; }
+    };
+    note.addEventListener('input', () => {
+        page.drafts.set(key, note.value); saved.textContent = 'saving soon…';
+        clearTimeout(page.timers.get(key)); page.timers.set(key, setTimeout(autosave, 1200));
+    });
+    note.addEventListener('blur', autosave);
     return el('li', { class: `step ${st.who}`, value: i + 1 }, el('span', { class: 'what' },
             el('span', { class: `who ${st.who}`, text: st.who === 'robot' ? '🤖 ROBOT' : '👤 YOU' }), `${i + 1}. ${st.text}`),
         robotLine ? el('span', { class: 'res', text: `🤖 ${robotLine}${st.resultAt && !rec.robot ? `  (${when(st.resultAt)})` : ''}` }) : null,
@@ -216,7 +240,7 @@ function stepRow(it, st, i) {
             class: `btn small ${v}`, type: 'button', text: label, 'aria-pressed': String(rec.result === v),
             onclick: () => save(rec.result === v ? '' : v),
         }))),
-        note, el('div', { class: 'row' }, el('button', { class: 'btn small', type: 'button', text: 'Save note', onclick: () => save(rec.result || '') }), saved,
+        note, el('div', { class: 'row' }, saved,
             uploader(it, i, '📎 Picture for this step')));
 }
 
@@ -229,12 +253,17 @@ function statusRow(it) {
 }
 
 function notesBox(it) {
+    const key = `${it.id}|notes`;
     const box = el('textarea', { rows: 3, placeholder: 'What you found overall', 'aria-label': `Note on ${it.title}` });
-    const msg = el('span', { class: 'note', role: 'status' });
+    box.value = page.drafts.get(key) || '';
+    const msg = el('span', { class: 'note', role: 'status', text: page.drafts.has(key) ? 'not saved yet: tap Add note' : '' });
+    box.addEventListener('input', () => {
+        if (box.value.trim()) { page.drafts.set(key, box.value); msg.textContent = 'not saved yet: tap Add note'; } else { page.drafts.delete(key); msg.textContent = ''; }
+    });
     return el('div', { class: 'notes' }, el('h4', { text: '📝 Notes' }),
         (it.notes || []).length ? el('ul', { class: 'log' }, it.notes.map(n => el('li', {}, el('time', { text: when(n.at) }), n.text))) : null,
         box, el('div', { class: 'row' }, el('button', { class: 'btn small primary', type: 'button', text: 'Add note', onclick: async () => {
-            try { await send('POST', `note?${q(it.id)}`, { text: box.value }); await load(); } catch (e) { msg.textContent = e.message; } } }), msg));
+            try { await send('POST', `note?${q(it.id)}`, { text: box.value }); page.drafts.delete(key); await load(); } catch (e) { msg.textContent = `⚠ not saved: ${e.message}`; } } }), msg));
 }
 
 function evidenceBox(it) {
@@ -261,7 +290,7 @@ function uploader(it, step, label) {
                 n++;
             } catch (e) { msg.textContent = `${f.name}: ${e.message}`; return; }
         }
-        msg.textContent = `${n} added`; await load();
+        msg.textContent = `✓ ${n} added`; await load();
     };
     input.addEventListener('change', () => up([...input.files]));
     if (step == null) {
