@@ -4,7 +4,7 @@ One engine, one bench per team. raven575 works down a bench instead of hunting t
 
 - **Hands-on cards** (vCGE: "Needs raven575"; Auto-Fixer: one card per open PR). Each card has steps; each step is
   👤 (raven575 by hand) or 🤖 (a Claude robot run, with its own result line). Every step takes ✅ Pass / ❌ Fail /
-  ⏭ Skip, a "what I saw" box and a picture. Each card has a status, a notes log, photos or screenshots as evidence,
+  ⏭ Skip, a "what I saw" box (saves by itself as you type; typed text survives every redraw) and a picture. Each card has a status, a notes log, photos or screenshots as evidence,
   and **📋 Copy my results** (plain text to paste into the card's thread).
 - **🔁 Interactive** cards name a thread: raven575 posts what each step shows there before going on, so Claude can
   check it step by step.
@@ -23,7 +23,7 @@ Pages: `/vcge/testbench/` (vCGE) and `/vcge/testbench/?bench=auto-fixer` (Auto-F
   `PUT step?id=&n= {result: pass|fail|skip|"", note, robot?}`, `PUT status?id= {status}`, `POST note?id= {text}`,
   `PUT evidence?id=&name=[&step=]` (a PNG, JPEG, WebP or GIF, checked by its bytes, up to 15 MB),
   `POST item {title, steps, area?, why?, link?, interactive?, thread?, robotSteps?, decisionLink?}`, `POST refresh` (read CI now).
-  Its only outside call is a read of public GitHub Actions results from api.github.com. Logs carry method and path only.
+  Its only outside call is a read of public GitHub Actions results from api.github.com. Logs carry method, path and answer code only (no query, note or picture).
 - `benches/<team>.json`: each bench's seed: title, emoji, theme, section names and its cards. Kept in git: names and
   steps only. A step is a string or `{text, who: human|robot, section, robot, resultAt, state}`; a robot's `state`
   shows as the step's result until raven575 changes it. **To update a list, change the seed in a PR and run the
