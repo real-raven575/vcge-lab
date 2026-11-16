@@ -76,6 +76,27 @@ export function tally(items) {
     return t;
 }
 
+/** What each header count jumps to: tap a count, land on the next card it counted (in list order, wrapping). */
+export const JUMPS = {
+    ready: it => it.section !== 'auto' && statusOf(it) === 'ready',
+    waiting: it => it.section !== 'auto' && statusOf(it) === 'waiting',
+    fail: it => it.section !== 'auto' && statusOf(it) === 'fail',
+    pass: it => it.section !== 'auto' && statusOf(it) === 'pass',
+    interactive: it => Boolean(it.interactive) && statusOf(it) !== 'pass',
+    decide: it => Boolean(safeLink(it.decision?.link)) && statusOf(it) !== 'pass',
+    green: it => it.section === 'auto' && statusOf(it) === 'pass',
+    red: it => it.section === 'auto' && statusOf(it) === 'fail',
+};
+
+/** The id of the next card a count points at, after the one it last landed on (null when it counts none). */
+export function nextMatch(items, kind, afterId) {
+    const order = [...items.filter(it => it.section !== 'auto'), ...items.filter(it => it.section === 'auto')];   // the page's order
+    const hits = order.filter(JUMPS[kind]).map(it => it.id);
+    if (!hits.length) return null;
+    const at = hits.indexOf(afterId);
+    return hits[(at + 1) % hits.length];
+}
+
 /** Plain text of one test's results, for pasting into its thread. */
 export function resultsText(item) {
     const label = Object.fromEntries(RESULTS);
@@ -95,7 +116,7 @@ export const when = iso => (iso ? `${iso.slice(0, 16).replace('T', ' ')} UTC` : 
 // ---- Page ---------------------------------------------------------------------------------------------------------
 
 const $ = id => document.getElementById(id);
-const page = { items: [], filter: 'open', open: new Set(), bench: {}, drafts: new Map(), timers: new Map() };
+const page = { items: [], filter: 'open', open: new Set(), bench: {}, drafts: new Map(), timers: new Map(), chains: new Map() };
 
 /* Typed text lives in page.drafts until the server has it, so a redraw (after any save or upload) never wipes it. */
 if (typeof window !== 'undefined') window.addEventListener('beforeunload', e => { if (page.drafts.size) { e.preventDefault(); e.returnValue = ''; } });
@@ -142,19 +163,58 @@ function render() {
     $('allBar').parentElement.setAttribute('aria-valuenow', String(p.pct));
     $('allNote').textContent = `${p.done} of ${p.n} steps done (${p.pct}%)`;
     const t = tally(page.items);
+    const go = (kind, n, text, cls = '') => el('button', { type: 'button', class: `jump ${cls}`, 'data-jump': kind, text, disabled: !n,
+        title: n ? 'Tap to go to the next one' : 'None right now', onclick: () => jump(kind) });
     $('tally').replaceChildren(
-        el('span', { text: `${t.raven.ready} ready` }), el('span', { text: `${t.raven.waiting} waiting` }),
-        el('span', { text: `${t.raven.fail} failed` }), el('span', { text: `${t.raven.pass} passed` }),
-        el('span', { text: `${t.interactive} interactive open` }),
-        t.decide ? el('span', { class: 'decide-count', text: `${t.decide} need your yes or no` }) : null,
-        el('span', { text: `CI: ${t.auto.pass} green · ${t.auto.fail} red` }));
+        go('ready', t.raven.ready, `${t.raven.ready} ready`), go('waiting', t.raven.waiting, `${t.raven.waiting} waiting`),
+        go('fail', t.raven.fail, `${t.raven.fail} failed`), go('pass', t.raven.pass, `${t.raven.pass} passed`),
+        go('interactive', t.interactive, `${t.interactive} interactive open`),
+        t.decide ? go('decide', t.decide, `${t.decide} need your yes or no`, 'decide-count') : null,
+        go('green', t.auto.pass, `CI: ${t.auto.pass} green`), go('red', t.auto.fail, `CI: ${t.auto.fail} red`));
     const show = page.items.filter(it => matches(it, page.filter));
     const raven = show.filter(it => it.section !== 'auto');
     const auto = show.filter(it => it.section === 'auto');
     $('ravenList').replaceChildren(...(raven.length ? raven.map((it, i) => ravenItem(it, i + 1)) : [el('li', { class: 'empty', text: 'Nothing here under this filter.' })]));
     $('autoList').replaceChildren(...(auto.length ? auto.map(autoItem) : [el('li', { class: 'empty', text: 'Nothing here under this filter.' })]));
     const f = page.fetch;
+    jumpBar();
     $('fetchNote').textContent = f ? `Last read ${when(f.at)}${f.errors?.length ? ` · could not read: ${f.errors.join(', ')}` : ''}` : 'Not read yet; the service reads GitHub every 15 minutes.';
+}
+
+/** A count was tapped: show its next card (switching to All if the filter hides it), open it, scroll to it, flash it. */
+function jump(kind) {
+    const id = nextMatch(page.items, kind, page.jumped?.[kind]);
+    if (!id) return;
+    page.jumped = { ...page.jumped, [kind]: id };
+    page.jumpKind = kind;
+    if (!matches(page.items.find(it => it.id === id), page.filter)) {
+        page.filter = 'all';
+        for (const c of document.querySelectorAll('[data-filter]')) c.classList.toggle('on', c.dataset.filter === 'all');
+    }
+    page.open.add(id);
+    render();
+    const li = document.querySelector(`li.item[data-id="${CSS.escape(id)}"]`);
+    if (!li) return;
+    li.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    li.classList.add('flash'); setTimeout(() => li.classList.remove('flash'), 1600);
+    li.querySelector('summary')?.focus({ preventScroll: true });
+}
+
+const JUMP_NAMES = { ready: 'ready', waiting: 'waiting', fail: 'failed', pass: 'passed', interactive: 'interactive',
+    decide: 'needs your yes or no', green: 'CI green', red: 'CI red' };
+
+/** After a jump, a bar at the bottom: which one of how many, Next, back to the counts. */
+function jumpBar() {
+    const bar = $('jumpBar');
+    const kind = page.jumpKind;
+    const hits = kind ? [...page.items.filter(it => it.section !== 'auto'), ...page.items.filter(it => it.section === 'auto')].filter(JUMPS[kind]) : [];
+    if (!kind || !hits.length) { bar.hidden = true; return; }
+    const at = hits.findIndex(it => it.id === page.jumped?.[kind]) + 1;
+    bar.hidden = false;
+    bar.replaceChildren(el('span', { class: 'where', text: `${JUMP_NAMES[kind]}: ${at || 1} of ${hits.length}` }),
+        el('button', { type: 'button', class: 'btn small primary', text: 'Next', onclick: () => jump(kind) }),
+        el('button', { type: 'button', class: 'btn small', text: 'Back to counts', onclick: () => $('tally').scrollIntoView({ block: 'center' }) }),
+        el('button', { type: 'button', class: 'btn small', text: 'Close', onclick: () => { page.jumpKind = null; bar.hidden = true; } }));
 }
 
 function shell(it, num, summaryKids, bodyKids) {
@@ -209,10 +269,16 @@ function stepRow(it, st, i) {
     note.value = page.drafts.has(key) ? page.drafts.get(key) : rec.note || '';
     const saved = el('span', { class: 'saved', role: 'status',
         text: page.drafts.has(key) ? 'not saved yet' : rec.at ? `saved ${when(rec.at)}` : '' });
-    const put = async result => {
-        const text = page.drafts.has(key) ? page.drafts.get(key) : note.value;
-        await send('PUT', `step?${q(it.id, `&n=${i}`)}`, { result, note: text });
-        if (page.drafts.get(key) === text) page.drafts.delete(key);
+    // One save at a time per step, in order: leaving the box (an autosave) and the Pass tap that caused it must not race,
+    // or the older one could land last and undo the result.
+    const put = result => {
+        const run = (page.chains.get(key) || Promise.resolve()).catch(() => {}).then(async () => {
+            const text = page.drafts.has(key) ? page.drafts.get(key) : note.value;
+            await send('PUT', `step?${q(it.id, `&n=${i}`)}`, { result: typeof result === 'function' ? result() : result, note: text });
+            if (page.drafts.get(key) === text) page.drafts.delete(key);
+        });
+        page.chains.set(key, run);
+        return run;
     };
     const save = async result => {   // a Pass / Fail / Skip tap: save, then redraw
         clearTimeout(page.timers.get(key));
@@ -223,8 +289,8 @@ function stepRow(it, st, i) {
         clearTimeout(page.timers.get(key));
         if (!page.drafts.has(key)) return;
         try {
-            const r = it.stepResults?.[i]?.result || '';
-            await put(r);
+            let r = '';
+            await put(() => (r = it.stepResults?.[i]?.result || ''));
             it.stepResults = { ...(it.stepResults || {}), [i]: { ...(it.stepResults?.[i] || {}), result: r, note: note.value, at: new Date().toISOString() } };
             if (!page.drafts.has(key)) saved.textContent = 'saved';
         } catch (e) { saved.textContent = `not saved: ${e.message}`; }

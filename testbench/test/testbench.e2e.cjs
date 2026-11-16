@@ -78,6 +78,20 @@ function standIn() {
         ok((await raven.first().locator('.ttl').textContent()).startsWith(seedRaven[0].title), 'in the seed\'s order');
         ok(await page.locator('#tally').textContent().then(t => t.includes(`${seedRaven.filter(i => i.status === 'ready').length} ready`)), 'tally counts ready tests');
 
+        // Tapping a count goes to the next card it counted
+        const waits = seedRaven.filter(i => i.status === 'waiting');
+        await page.click('#tally [data-jump=waiting]');
+        const landed = page.locator(`li.item[data-id="${waits[0].id}"]`);
+        await page.waitForFunction(id => { const r = document.querySelector(`li.item[data-id="${id}"]`).getBoundingClientRect(); return r.top >= -2 && r.top < innerHeight / 2; }, waits[0].id, { timeout: 5000 }).catch(() => {});
+        ok(await landed.locator('details').evaluate(d => d.open) && await landed.evaluate(e => { const r = e.getBoundingClientRect(); return r.top >= -2 && r.top < innerHeight / 2; }), 'tapping "waiting" opens the first waiting test and scrolls to it');
+        ok(await page.locator('#jumpBar').textContent().then(t => t.includes(`1 of ${waits.length}`)), 'a bar says which one of how many');
+        await page.click('#jumpBar button.primary');
+        ok(await page.locator(`li.item[data-id="${waits[1 % waits.length].id}"] details`).evaluate(d => d.open) && await page.locator('#jumpBar').textContent().then(t => t.includes(`${(1 % waits.length) + 1} of`)), 'Next goes to the next waiting test');
+        ok(await page.locator('#tally [data-jump=fail]').isDisabled(), 'a count of 0 cannot be tapped');
+        await page.click('#jumpBar >> text=Close');
+        ok(await page.locator('#jumpBar').isHidden(), 'the bar closes');
+        await page.reload(); await raven.first().waitFor();
+
         // Interactive filter
         await page.click('[data-filter=interactive]');
         const nInter = SEED.filter(i => i.interactive).length;
