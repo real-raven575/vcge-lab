@@ -13,6 +13,8 @@ One engine, one bench per team. raven575 works down a bench instead of hunting t
   Links are https only. Every card waiting on a raven575 choice must have one.
 - **🤖 Automatic** lines read the newest real GitHub Actions run (workflow + branch, or one job) every 15 minutes and on
   "Check CI now": jobs green, the failed job and step, the build, a link to the run.
+- Every count at the top is a button: tap it to open and scroll to the next card it counted (switching to All if the
+  filter hides it); a bar at the bottom then says which one of how many, with Next and back to the counts.
 - Filters (Still to do, All, 👉 Needs my yes/no, 👤 Mine, 🤖 Robot, 🔁 Interactive, Failed, Passed), an overall progress bar and one per card.
 
 Pages: `/vcge/testbench/` (vCGE) and `/vcge/testbench/?bench=auto-fixer` (Auto-Fixer, its own theme).

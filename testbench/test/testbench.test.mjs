@@ -1,7 +1,7 @@
 // Test Bench page helpers:  node --test testbench/test/testbench.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf } from '../www/testbench.js';
+import { nextMatch, safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf } from '../www/testbench.js';
 
 const hand = { id: 'h', section: 'raven', title: 'Hands-on', status: 'ready', steps: ['open it', 'press GO', 'look'],
     stepResults: { 0: { result: 'pass', note: '' }, 1: { result: 'fail', note: 'froze' } },
@@ -68,4 +68,14 @@ test('mine / robot filters and the overall bar', () => {
     assert.deepEqual([hand, inter, green].filter(i => matches(i, 'robot')).map(i => i.id), ['i', 'g']);
     assert.deepEqual(progress([hand, inter, green]), { done: 2, n: 4, pct: 50 });
     assert.deepEqual(stepOf('plain'), { text: 'plain', who: 'human' });
+});
+
+test('a tapped count goes to the next card it counted, in page order, and wraps', () => {
+    const items = [{ id: 'a1', section: 'auto', ci: {} }, { id: 'w1', section: 'raven', status: 'waiting' }, { id: 'r1', section: 'raven', status: 'ready' },
+        { id: 'w2', section: 'raven', status: 'waiting', interactive: { thread: 't' } }];
+    assert.equal(nextMatch(items, 'waiting'), 'w1');
+    assert.equal(nextMatch(items, 'waiting', 'w1'), 'w2');
+    assert.equal(nextMatch(items, 'waiting', 'w2'), 'w1');
+    assert.equal(nextMatch(items, 'interactive'), 'w2');
+    assert.equal(nextMatch(items, 'fail'), null);
 });
