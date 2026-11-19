@@ -6,7 +6,8 @@
  * photos or screenshots. The bench comes from <meta name="testbench"> or ?bench= (default vcge); its theme from the
  * bench's seed.
  * "Automatic": the newest real GitHub Actions run of each CI line, read by the service. Everything is saved on the lab
- * server through testbench/api/; nothing is kept in the browser. All text from the server is put on the page as text.
+ * server through testbench/api/; nothing is kept in the browser, except a voice note until the lab has it. All text
+ * from the server is put on the page as text.
  */
 const ROOT = typeof location === 'undefined' ? '/' : location.pathname.replace(/testbench\/.*$/, '');
 const API = `${ROOT}testbench/api/`;
@@ -105,7 +106,9 @@ export function resultsText(item) {
         lines.push(`${i + 1}. ${st.who === 'robot' ? '🤖 ' : ''}${st.text}`, `   -> ${r?.result ? label[r.result] : 'not done yet'}${r?.note ? `: ${r.note}` : ''}`);
     });
     for (const n of item.notes || []) lines.push(`Note ${n.at.slice(0, 16).replace('T', ' ')} UTC: ${n.text}`);
-    if ((item.evidence || []).length) lines.push(`Pictures on the lab Test Bench: ${item.evidence.length}`);
+    const voices = (item.evidence || []).filter(e => String(e.type).startsWith('audio/')), pics = (item.evidence || []).length - voices.length;
+    for (const v of voices) lines.push(`Voice note ${v.at.slice(0, 16).replace('T', ' ')} UTC${v.step != null ? ` (step ${v.step + 1})` : ''}: ${v.text || '(not written out yet)'}`);
+    if (pics) lines.push(`Pictures on the lab Test Bench: ${pics}`);
     return lines.join('\n');
 }
 
@@ -115,7 +118,7 @@ export const when = iso => (iso ? `${iso.slice(0, 16).replace('T', ' ')} UTC` : 
 // ---- Page ---------------------------------------------------------------------------------------------------------
 
 const $ = id => document.getElementById(id);
-const page = { items: [], filter: 'open', open: new Set(), bench: {}, drafts: new Map(), timers: new Map(), chains: new Map() };
+const page = { items: [], filter: 'open', open: new Set(), bench: {}, drafts: new Map(), timers: new Map(), chains: new Map(), rec: null, voiceMsg: new Map() };
 
 /* Typed text lives in page.drafts until the server has it, so a redraw (after any save or upload) never wipes it. */
 if (typeof window !== 'undefined') window.addEventListener('beforeunload', e => { if (page.drafts.size) { e.preventDefault(); e.returnValue = ''; } });
@@ -147,6 +150,7 @@ async function load() {
     page.fetch = data.autoFetch;
     page.bench = data.bench || {};
     render();
+    renderTakes();
 }
 
 function render() {
@@ -264,7 +268,7 @@ function stepRow(it, st, i) {
     const rec = it.stepResults?.[i] || {};
     const robotLine = rec.robot || st.robot;
     const key = `${it.id}|${i}`;
-    const note = el('textarea', { rows: 2, placeholder: 'What I saw (or paste the output). Saves by itself.', 'aria-label': `What I saw at step ${i + 1}` });
+    const note = el('textarea', { rows: 2, placeholder: 'What I saw (or paste the output). Saves by itself.', 'aria-label': `What I saw at step ${i + 1}`, 'data-key': key });
     note.value = page.drafts.has(key) ? page.drafts.get(key) : rec.note || '';
     const saved = el('span', { class: 'saved', role: 'status',
         text: page.drafts.has(key) ? 'not saved yet' : rec.at ? `✓ saved ${when(rec.at)}` : '' });
@@ -306,7 +310,7 @@ function stepRow(it, st, i) {
             class: `btn small ${v}`, type: 'button', text: label, 'aria-pressed': String(rec.result === v),
             onclick: () => save(rec.result === v ? '' : v),
         }))),
-        note, el('div', { class: 'row' }, saved,
+        note, el('div', { class: 'row' }, voiceButton(it, i, key), saved,
             uploader(it, i, '📎 Picture for this step')));
 }
 
@@ -320,7 +324,7 @@ function statusRow(it) {
 
 function notesBox(it) {
     const key = `${it.id}|notes`;
-    const box = el('textarea', { rows: 3, placeholder: 'What you found overall', 'aria-label': `Note on ${it.title}` });
+    const box = el('textarea', { rows: 3, placeholder: 'What you found overall', 'aria-label': `Note on ${it.title}`, 'data-key': key });
     box.value = page.drafts.get(key) || '';
     const msg = el('span', { class: 'note', role: 'status', text: page.drafts.has(key) ? 'not saved yet: tap Add note' : '' });
     box.addEventListener('input', () => {
@@ -328,17 +332,26 @@ function notesBox(it) {
     });
     return el('div', { class: 'notes' }, el('h4', { text: '📝 Notes' }),
         (it.notes || []).length ? el('ul', { class: 'log' }, it.notes.map(n => el('li', {}, el('time', { text: when(n.at) }), n.text))) : null,
-        box, el('div', { class: 'row' }, el('button', { class: 'btn small primary', type: 'button', text: 'Add note', onclick: async () => {
+        box, el('div', { class: 'row' }, voiceButton(it, null, key), el('button', { class: 'btn small primary', type: 'button', text: 'Add note', onclick: async () => {
             try { await send('POST', `note?${q(it.id)}`, { text: box.value }); page.drafts.delete(key); await load(); } catch (e) { msg.textContent = `⚠ not saved: ${e.message}`; } } }), msg));
 }
 
 function evidenceBox(it) {
     const ev = it.evidence || [];
-    return el('div', {}, el('h4', { text: `📷 Pictures (${ev.length})` }),
-        ev.length ? el('div', { class: 'shots' }, ev.map(e => {
-            const src = `${API}evidence?${q(it.id, `&hash=${e.hash}`)}`;
-            return el('a', { href: src, target: '_blank', rel: 'noopener' }, el('img', { src, alt: e.name, loading: 'lazy' }),
-                `${e.step != null ? `step ${e.step + 1} · ` : ''}${when(e.at)}`);
+    const pics = ev.filter(e => !String(e.type).startsWith('audio/')), voices = ev.filter(e => String(e.type).startsWith('audio/'));
+    const src = e => `${API}evidence?${q(it.id, `&hash=${e.hash}`)}`;
+    const where = e => `${e.step != null ? `step ${e.step + 1} · ` : ''}${when(e.at)}`;
+    return el('div', {}, el('h4', { text: `📷 Pictures (${pics.length})` }),
+        pics.length ? el('div', { class: 'shots' }, pics.map(e => el('a', { href: src(e), target: '_blank', rel: 'noopener' },
+            el('img', { src: src(e), alt: e.name, loading: 'lazy' }), where(e)))) : null,
+        voices.length ? el('h4', { text: `🎙 Voice notes (${voices.length})` }) : null,
+        voices.length ? el('ul', { class: 'voices' }, voices.map(e => {
+            const msg = el('span', { class: 'note', role: 'status' });
+            return el('li', {}, el('span', { class: 'note', text: where(e) }), el('audio', { controls: true, preload: 'none', src: src(e) }),
+                e.text ? el('p', { class: 'said', text: e.text }) : el('span', {}, el('button', { class: 'btn small', type: 'button', text: '✍ Write it out',
+                    onclick: async ev2 => { ev2.target.disabled = true; msg.textContent = 'writing it out on the lab…';
+                        try { await call(`transcribe?${q(it.id, `&hash=${e.hash}`)}`, { method: 'POST' }); await load(); }
+                        catch (err) { msg.textContent = `⚠ ${err.message}`; ev2.target.disabled = false; } } }), msg));
         })) : null,
         uploader(it, null, '📷 Drop or pick photos or screenshots'));
 }
@@ -365,6 +378,107 @@ function uploader(it, step, label) {
         box.addEventListener('drop', e => { e.preventDefault(); box.classList.remove('over'); up([...e.dataTransfer.files]); });
     }
     return el('span', {}, box, msg);
+}
+
+/* ---- Voice notes. Never lose a take: the recording is kept in this browser (IndexedDB) every second while you talk,
+ * sent to the lab as soon as you stop, and only then forgotten here. The lab writes it out on its own CPU
+ * (testbench-transcribe.py, faster-whisper): no audio goes to Google or anyone else. The words land in the box they
+ * were spoken for, where they save like typing. ---- */
+const TAKES = 'testbench-takes';
+function takesDb() {
+    return new Promise((ok, no) => {
+        const r = indexedDB.open(TAKES, 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('takes', { keyPath: 'id' });
+        r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error);
+    });
+}
+async function takes(mode, fn) {
+    try {
+        const db = await takesDb();
+        return await new Promise((ok, no) => { const t = db.transaction('takes', mode); const r = fn(t.objectStore('takes')); t.oncomplete = () => ok(r && r.result); t.onerror = () => no(t.error); });
+    } catch { return undefined; }   // private mode or no IndexedDB: the take still goes to the lab when you stop
+}
+const keepTake = take => takes('readwrite', st => st.put(take));
+const dropTake = id => takes('readwrite', st => st.delete(id));
+const unsentTakes = async () => (await takes('readonly', st => st.getAll())) || [];
+
+function voiceSay(key, text) { page.voiceMsg.set(key, text); const m = document.querySelector(`[data-voice-msg="${CSS.escape(key)}"]`); if (m) m.textContent = text; }
+
+/** Puts the words at the end of the box they were spoken for, and lets the box save them like typing. */
+function putWords(key, text) {
+    const box = document.querySelector(`textarea[data-key="${CSS.escape(key)}"]`);
+    const base = box ? box.value : page.drafts.get(key) || '';
+    const value = base.trim() ? `${base.replace(/\s+$/, '')} ${text}` : text;
+    if (box) { box.value = value; box.dispatchEvent(new Event('input')); } else page.drafts.set(key, value);
+}
+
+/** Sends one take, then has the lab write it out. A take stays in this browser until the lab has it. */
+async function sendTake(take) {
+    const ext = take.mime.includes('mp4') ? 'm4a' : take.mime.includes('ogg') ? 'ogg' : 'webm';
+    voiceSay(take.key, 'sending your recording…');
+    let hash;
+    try {
+        ({ hash } = await call(`evidence?${q(take.itemId, `&name=voice-note.${ext}${take.step == null ? '' : `&step=${take.step}`}`)}`, { method: 'PUT', body: take.blob }));
+        await dropTake(take.id);
+    } catch (e) { voiceSay(take.key, `⚠ not sent yet (${e.message}); it is kept in this browser, tap 🎙 Send again`); renderTakes(); return; }
+    voiceSay(take.key, '✓ recording saved on the lab · writing it out…');
+    let text = '';
+    try {
+        ({ text } = await call(`transcribe?${q(take.itemId, `&hash=${hash}`)}`, { method: 'POST' }));
+        voiceSay(take.key, text ? '✓ words added to the box; check them, they save by themselves' : '✓ saved; no words heard');
+    } catch (e) { voiceSay(take.key, `✓ recording saved · ⚠ ${e.message}`); }
+    await load();   // redraw first (the recording shows up), then type the words into the fresh box so it saves them
+    if (text) putWords(take.key, text);
+}
+
+async function startVoice(it, step, key) {
+    if (page.rec) return;
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { voiceSay(key, `⚠ no microphone: ${e.message}`); return; }
+    const mime = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', ''].find(m => !m || (window.MediaRecorder?.isTypeSupported?.(m)));
+    const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    const take = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, key, itemId: it.id, step, mime: rec.mimeType || mime || 'audio/webm', at: new Date().toISOString(), blob: null };
+    const chunks = [];
+    page.rec = { rec, stream, key, started: Date.now(), tick: setInterval(() => {
+        const b = document.querySelector(`button[data-voice="${CSS.escape(key)}"]`);
+        if (b) b.textContent = `⏹ Stop (${clock((Date.now() - page.rec.started) / 1000)})`;
+    }, 500) };
+    rec.addEventListener('dataavailable', e => { if (e.data.size) { chunks.push(e.data); take.blob = new Blob(chunks, { type: take.mime }); keepTake({ ...take }); } });
+    rec.addEventListener('stop', async () => {
+        clearInterval(page.rec.tick); stream.getTracks().forEach(t => t.stop()); page.rec = null;
+        take.blob = new Blob(chunks, { type: take.mime });
+        render();
+        if (!take.blob.size) { voiceSay(key, '⚠ nothing was recorded'); await dropTake(take.id); return; }
+        await keepTake(take);
+        await sendTake(take);
+    });
+    rec.start(1000);   // a chunk every second, each one kept in this browser at once
+    voiceSay(key, '🔴 recording: talk, then tap Stop');
+    render();
+}
+const clock = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+function voiceButton(it, step, key) {
+    const live = page.rec?.key === key;
+    const msg = el('span', { class: 'vmsg', role: 'status', 'data-voice-msg': key, text: page.voiceMsg.get(key) || '' });
+    const btn = el('button', { class: `btn small voice${live ? ' live' : ''}`, type: 'button', 'data-voice': key,
+        'aria-label': live ? 'Stop recording' : 'Speak a note instead of typing', disabled: !!page.rec && !live,
+        text: live ? `⏹ Stop (${clock((Date.now() - page.rec.started) / 1000)})` : '🎙 Speak',
+        onclick: () => (live ? page.rec.rec.stop() : startVoice(it, step, key)) });
+    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices?.getUserMedia) { btn.disabled = true; btn.title = 'This browser cannot record'; }
+    return el('span', { class: 'voicebox' }, btn, msg);
+}
+
+/** Takes still in this browser (the lab was not reached): one Send button each, at the top of the list. */
+async function renderTakes() {
+    const box = $('takes');
+    if (!box) return;
+    const list = (await unsentTakes()).filter(t => t.blob && t.blob.size && page.rec?.key !== t.key);
+    box.hidden = !list.length;
+    box.replaceChildren(...(list.length ? [el('b', { text: `🎙 ${list.length} voice note${list.length === 1 ? '' : 's'} not sent to the lab yet: ` }),
+        ...list.map(t => el('button', { class: 'btn small', type: 'button', text: `Send the one from ${when(t.at)}`,
+            onclick: async e => { e.target.disabled = true; await sendTake(t); renderTakes(); } }))] : []));
 }
 
 function autoItem(it) {

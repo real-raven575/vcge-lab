@@ -135,6 +135,35 @@ class TestBench(unittest.TestCase):
         self.assertEqual((code, body), (200, PNG))
         self.assertEqual(call(self.base, 'GET', '/testbench/api/evidence?id=hand&hash=' + '0' * 64)[0], 404)
 
+    def test_voice_notes_are_kept_then_written_out_on_this_machine(self):
+        webm = b'\x1a\x45\xdf\xa3' + b'spoken' * 30
+        code, r = call(self.base, 'PUT', '/testbench/api/evidence?id=hand&step=1', webm)
+        self.assertEqual(code, 200)
+        ev = self.items()['hand']['evidence'][0]
+        self.assertEqual((ev['type'], ev['name'], ev['step']), ('audio/webm', 'voice-note.webm', 1))
+        m4a = b'\x00\x00\x00\x18ftypM4A ' + b'x' * 30
+        self.assertEqual(call(self.base, 'PUT', '/testbench/api/evidence?id=hand&name=a.m4a', m4a)[0], 200)
+        # not set up: the recording stays, the page is told plainly
+        saved, tb.TRANSCRIBE = tb.TRANSCRIBE, None
+        try:
+            code, body = call(self.base, 'POST', '/testbench/api/transcribe?id=hand&hash=' + r['hash'])
+            self.assertEqual(code, 501); self.assertIn('recording is saved', body['error'])
+            fake = os.path.join(tb.ROOT, 'fake-whisper.py')
+            with open(fake, 'w') as f:
+                f.write('import sys\nd = open(sys.argv[1], "rb").read()\n'
+                        'sys.exit("model missing") if b"FAIL" in d else print("  the PIN screen came up twice  ")\n')
+            tb.TRANSCRIBE = [__import__('sys').executable, fake]
+            code, body = call(self.base, 'POST', '/testbench/api/transcribe?id=hand&hash=' + r['hash'])
+            self.assertEqual((code, body.get('text')), (200, 'the PIN screen came up twice'))
+            self.assertEqual(self.items()['hand']['evidence'][0]['text'], 'the PIN screen came up twice')
+            code, bad = call(self.base, 'PUT', '/testbench/api/evidence?id=hand', b'\x1a\x45\xdf\xa3FAIL')
+            code, body = call(self.base, 'POST', '/testbench/api/transcribe?id=hand&hash=' + bad['hash'])
+            self.assertEqual(code, 502); self.assertIn('model missing', body['error']); self.assertIn('recording is saved', body['error'])
+            png_hash = call(self.base, 'PUT', '/testbench/api/evidence?id=hand', PNG)[1]['hash']
+            self.assertEqual(call(self.base, 'POST', '/testbench/api/transcribe?id=hand&hash=' + png_hash)[0], 404)   # pictures are not read aloud
+        finally:
+            tb.TRANSCRIBE = saved
+
     def test_odd_picture_names_are_made_safe(self):
         call(self.base, 'PUT', '/testbench/api/evidence?id=hand&name=' + urllib.request.quote('../../etc/<b>.png'), PNG)
         self.assertEqual(self.items()['hand']['evidence'][0]['name'], '_b_.png')
