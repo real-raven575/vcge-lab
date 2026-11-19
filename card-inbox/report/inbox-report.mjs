@@ -129,7 +129,7 @@ const nrm = t => String(t || '').replace(/\s+/g, ' ').trim();
 const shape = t => nrm(t).replace(/[A-Za-z\u00C0-\u024F]+/g, w => (/^[A-Z\u00C0-\u00DE]+$/.test(w) && w.length > 1 ? 'A' : /^[A-Z\u00C0-\u00DE]/.test(w) ? 'Aa' : 'a')).replace(/\d+/g, '9');
 const shapes = [];
 // The same with each run's length ("Aa4 Aa8"), for the name check: which rule a name line fails depends on word lengths.
-const shapeLen = t => nrm(t).replace(/[A-Za-z\u00C0-\u024F]+/g, w => (/^[A-Z\u00C0-\u00DE]+$/.test(w) && w.length > 1 ? 'A' : /^[A-Z\u00C0-\u00DE]/.test(w) ? 'Aa' : 'a') + w.length).replace(/\d+/g, '9');
+const shapeLen = t => nrm(t).replace(/\d+/g, '9').replace(/[A-Za-z\u00C0-\u024F]+/g, w => (/^[A-Z\u00C0-\u00DE]+$/.test(w) && w.length > 1 ? 'A' : /^[A-Z\u00C0-\u00DE]/.test(w) ? 'Aa' : 'a') + w.length);
 const nameAngles = [];
 for (const id of readdirSync(join(root, 'cards')).sort()) {
     const f = join(root, 'cards', id, 'card.json');
@@ -150,7 +150,7 @@ for (const id of readdirSync(join(root, 'cards')).sort()) {
                 shapes.push(`${field.padEnd(8)} ${(box ? 'slip' : `in "${d.roleRead}"`).padEnd(18)} key ${shape(d.truth).padEnd(22)} read ${shape(d.read)}`);
                 // Every line of an angle whose name went to another box, with the role it got: shows which line took the
                 // name (or why none did).
-                if (field === 'name' && !box) nameAngles.push(`${card.nickname || id} angle ${card.photos.indexOf(p) + 1}: key ${shapeLen(d.truth)}\n` + r.lines.map(l => `      ${String(l.role).padEnd(13)} ${shapeLen(l.text)}${nrm(l.text) === d.read ? '   <- the name line' : ''}`).join('\n'));
+                if (field === 'name' && !box) nameAngles.push(`${card.name} angle ${card.photos.indexOf(p) + 1}: key ${shapeLen(d.truth)}\n` + r.lines.map(l => `      ${String(l.role).padEnd(13)} ${shapeLen(l.text)}${nrm(l.text) === d.read ? '   <- the name line' : ''}`).join('\n'));
                 if (!box) { add(field, `in box "${d.roleRead}"${sameValue(field, d.read, d.truth) ? ' (text right)' : ''}`); continue; }
                 const off = d.ops.filter(o => o.op !== 'eq').length, first = d.ops.findIndex(o => o.op !== 'eq'), last = d.ops.length - 1 - [...d.ops].reverse().findIndex(o => o.op !== 'eq');
                 const at = first === 0 ? 'start' : last === d.ops.length - 1 ? 'end' : 'middle';
