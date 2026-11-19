@@ -168,12 +168,13 @@ function render() {
     const t = tally(page.items);
     const go = (kind, n, text, cls = '') => el('button', { type: 'button', class: `jump ${cls}`, 'data-jump': kind, text, disabled: !n,
         title: n ? 'Tap to go to the next one' : 'None right now', onclick: () => jump(kind) });
-    $('tally').replaceChildren(
+    // (replaceChildren writes a null as the text "null": the yes/no count is left out with filter, not null)
+    $('tally').replaceChildren(...[
         go('ready', t.raven.ready, `🙋 ${t.raven.ready} ready`), go('waiting', t.raven.waiting, `⏳ ${t.raven.waiting} waiting`),
         go('fail', t.raven.fail, `❌ ${t.raven.fail} failed`), go('pass', t.raven.pass, `✅ ${t.raven.pass} passed`),
         go('interactive', t.interactive, `🔁 ${t.interactive} interactive open`),
         t.decide ? go('decide', t.decide, `👉 ${t.decide} need your yes or no`, 'decide-count') : null,
-        go('green', t.auto.pass, `🤖 ${t.auto.pass} green`), go('red', t.auto.fail, `🤖 ${t.auto.fail} red`));
+        go('green', t.auto.pass, `🤖 ${t.auto.pass} green`), go('red', t.auto.fail, `🤖 ${t.auto.fail} red`)].filter(Boolean));
     const show = page.items.filter(it => matches(it, page.filter));
     const raven = show.filter(it => it.section !== 'auto');
     const auto = show.filter(it => it.section === 'auto');

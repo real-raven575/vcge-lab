@@ -245,6 +245,10 @@ function standIn() {
 
         // Auto-Fixer's bench on the same engine: its own list, theme and 👤/🤖 steps
         await page.setViewportSize({ width: 1200, height: 900 });
+        // The launch bench has no yes/no steps: its tally shows no count for them, and no stray "null" either
+        await page.goto(`${url}?bench=launch`);
+        await raven.first().waitFor();
+        ok(await page.locator('#tally').textContent().then(t => !t.includes('null') && !t.includes('yes or no')), 'a bench with no yes/no steps shows no stray "null" in its tally');
         await page.goto(`${url}?bench=auto-fixer`);
         await raven.first().waitFor();
         ok(await page.locator('#benchTitle').textContent() === `${SHOP.emoji} ${SHOP.title}`, 'Auto-Fixer bench shows its own title');
