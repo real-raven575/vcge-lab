@@ -123,6 +123,11 @@ console.log('\nWhy fields missed (answer-key lines on read angles):');
 const why = {};
 const add = (field, k) => { const w = (why[field] ||= {}); w[k] = (w[k] || 0) + 1; };
 const nrm = t => String(t || '').replace(/\s+/g, ' ').trim();
+// A line's shape without its content: each run of letters becomes A (capital first), Aa (mixed) or a, each run of digits
+// 9, and spaces and marks stay ("Jane Doe" -> "Aa Aa", an email -> "a@a.a"). Enough to see why a line went to the wrong
+// box, never what it says.
+const shape = t => nrm(t).replace(/[A-Za-z\u00C0-\u024F]+/g, w => (/^[A-Z\u00C0-\u00DE]+$/.test(w) && w.length > 1 ? 'A' : /^[A-Z\u00C0-\u00DE]/.test(w) ? 'Aa' : 'a')).replace(/\d+/g, '9');
+const shapes = [];
 for (const id of readdirSync(join(root, 'cards')).sort()) {
     const f = join(root, 'cards', id, 'card.json');
     if (!existsSync(f)) continue;
@@ -136,9 +141,10 @@ for (const id of readdirSync(join(root, 'cards')).sort()) {
         for (const [field, roles] of Object.entries(FIELDS)) {
             for (const k of truth.lines.filter(l => !l.drop && roles.includes(l.role))) {
                 const d = sc.diffs.find(x => x.truth === nrm(k.text));
-                if (!d) { add(field, 'not found'); continue; }
+                if (!d) { add(field, 'not found'); shapes.push(`${field.padEnd(8)} not found          key ${shape(k.text)}`); continue; }
                 const box = roles.includes(d.roleRead);
                 if (box && sameValue(field, d.read, d.truth)) { add(field, 'right'); continue; }
+                shapes.push(`${field.padEnd(8)} ${(box ? 'slip' : `in "${d.roleRead}"`).padEnd(18)} key ${shape(d.truth).padEnd(22)} read ${shape(d.read)}`);
                 if (!box) { add(field, `in box "${d.roleRead}"${sameValue(field, d.read, d.truth) ? ' (text right)' : ''}`); continue; }
                 const off = d.ops.filter(o => o.op !== 'eq').length, first = d.ops.findIndex(o => o.op !== 'eq'), last = d.ops.length - 1 - [...d.ops].reverse().findIndex(o => o.op !== 'eq');
                 const at = first === 0 ? 'start' : last === d.ops.length - 1 ? 'end' : 'middle';
@@ -148,6 +154,8 @@ for (const id of readdirSync(join(root, 'cards')).sort()) {
     }
 }
 for (const [field, w] of Object.entries(why)) console.log(`  ${field.padEnd(8)} ` + Object.entries(w).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${n} ${k}`).join('; '));
+console.log('\nEach miss as a shape (letters A/Aa/a, digits 9, marks kept; no content):');
+for (const l of shapes) console.log('  ' + l);
 
 // Colour experiment (cards rerun with ?variants=1): each rejected angle read again inverted, per colour channel and
 // contrast-stretched. Per variant: how many passed the app's check, and characters right.
