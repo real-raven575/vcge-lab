@@ -14,27 +14,29 @@
    "id": "h5b-admin-login",
    "title": "🛡 Set up admin@herdofhelpers.com as the Herd admin login",
    "area": "🙋 You · one login for the Herd",
-   "why": "You picked admin@herdofhelpers.com (17:12 UTC 11-19) as the Herd-wide admin login. The vCGE Gmail stays the Play owner; this one does the day-to-day admin and is the public contact.",
+   "why": "You picked admin@herdofhelpers.com as the Herd-wide admin login, and its mailbox is ready. The vCGE Gmail stays the Play owner; this one does the day-to-day admin and is the public contact.",
    "steps": [
-    "At your domain host, forward admin@herdofhelpers.com to the inbox you read.",
     "Make a Google account with it: https://accounts.google.com/signup, then 'Use your existing email'.",
     "Play Console, Users and permissions: invite admin@herdofhelpers.com as Admin. Keep the vCGE Gmail as owner.",
     "Switch the public contact email (Play developer page and store listing) to admin@herdofhelpers.com.",
     "Turn on 2-Step Verification on BOTH accounts and print the backup codes. Keep the paper offline, never in the Herd.",
-    "Name the Google payments profile and Stripe 'Herd of Helpers'."
+    "Name Stripe 'Herd of Helpers' too."
    ],
    "status": "ready",
    "section": "raven"
   },
   {
-   "id": "h3-play-account",
-   "title": "🟢 Google Play developer account",
+   "id": "h3-play-setup",
+   "title": "🟢 Finish setting up Play Console",
    "area": "🙋 You · vCGE critical path",
-   "why": "Play needs 12 testers for 14 days in a row before vCGE can go on sale. That clock can't start until the account exists, so this is the longest pole. One-time fee is $25 (your money, your yes).",
-   "where": "Play Console sign-up (personal account, your Google sign-in).",
+   "why": "Your Play developer account is made (Herd of Helpers, 17:04 UTC). These steps get vCGE to the closed test, which starts the 14-day tester clock.",
+   "where": "Play Console: https://play.google.com/console",
    "steps": [
-    "Open https://play.google.com/console/signup and make a Personal account (skip if you have one).",
-    "Do the ID check it asks for. Tick Pass when the Console opens."
+    "Finish the identity and phone checks Play asks for.",
+    "Set up the payments profile as Herd of Helpers (you need it to sell a paid app).",
+    "Create app: name vCGE, App, Paid.",
+    "Testing, Closed testing: create the track and add the testers Google Group (step 3).",
+    "Fill the App content forms (privacy policy, Data safety, content rating). The 🐢 app-store thread has the answers ready."
    ],
    "status": "ready",
    "section": "raven"
@@ -68,20 +70,16 @@
    "section": "raven"
   },
   {
-   "id": "h5-play-key",
-   "title": "🔑 Pick how the Play upload key signs",
-   "area": "🙋 You · one tap",
-   "why": "Protected (recommended): CI signs each build only after you click Approve. Offline: you sign by hand on your PC. The key backup goes in Vaultwarden once it's built.",
+   "id": "h5-play-key-make",
+   "title": "🔑 Make the Play upload key (Protected CI)",
+   "area": "🙋 You · with the 🐢 app-store thread",
+   "why": "You picked Protected: CI signs a build only after you click Approve. The key backup goes in Vaultwarden once it's built, never GitHub, Drive or Nextcloud.",
    "steps": [
-    "Tap Answer here and pick Protected or Offline on the card in the app-store thread."
+    "Make the upload key on your PC with the one line the 🐢 app-store thread gives you.",
+    "In GitHub, vCGE-Master, Settings, Environments: create play-upload with you as the required reviewer, and add the key's three secrets there.",
+    "Keep a copy on an offline USB until Vaultwarden is ready."
    ],
    "status": "ready",
-   "decision": {
-    "ask": "Play key: Protected or Offline?",
-    "where": "thread 🐢 Get vCGE onto app stores",
-    "label": "Answer here",
-    "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2"
-   },
    "section": "raven"
   },
   {
@@ -143,7 +141,7 @@
      "who": "robot"
     },
     {
-     "text": "Plug in the Play key after your pick (step 5) and the Microsoft identity after step 7.",
+     "text": "Sign with the Play key once it's in place (step 5); add the Microsoft identity after step 7.",
      "who": "robot"
     }
    ],
