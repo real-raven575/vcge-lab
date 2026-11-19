@@ -1,7 +1,7 @@
 // Test Bench page helpers:  node --test testbench/test/testbench.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nextMatch, safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf } from '../www/testbench.js';
+import { nextMatch, safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf, askLinks } from '../www/testbench.js';
 
 const hand = { id: 'h', section: 'raven', title: 'Hands-on', status: 'ready', steps: ['open it', 'press GO', 'look'],
     stepResults: { 0: { result: 'pass', note: '' }, 1: { result: 'fail', note: 'froze' } },
@@ -78,4 +78,10 @@ test('a tapped count goes to the next card it counted, in page order, and wraps'
     assert.equal(nextMatch(items, 'waiting', 'w2'), 'w1');
     assert.equal(nextMatch(items, 'interactive'), 'w2');
     assert.equal(nextMatch(items, 'fail'), null);
+});
+
+test('ask links keep only https threads', () => {
+    const it = { ask: [{ label: 'app stores', link: 'https://claude.ai/code/project/chan_x?thread=cmsg_y' }, { label: 'bad', link: 'javascript:alert(1)' }, { link: 'https://claude.ai/z' }] };
+    assert.deepEqual(askLinks(it), [{ label: 'app stores', href: 'https://claude.ai/code/project/chan_x?thread=cmsg_y' }, { label: 'the thread', href: 'https://claude.ai/z' }]);
+    assert.deepEqual(askLinks({}), []);
 });

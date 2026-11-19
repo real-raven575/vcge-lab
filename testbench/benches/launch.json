@@ -23,6 +23,12 @@
     "Name Stripe 'Herd of Helpers' too."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -39,6 +45,12 @@
     "Fill the App content forms (privacy policy, Data safety, content rating). The 🐢 app-store thread has the answers ready."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -65,6 +77,16 @@
     }
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐝 Gmail cleanup",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2R8ZPtBsiYVerR9f6xdmtxc"
+    },
+    {
+     "label": "🗄 Organize Herd storage",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2E3dypd823i6gAiwabspVp5"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -79,6 +101,12 @@
     "Liberapay: https://liberapay.com/sign-up, connect Stripe only, paste your username in the tip-jar thread."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "💛 tip jars",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2K3dQua1ZoFG6uYZZWqxECu"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -92,6 +120,12 @@
     "Keep a copy on an offline USB until Vaultwarden is ready."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -104,6 +138,16 @@
     "Save the letter it gives you to your private files. Do not paste the number anywhere in the Herd."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    },
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -116,6 +160,12 @@
     "Copy the Product identity values (Name, Publisher CN=, Store ID 9N...) into the app-store thread. These are safe to share."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -129,6 +179,12 @@
     "🐧 HomeLab: type your yes for the Lounge tools v1.1 in their thread, and set a fresh Lounge B Nextcloud sync password yourself (never paste it in the Herd)."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐘 Rank Herd priorities",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2UXwzFW3MjdcZ5gqHGx9q4G"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -140,6 +196,12 @@
     "Call the state unemployment office (the number is in the Rank Herd priorities thread) and ask if your contract work can count as misclassification."
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -151,6 +213,12 @@
     "Group made with Ask to join (done)."
    ],
    "status": "pass",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -170,6 +238,12 @@
     }
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -188,6 +262,12 @@
     }
    ],
    "status": "waiting",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -206,6 +286,12 @@
     }
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -224,6 +310,12 @@
     }
    ],
    "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -238,6 +330,12 @@
     }
    ],
    "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -252,6 +350,12 @@
     }
    ],
    "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -266,6 +370,12 @@
     }
    ],
    "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Rank Herd priorities",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2UXwzFW3MjdcZ5gqHGx9q4G"
+    }
+   ],
    "section": "raven"
   },
   {
@@ -280,6 +390,12 @@
     }
    ],
    "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
    "section": "raven"
   }
  ]
