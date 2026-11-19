@@ -1,10 +1,10 @@
 {
- "about": "The Launch bench: one ranked 'do this first' list for the Herd's product launch (raven575 lost their job 2026-11-19; goal: launch vCGE and earn). Steps 1-9 are raven575's own human steps; 10+ are what teams are doing. Built from HQ-0342 replies, the Launch Board and the app-store plan. Update by editing this file and rerunning the installer; ticks match by id + step number.",
+ "about": "The Launch bench: one ranked 'do this first' list for the Herd's product launch (raven575 lost their job 2026-11-19; goal: launch vCGE and earn). Steps 1-10 are raven575's own human steps; 10+ are what teams are doing. Built from HQ-0342 replies, the Launch Board and the app-store plan. Update by editing this file and rerunning the installer; ticks match by id + step number.",
  "title": "Do This First",
  "emoji": "🚀",
  "team": "Herd of Helpers",
  "theme": "vcge",
- "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 9 are yours (most are one tap); everything from 10 down, the teams are already doing.",
+ "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 10 are yours (most are one tap); everything from 11 down, the teams are already doing.",
  "sections": {
   "raven": "🚀 Ranked, most important first",
   "auto": "🤖 Automatic"
@@ -79,6 +79,22 @@
     "label": "Answer here",
     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2"
    },
+   "section": "raven"
+  },
+  {
+   "id": "h5b-admin-login",
+   "title": "🛡 Set up admin@herdofhelpers.com as the Herd admin login",
+   "area": "🙋 You · one login for the Herd",
+   "why": "You picked admin@herdofhelpers.com (17:12 UTC 11-19) as the Herd-wide admin login. The vCGE Gmail stays the Play owner; this one does the day-to-day admin and is the public contact.",
+   "steps": [
+    "At your domain host, forward admin@herdofhelpers.com to the inbox you read.",
+    "Make a Google account with it: https://accounts.google.com/signup, then 'Use your existing email'.",
+    "Play Console, Users and permissions: invite admin@herdofhelpers.com as Admin. Keep the vCGE Gmail as owner.",
+    "Switch the public contact email (Play developer page and store listing) to admin@herdofhelpers.com.",
+    "Turn on 2-Step Verification on BOTH accounts and print the backup codes. Keep the paper offline, never in the Herd.",
+    "Name the Google payments profile and Stripe 'Herd of Helpers'."
+   ],
+   "status": "ready",
    "section": "raven"
   },
   {
