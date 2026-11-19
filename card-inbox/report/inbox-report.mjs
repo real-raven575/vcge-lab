@@ -7,7 +7,15 @@ import { pathToFileURL } from 'node:url';
 const [root, www] = process.argv.slice(2);
 if (!root || !www) { console.error('usage: node inbox-report.mjs <INBOX_ROOT> <LAB_ROOT>/www'); process.exit(2); }
 const { voteLines, angleSummary } = await import(pathToFileURL(join(www, 'inbox/inbox.js')).href);
-const { FIELDS, fieldsRight } = await import(pathToFileURL(join(www, 'bench/setrun.js')).href);
+const setrun = await import(pathToFileURL(join(www, 'bench/setrun.js')).href);
+const { FIELDS, fieldsRight } = setrun;
+// sameValue is exported by newer setrun.js; the same rule here for older lab installs.
+const sameValue = setrun.sameValue || ((field, read, truth) => {
+    const a = String(read || '').replace(/\s+/g, ' ').trim(), b = String(truth || '').replace(/\s+/g, ' ').trim();
+    if (field === 'phone' || field === 'fax') { const da = a.replace(/\D/g, ''), db = b.replace(/\D/g, ''); return !!db && da === db; }
+    if (field === 'email' || field === 'web') return a.toLowerCase() === b.toLowerCase();
+    return a === b;
+});
 // Own copy of inbox.js fieldTally (added after the lab's Nov 10 install), so the report runs on either version.
 const fieldTally = (scores, voted, truth) => {
     const per = scores.map(s => fieldsRight(s, truth)), vote = voted ? fieldsRight(voted, truth) : null;
@@ -107,3 +115,61 @@ console.log('\nVote over every angle with the check off:');
 for (const c of offCards) console.log(`  ${c.name.padEnd(17)} angles ${c.n}  vote ${pct(c.vote)}  fields ${c.fields}`);
 const band = (lo, hi) => off.filter(x => x.sharp && x.readableWords >= lo && x.readableWords < hi).map(x => x.chars);
 console.log('\nSharp rejected angles by readable words: ' + [[0, 3], [3, 6], [6, 10], [10, 999]].map(([lo, hi]) => { const a = band(lo, hi); return `${lo}-${hi === 999 ? '+' : hi - 1}: ${a.length} angles avg ${pct(mean(a))}`; }).join('; '));
+
+// Why a field missed, on the angles the app read: each answer-key line of a field is either not found at all, found but
+// put in another box (which one), or in the right box with a slip (how many characters, and where). Role names and
+// counts only, never the text.
+console.log('\nWhy fields missed (answer-key lines on read angles):');
+const why = {};
+const add = (field, k) => { const w = (why[field] ||= {}); w[k] = (w[k] || 0) + 1; };
+const nrm = t => String(t || '').replace(/\s+/g, ' ').trim();
+for (const id of readdirSync(join(root, 'cards')).sort()) {
+    const f = join(root, 'cards', id, 'card.json');
+    if (!existsSync(f)) continue;
+    const card = JSON.parse(readFileSync(f, 'utf8'));
+    const truth = card.truth && card.truth.lines && card.truth.lines.length ? card.truth : null;
+    if (!truth) continue;
+    for (const p of card.photos) {
+        const r = card.results[p.hash];
+        if (!r || r.outcome !== 'read') continue;
+        const sc = scoreSample({ set: 'inbox', name: '', outcome: 'read', lines: r.lines }, { ...truth, edgesOk: true, hadQuad: r.edges });
+        for (const [field, roles] of Object.entries(FIELDS)) {
+            for (const k of truth.lines.filter(l => !l.drop && roles.includes(l.role))) {
+                const d = sc.diffs.find(x => x.truth === nrm(k.text));
+                if (!d) { add(field, 'not found'); continue; }
+                const box = roles.includes(d.roleRead);
+                if (box && sameValue(field, d.read, d.truth)) { add(field, 'right'); continue; }
+                if (!box) { add(field, `in box "${d.roleRead}"${sameValue(field, d.read, d.truth) ? ' (text right)' : ''}`); continue; }
+                const off = d.ops.filter(o => o.op !== 'eq').length, first = d.ops.findIndex(o => o.op !== 'eq'), last = d.ops.length - 1 - [...d.ops].reverse().findIndex(o => o.op !== 'eq');
+                const at = first === 0 ? 'start' : last === d.ops.length - 1 ? 'end' : 'middle';
+                add(field, `right box, ${off <= 2 ? '1-2' : off <= 5 ? '3-5' : '6+'} chars off at the ${at}`);
+            }
+        }
+    }
+}
+for (const [field, w] of Object.entries(why)) console.log(`  ${field.padEnd(8)} ` + Object.entries(w).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${n} ${k}`).join('; '));
+
+// Colour experiment (cards rerun with ?variants=1): each rejected angle read again inverted, per colour channel and
+// contrast-stretched. Per variant: how many passed the app's check, and characters right.
+const vt = {};
+for (const id of readdirSync(join(root, 'cards')).sort()) {
+    const f = join(root, 'cards', id, 'card.json');
+    if (!existsSync(f)) continue;
+    const card = JSON.parse(readFileSync(f, 'utf8'));
+    const truth = card.truth && card.truth.lines && card.truth.lines.length ? card.truth : null;
+    if (!truth) continue;
+    for (const p of card.photos) {
+        const r = card.results[p.hash];
+        for (const v of (r && r.variants) || []) {
+            const row = ((vt[card.name] ||= {})[v.kind] ||= { n: 0, passed: 0, chars: [] });
+            row.n++;
+            if (v.error || !Array.isArray(v.lines)) continue;
+            if (v.passed) row.passed++;
+            row.chars.push(scoreSample({ set: 'inbox', name: '', outcome: 'read', lines: v.lines }, { ...truth, edgesOk: true, hadQuad: true }).charAccuracy);
+        }
+    }
+}
+if (Object.keys(vt).length) {
+    console.log('\nColour variants on rejected angles (passed the check / tried, characters right):');
+    for (const [name, kinds] of Object.entries(vt)) console.log(`  ${name.padEnd(16)} ` + Object.entries(kinds).map(([k, r]) => `${k} ${r.passed}/${r.n} ${pct(mean(r.chars))}`).join('; '));
+}
