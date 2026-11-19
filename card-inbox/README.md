@@ -21,6 +21,12 @@ frames from its live camera preview instead of one still.
   (`<card>.zip` or a `<card>/` folder; moved to `drop/done/` after). Logs carry method and path only.
 - `www/`: the page at `inbox/` (drop box, cards, the card page with progress, answers, and the frame picker).
 - `vcge-lab-card-inbox-install.sh`: folders, service, Caddy route, page. Backups and undo lines printed.
+- `report/inbox-report.mjs`: read-only accuracy report over every card (`node card-inbox/report/inbox-report.mjs
+  <INBOX_ROOT> <LAB_ROOT>/www`, as the lab user). Card nicknames and numbers only: per card and overall character
+  accuracy, the vote, fields, why angles were not read, and what the unreadable check throws away (builds with the
+  `gate: false` option keep those readings, marked `failedGate`, so they can be scored).
+  It also says why each field missed (not found, put in another box, or a slip of N characters) and, for cards rerun
+  with `?variants=1` on the page, how rejected angles read when inverted, per colour channel or contrast-stretched.
 - `test/`: `test_inbox_api.py` (service, against the real Card Shelf), `inbox.test.mjs` (frame scoring and the vote),
   `inbox.e2e.cjs` (the whole thing in Chromium with a published build; drawn cards and a clip recorded in the browser).
 

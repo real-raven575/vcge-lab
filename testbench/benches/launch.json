@@ -1,0 +1,402 @@
+{
+ "about": "The Launch bench: one ranked 'do this first' list for the Herd's product launch (raven575 lost their job 2026-11-19; goal: launch vCGE and earn). Steps 1-9 are raven575's own human steps; 10+ are what teams are doing. Built from HQ-0342 replies, the Launch Board and the app-store plan. Update by editing this file and rerunning the installer; ticks match by id + step number.",
+ "title": "Do This First",
+ "emoji": "🚀",
+ "team": "Herd of Helpers",
+ "theme": "vcge",
+ "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 9 are yours (most are one tap); done ones sit just below them, then everything the teams are already doing.",
+ "sections": {
+  "raven": "🚀 Ranked, most important first",
+  "auto": "🤖 Automatic"
+ },
+ "items": [
+  {
+   "id": "h5b-admin-login",
+   "title": "🛡 Set up admin@herdofhelpers.com as the Herd admin login",
+   "area": "🙋 You · one login for the Herd",
+   "why": "You picked admin@herdofhelpers.com as the Herd-wide admin login, and its mailbox is ready. The vCGE Gmail stays the Play owner; this one does the day-to-day admin and is the public contact.",
+   "steps": [
+    "Make a Google account with it: https://accounts.google.com/signup, then 'Use your existing email'.",
+    "Play Console, Users and permissions: invite admin@herdofhelpers.com as Admin. Keep the vCGE Gmail as owner.",
+    "Switch the public contact email (Play developer page and store listing) to admin@herdofhelpers.com.",
+    "Turn on 2-Step Verification on BOTH accounts and print the backup codes. Keep the paper offline, never in the Herd.",
+    "Name Stripe 'Herd of Helpers' too."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h3-play-setup",
+   "title": "🟢 Finish setting up Play Console",
+   "area": "🙋 You · vCGE critical path",
+   "why": "Your Play developer account is made (Herd of Helpers, 17:04 UTC). These steps get vCGE to the closed test, which starts the 14-day tester clock.",
+   "where": "Play Console: https://play.google.com/console",
+   "steps": [
+    "Finish the identity and phone checks Play asks for.",
+    "Set up the payments profile as Herd of Helpers (you need it to sell a paid app).",
+    "Create app: name vCGE, App, Paid.",
+    "Testing, Closed testing: create the track and add the vcge-testers Google Group.",
+    "Fill the App content forms (privacy policy, Data safety, content rating). The 🐢 app-store thread has the answers ready."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h4b-google-storage",
+   "title": "💾 Free up Google storage (90% full)",
+   "area": "🙋 You + 🐝 Team eMail",
+   "why": "Google is at 90%: Gmail about 78 GB, Drive 63, Photos 40. At 100%, Gmail stops getting mail, including store and account emails. Junk goes first because it's fastest, which also makes Takeout smaller.",
+   "steps": [
+    {
+     "text": "Team eMail cleans Gmail junk first (old promotions, big attachments, newsletters). Nothing personal is deleted without your yes.",
+     "who": "robot"
+    },
+    {
+     "text": "Set up rclone on Beastly and run the Survey (the eMail thread gives you the lines).",
+     "who": "human"
+    },
+    {
+     "text": "Start Google Takeout for old mail and photos: https://takeout.google.com",
+     "who": "human"
+    },
+    {
+     "text": "Move the Takeout files into Nextcloud and check they open before anything is removed from Google.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐝 Gmail cleanup",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2R8ZPtBsiYVerR9f6xdmtxc"
+    },
+    {
+     "label": "🗄 Organize Herd storage",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2E3dypd823i6gAiwabspVp5"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h6-stripe",
+   "title": "💛 Tip jar accounts: Stripe, then Sponsors, then Liberapay",
+   "area": "🙋 You · first money in",
+   "why": "Tips are the fastest money: no store review. PR #51 is ready to switch the links on the moment each account is live.",
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/51",
+   "steps": [
+    "Stripe: https://dashboard.stripe.com/register (Individual / sole proprietor). Make a Payment Link 'Tip for vCGE', paste the link in the tip-jar thread.",
+    "GitHub Sponsors: https://github.com/sponsors/accounts (GitHub reviews it in a few days).",
+    "Liberapay: https://liberapay.com/sign-up, connect Stripe only, paste your username in the tip-jar thread."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "💛 tip jars",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2K3dQua1ZoFG6uYZZWqxECu"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h5-play-key-make",
+   "title": "🔑 Make the Play upload key (Protected CI)",
+   "area": "🙋 You · with the 🐢 app-store thread",
+   "why": "You picked Protected: CI signs a build only after you click Approve. The key backup goes in Vaultwarden once it's built, never GitHub, Drive or Nextcloud.",
+   "steps": [
+    "Make the upload key on your PC with the one line the 🐢 app-store thread gives you.",
+    "In GitHub, vCGE-Master, Settings, Environments: create play-upload with you as the required reviewer, and add the key's three secrets there.",
+    "Keep a copy on an offline USB until Vaultwarden is ready."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h7-ein",
+   "title": "🧾 Free EIN (10 minutes)",
+   "area": "🙋 You · business basics",
+   "why": "Keeps your Social Security number off store, Stripe and tax forms. Free from the IRS; never pay a site for it.",
+   "steps": [
+    "Open https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number and apply online (sole proprietor).",
+    "Save the letter it gives you to your private files. Do not paste the number anywhere in the Herd."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    },
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h8-ms-store",
+   "title": "🪟 Reserve the name vCGE in Microsoft Partner Center",
+   "area": "🙋 You · second store",
+   "why": "Locks the name and gives the identity values the Windows package needs (PR #53 holds test values until then).",
+   "steps": [
+    "Open https://partner.microsoft.com/dashboard/apps-and-games/overview, then New product, MSIX or PWA app, type vCGE, Reserve.",
+    "Copy the Product identity values (Name, Publisher CN=, Store ID 9N...) into the app-store thread. These are safe to share."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h9-quick-yes",
+   "title": "✅ Quick answers for teams",
+   "area": "🙋 You · one line each",
+   "why": "🦏 Deadbolt (Vault) needs a list of which launch accounts exist to start the 2FA check. 🐿 History needs a go for a Nextcloud session to write the Herd story.",
+   "steps": [
+    "Tell 🦏 Deadbolt (Team Vault): the names of the accounts you've made (no passwords).",
+    "Say 'go' in 🐿 History's mail thread for their Nextcloud session.",
+    "🐧 HomeLab: type your yes for the Lounge tools v1.1 in their thread, and set a fresh Lounge B Nextcloud sync password yourself (never paste it in the Herd)."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐘 Rank Herd priorities",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2UXwzFW3MjdcZ5gqHGx9q4G"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h9-uia-call",
+   "title": "📞 Optional: ask the state unemployment office one question",
+   "area": "🙋 You · when you have a minute",
+   "why": "Contract work that was promised to become a job may count as misclassification, which can change what you're owed. Worth one call; nothing depends on it.",
+   "steps": [
+    "Call the state unemployment office (the number is in the Rank Herd priorities thread) and ask if your contract work can count as misclassification."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h4-tester-group",
+   "title": "👥 Google Group for Play testers: done",
+   "area": "🙋 You · vCGE critical path",
+   "why": "Made: vcge-testers. Join link for 🐼 Creative and 🦚 Marketing to share: https://groups.google.com/g/vcge-testers",
+   "steps": [
+    "Group made with Ask to join (done)."
+   ],
+   "status": "pass",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t1-store-prep",
+   "title": "🐢 Store builds: Play bundle + Windows package (PR #53)",
+   "area": "🤖 Team vCGE · working now",
+   "why": "Builds the files both stores take, with the privacy policy and listing text.",
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/53",
+   "steps": [
+    {
+     "text": "Get PR #53 CI green 11/11, then ready for review.",
+     "who": "robot"
+    },
+    {
+     "text": "Sign with the Play key once it's in place (step 5); add the Microsoft identity after step 7.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t2-testers",
+   "title": "🦚 Tester sign-up note + listing review",
+   "area": "🤖 Team vCGE: Marketing · critical path",
+   "why": "A friendly note to recruit about 20 real testers (no tester farms) and a review of the store text.",
+   "steps": [
+    {
+     "text": "Write the 14-day tester note and post it with the Google Group link.",
+     "who": "robot"
+    },
+    {
+     "text": "Review store/listing.json wording.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t3-art",
+   "title": "🐼 Store art + Facebook tester post",
+   "area": "🤖 Team vCGE: Creative",
+   "why": "Play icon 512, feature graphic 1024x500, Microsoft logo set, screenshots from made-up cards.",
+   "steps": [
+    {
+     "text": "Make the store art into vcge-drop/.",
+     "who": "robot"
+    },
+    {
+     "text": "Post the tester call on Facebook, pointing at the Google Group.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t4-vault",
+   "title": "🦏 Keys, 2FA check, secret sweep",
+   "area": "🤖 Team Vault",
+   "why": "Every account gets 2FA and paper recovery codes; nothing secret goes public.",
+   "steps": [
+    {
+     "text": "Sheriff check on each account you list (step 8).",
+     "who": "robot"
+    },
+    {
+     "text": "Read-only secret sweep of repo, listing, screenshots and tester note before anything goes public.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t5-money",
+   "title": "🐹 Price, fees and tax-form names",
+   "area": "🤖 Bankers",
+   "why": "$0.99 nets about $0.84 a sale. Bankers check store shares and payout forms.",
+   "steps": [
+    {
+     "text": "Send the fee and tax-form summary on HQ-0342.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t6-story",
+   "title": "🐿 Herd story + Meet the Herd",
+   "area": "🤖 Team History",
+   "why": "Story for the tip jar and About pages; one line per character for store pages.",
+   "steps": [
+    {
+     "text": "Draft after your go (step 8).",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t7-other-teams",
+   "title": "📬 Waiting on top-3 lists",
+   "area": "🤖 Herd Mailbox",
+   "why": "3 of 10 teams have answered HQ-0342 (Vault, History, HomeLab). Left: Creative, Marketing, 9to5, Auto-Fixer, Bankers, eMail, Never Forget. Their items join this list as they answer.",
+   "steps": [
+    {
+     "text": "Herd Drive thread checks the Mailbox at :17 and adds each reply here.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Rank Herd priorities",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2UXwzFW3MjdcZ5gqHGx9q4G"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "t8-later",
+   "title": "⏳ Later: Helper Board keyboard",
+   "area": "🤖 After launch",
+   "why": "Starts after vCGE and Auto-Fixer are on sale. Nothing to do now.",
+   "steps": [
+    {
+     "text": "Parked until launch.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "ask": [
+    {
+     "label": "🐘 Herd business plan",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
+    }
+   ],
+   "section": "raven"
+  }
+ ]
+}

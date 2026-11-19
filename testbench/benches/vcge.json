@@ -1,0 +1,351 @@
+{
+ "about": "The Test Bench's seed list: every open vCGE test, by name and steps only. What raven575 records (results, notes, pictures) lives on the lab server, never here. Update this file (testbench/benches/vcge.json) with the work: add a test when a change lands, set status 'waiting' while it needs a build or a yes. Seeded 2026-11-14 from Team vCGE's open items.",
+ "title": "The Test Bench",
+ "emoji": "🧪",
+ "team": "Team vCGE",
+ "theme": "vcge",
+ "intro": "Every open vCGE test in one list. Work down Needs raven575; Automatic reads the real CI runs by itself.",
+ "sections": {
+  "raven": "🙋 Needs raven575",
+  "auto": "🤖 Automatic"
+ },
+ "items": [
+  {
+   "id": "redesign-1-3-phone",
+   "section": "raven",
+   "title": "Redesign steps 1 to 3 on your phone and computer",
+   "area": "🐢 Shutout (MOD01) + 🦉 Glyph",
+   "why": "Steps 1-3 of the easy + premium redesign are merged (wide layout, card-maker tabs with the mini card, Guess / Type it / Take it again). Tests pass in CI; nobody has tried them by hand yet.",
+   "where": "The lab's Newest build (/vcge/latest/), once it shows build e1dbbfe or newer. The public site does not have steps 2 and 3 until the next Pages run.",
+   "steps": [
+    "Open the newest lab build on a computer. Go through every screen with a sample card: nothing should need scrolling except long lists.",
+    "On the Card screen, try each card-maker tab (🎨 🖼 🔤 🧱 🔳). On the phone, the small card should stay in view while you change things.",
+    "Read a card with one hard-to-read line (shiny, small print or a smudge). Under the flagged line you should see Guess, Type it and Take it again.",
+    "Press each of the three buttons once and say what each did.",
+    "Do steps 1 to 4 on your phone too."
+   ],
+   "status": "ready"
+  },
+  {
+   "id": "redesign-4-go",
+   "section": "raven",
+   "title": "Redesign step 4: the green GO button",
+   "area": "🐢 Shutout (MOD01)",
+   "why": "Step 4 is merged (PR #35, 20:41 UTC 11-14): green GO circle on Welcome, read without the OK press, one review page with Make it fancy / Just the contact. Not tried by hand yet.",
+   "where": "The newest lab build (the public site gets it at the next Pages run).",
+   "steps": [
+    "On Welcome, press the green GO circle and take a photo of a card.",
+    "It should read by itself, without pressing OK, and land on one review page.",
+    "Press 🎨 Make it fancy: you should land in the card maker.",
+    "Go back, press ⚡ Just the contact: you should land on Share.",
+    "Check Step by step still works the old way."
+   ],
+   "status": "ready",
+   "interactive": {
+    "thread": "🐢 Make vCGE easy and premium on every screen",
+    "how": "After each step, post what the screen shows (a screenshot is best) so Shutout can check the flow before step 5 starts."
+   },
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/35"
+  },
+  {
+   "id": "redesign-5-7",
+   "section": "raven",
+   "title": "Redesign steps 5 to 7: icons, colour-vision tint, Easy touch",
+   "area": "🐢 Shutout (MOD01) + 🐊 Crayon review",
+   "why": "Not built yet. Listed so you can see they are coming; each gets its own steps when it lands.",
+   "where": "Waiting on step 4.",
+   "steps": [
+    "Step 5: every button icon reads clearly at phone size.",
+    "Step 6: with the colour-vision setting on, the art changes colour but your photo and the card's own colours stay true.",
+    "Step 7: with Easy touch on, buttons are bigger and wipe takes two taps instead of a hold."
+   ],
+   "status": "waiting"
+  },
+  {
+   "id": "qr-styles",
+   "section": "raven",
+   "title": "QR styles: find them, pick one, scan it",
+   "area": "🦓 Checkers (MOD07)",
+   "why": "The high-contrast QR styles are merged and live, but on 11-12 you could not find them. A choice card on where they should also show (Card screen) is still open in the QR thread.",
+   "where": "The public site (https://real-raven575.github.io/vCGE-Master/) or the newest lab build.",
+   "steps": [
+    "Make a contact, go to Share and open Save QR image.",
+    "Try three different colour pairs and two dot shapes.",
+    "Scan each saved QR with your phone's own camera app: does it open the contact?",
+    "Say whether this is where you expect the styles to be, or whether they belong on the Card screen too."
+   ],
+   "status": "ready",
+   "interactive": {
+    "thread": "🦓 Add high-contrast QR styles",
+    "how": "Your answer to step 4 settles the open choice card there."
+   },
+   "decision": {
+    "ask": "Should the QR styles also show on the Card screen?",
+    "where": "the choice card in the thread \"🦓 Add high-contrast QR styles\"",
+    "label": "Open Claude, then that thread",
+    "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2"
+   }
+  },
+  {
+   "id": "pdf-qr",
+   "section": "raven",
+   "title": "PDF export shows the QR code",
+   "area": "🦅 Airlock (MOD08)",
+   "why": "The blank-QR-in-PDF fix and the print follow-up (QR style and size on the sheet) are merged and on the public site since Pages run #5. Not tried by hand.",
+   "where": "The public site, on a computer and on your phone.",
+   "steps": [
+    "Make a contact, go to Share and export or print it as PDF.",
+    "Open the PDF: is the QR code there (not a blank square)?",
+    "Scan the QR in the PDF with your phone: does it open the contact?",
+    "Try the 5 cm size and a styled QR: does the PDF still show it?"
+   ],
+   "status": "ready"
+  },
+  {
+   "id": "accuracy-round-1",
+   "section": "raven",
+   "title": "Accuracy round 1: printed QR and phone numbers",
+   "area": "🦉 Glyph (MOD04) + 🦓 Checkers",
+   "why": "Merged and live: the app reads a QR printed on a card, and re-reads phone numbers digits-only (it used to turn 555 into 55).",
+   "where": "The public site, phone camera.",
+   "steps": [
+    "Snap a card that has a QR code printed on it. Do the fields from the QR show up?",
+    "Snap a card whose phone number has repeated digits (like 555 or 1100). Is every digit right?",
+    "Press Cancel while it is still looking for the QR: does it stop cleanly?"
+   ],
+   "status": "ready"
+  },
+  {
+   "id": "smart-burst",
+   "section": "raven",
+   "title": "Smart burst camera through its paces",
+   "area": "🐈 Iris (MOD03)",
+   "why": "Live since 11-13 and you said it works. Its beta feedback (dim light, glare, the light button) is still to come.",
+   "where": "The public site on your phone.",
+   "steps": [
+    "Snap a card in dim light. Is the result sharp?",
+    "Snap a shiny card under a lamp. Does the glare go down, or do you get the advice to retake with the light?",
+    "If your phone has a flashlight, is the light button there? Does it stay on after Retake?",
+    "Snap five cards quickly in a row. Any freeze or a wrong card?"
+   ],
+   "status": "ready"
+  },
+  {
+   "id": "app-wrappers",
+   "section": "raven",
+   "title": "App test builds: Android, Windows, Linux",
+   "area": "🐢 Shutout (MOD01)",
+   "why": "The app wrappers are merged; test builds from main b128dc4 were posted 11-13 and expire around 11-27. Android export and download are untested. First Android findings (2026-11-14) are split out below.",
+   "where": "GitHub Actions artifacts of run 43365848599 (android, windows, linux). The builds are unsigned, so Windows and Android warn first.",
+   "steps": [
+    "Android: install the APK, open the app, allow the camera, snap a card.",
+    "Android: export the contact. Did it land in Contacts or Downloads?",
+    "Windows: install, open, snap or upload a card, export.",
+    "Linux: install the .deb or AppImage, open, upload a card, export.",
+    "On each: the app must work with Wi-Fi off."
+   ],
+   "status": "ready",
+   "interactive": {
+    "thread": "the PM chat (Cornerstone routes it)",
+    "how": "Post what each install and export step shows, so the Android export path can be fixed step by step if it fails."
+   }
+  },
+  {
+   "id": "android-top-bar",
+   "section": "raven",
+   "title": "Android app: the top of the app sits under the phone's status bar",
+   "area": "🐢 Shutout (MOD01)",
+   "why": "Found by raven575 on 2026-11-14 in the Android test build: the app's top row goes up into the phone's status bar, so buttons there are hidden or hard to press. Needs a fix (safe-area space at the top), then this retest.",
+   "where": "The next Android test build after the fix.",
+   "steps": [
+    "Open the app on the Android phone.",
+    "Is anything at the top hidden behind the clock, battery or notch? Can you press every top button easily?",
+    "Turn the phone sideways and check again.",
+    "Do the same on the Card and Share screens."
+   ],
+   "status": "waiting",
+   "interactive": {
+    "thread": "the Android app tour thread",
+    "how": "Post a screenshot of the top of each screen so the fix can be checked before the next build."
+   }
+  },
+  {
+   "id": "android-export-contact",
+   "section": "raven",
+   "title": "Android app: Export as contact really saves to Contacts",
+   "area": "🦅 Airlock (MOD08)",
+   "why": "Found by raven575 on 2026-11-14: Export as contact looked like it saved, but the made-up test contact (Lena) was not found in the phone's Contacts. Not fixed yet; the cause is not known.",
+   "where": "The Android test build. Use only made-up sample contacts.",
+   "steps": [
+    "Make a contact from a pilot sample or a made-up card and note its name.",
+    "Press Export as contact. Write down exactly what the phone shows (a share sheet, a file saved, a Contacts screen, or nothing).",
+    "Open the phone's Contacts and search for that name.",
+    "If it is not there, open Files > Downloads: is there a .vcf file? Tap it: does Contacts offer to import it?"
+   ],
+   "status": "ready",
+   "interactive": {
+    "thread": "the Android app tour thread",
+    "how": "Post what the phone shows after each step (a screenshot is best) so Airlock can follow the export path step by step."
+   }
+  },
+  {
+   "id": "android-pilot-samples",
+   "section": "raven",
+   "title": "Android app: pilot sample contacts are missing",
+   "area": "🐢 Shutout (MOD01) + 🦎 Flipside",
+   "why": "Found by raven575 on 2026-11-14: the pilots' sample information was not in the Android build. It may be a different build (the plain edition has no pilot samples by design) or a bug; to check.",
+   "where": "The Android test build; compare with the public site.",
+   "steps": [
+    "On the Android app, open the sample contacts. Which names show (pilots, or 'Sample contact' people)?",
+    "Open the About or Settings screen and note the version and build shown.",
+    "Do the same on the public site and say what differs."
+   ],
+   "status": "ready",
+   "interactive": {
+    "thread": "the Android app tour thread",
+    "how": "Post the version line and a screenshot of the samples list so the build can be identified."
+   }
+  },
+  {
+   "id": "pages-version",
+   "section": "raven",
+   "title": "Public site: newest build and the right version label",
+   "area": "🐘 Cornerstone",
+   "why": "The public site runs main bb3c05d (Pages run #5) but still says 0.8.1, and redesign steps 2 and 3 are not on it. Pages only deploys when you press Run.",
+   "where": "GitHub > vCGE-Master > Actions > Pages > Run workflow (branch main).",
+   "steps": [
+    "Run the Pages workflow on main.",
+    "Open the public site and note the version it shows.",
+    "Check the Card screen has the card-maker tabs (that proves step 2 is there)."
+   ],
+   "status": "ready",
+   "decision": {
+    "ask": "Run the Pages deploy on main?",
+    "where": "press Run workflow, branch main",
+    "label": "Open the Pages Run button",
+    "link": "https://github.com/real-raven575/vCGE-Master/actions/workflows/pages.yml"
+   }
+  },
+  {
+   "id": "scriptorium-samples",
+   "section": "raven",
+   "title": "The Scriptorium: mark what the 54 samples really say",
+   "area": "🦉 Glyph (MOD04)",
+   "why": "The handwriting bench is live with 54 samples; until you mark them, the handwriting score is only a guess.",
+   "where": "/vcge/bench/handwriting.html on the lab.",
+   "steps": [
+    "Open the Scriptorium and go through the samples, fixing any line that is wrong.",
+    "Mark any sample you cannot read as unreadable.",
+    "Add a few real handwriting photos with the upload button (no real names or numbers)."
+   ],
+   "status": "ready"
+  },
+  {
+   "id": "card-inbox-first-drop",
+   "section": "raven",
+   "title": "Card Inbox: the first real card",
+   "area": "🐘 Cornerstone + 🐈 Iris",
+   "why": "The Card Inbox is live but has never had a real card. Its photo-against-video numbers decide whether the app reads a burst of video frames.",
+   "where": "/vcge/inbox/ on the lab.",
+   "steps": [
+    "Give the card a nickname (never a real name) and drop 5 to 10 photos of it from different angles.",
+    "Drop a 3 to 5 second clip of the same card.",
+    "Press Run new angles, then fill in the right answers once and save.",
+    "Read the summary: photos, video frames, all angles voted."
+   ],
+   "status": "ready"
+  },
+  {
+   "id": "iris-phone-retests",
+   "section": "raven",
+   "title": "Camera retests on Android: pinch zoom and upload",
+   "area": "🐈 Iris (MOD03)",
+   "why": "Two older camera fixes were never retested on a real phone: the fast pinch on the crop screen, and the upload button showing the camera-in-use notice.",
+   "where": "The public site on your Android phone in Chrome.",
+   "steps": [
+    "Take a photo, then on the crop screen pinch quickly in and out. Does the zoom follow your fingers?",
+    "Zoom to a corner of the card: can any corner reach the centre?",
+    "Press Upload and wait in the picker for a few seconds: no camera-in-use message should appear behind it."
+   ],
+   "status": "ready",
+   "interactive": {
+    "thread": "🐈 Iris (camera)",
+    "how": "If a step fails, post a screen recording or screenshot of that step before going on."
+   }
+  },
+  {
+   "id": "passkey-approvals",
+   "section": "raven",
+   "title": "Later: passkey sign-in for page-level approvals",
+   "area": "🐘 PM",
+   "status": "waiting",
+   "why": "You asked (21:05 UTC 11-14) to list this for later: answer yes/no choices right on this page, signed in with a passkey, instead of opening Claude. Not started; until then each choice links to claude.ai.",
+   "where": "Not built yet.",
+   "steps": [
+    "Say when to start it, and it gets its own thread and real steps."
+   ]
+  },
+  {
+   "id": "ci-main",
+   "section": "auto",
+   "title": "App CI on main (all 12 jobs)",
+   "area": "All pilots",
+   "why": "Every push to main runs unit tests, 7 browsers and phones, 3 desktop builds and the Android emulator.",
+   "ci": {
+    "repo": "real-raven575/vCGE-Master",
+    "workflow": "ci.yml",
+    "branch": "main"
+   }
+  },
+  {
+   "id": "ci-plain",
+   "section": "auto",
+   "title": "App CI on the plain edition",
+   "area": "🐢 Shutout (MOD01)",
+   "why": "The plain edition gets every feature after each merge; its CI must match main's.",
+   "ci": {
+    "repo": "real-raven575/vCGE-Master",
+    "workflow": "ci.yml",
+    "branch": "claude/plain-edition"
+   }
+  },
+  {
+   "id": "ci-webkit",
+   "section": "auto",
+   "title": "WebKit (Safari engine) OCR crash watch",
+   "area": "🦉 Glyph (MOD04)",
+   "why": "WebKit test runs sometimes crash inside the OCR engine ('Target crashed' / 'Out of bounds memory access') and pass on re-run. Still open. This line shows the newest WebKit result on main.",
+   "ci": {
+    "repo": "real-raven575/vCGE-Master",
+    "workflow": "ci.yml",
+    "branch": "main",
+    "job": "Browser e2e (WebKit)"
+   }
+  },
+  {
+   "id": "ci-iphone",
+   "section": "auto",
+   "title": "iPhone 15 (WebKit) on main",
+   "area": "🐢 Shutout + 🦉 Glyph",
+   "why": "The iPhone run shares the WebKit crash and has had gate time-outs; watch it with the WebKit line.",
+   "ci": {
+    "repo": "real-raven575/vCGE-Master",
+    "workflow": "ci.yml",
+    "branch": "main",
+    "job": "Browser e2e (iPhone)"
+   }
+  },
+  {
+   "id": "pages-deploy",
+   "section": "auto",
+   "title": "Public site deploy (Pages)",
+   "area": "🐘 Cornerstone",
+   "why": "Shows which build the public site was last deployed from. Compare it with main above.",
+   "ci": {
+    "repo": "real-raven575/vCGE-Master",
+    "workflow": "pages.yml",
+    "branch": "main"
+   }
+  }
+ ]
+}

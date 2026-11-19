@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="testbench" content="vcge">
+<title>Flight Deck: The Test Bench</title>
+<link rel="stylesheet" href="testbench.css">
+<link rel="stylesheet" href="/deckbar.css">
+</head>
+<body>
+<!-- deckbar: made by flight-deck/team-pages/build-team-pages.py, edit it there --><nav class="deckbar" aria-label="Flight Deck menu"><a class="db-home" href="/"><span aria-hidden="true">✈</span> Flight Deck</a><a href="/menu/"><span aria-hidden="true">☰</span> Menu</a><a href="/desk/"><span aria-hidden="true">📜</span> Desk</a><details><summary><span aria-hidden="true">📇</span> Teams</summary><div class="db-list"><a href="/teams/vcge/"><span aria-hidden="true">🐘</span> Team vCGE</a><a href="/teams/creative/"><span aria-hidden="true">🐼</span> Team vCGE: Creative</a><a href="/teams/marketing/"><span aria-hidden="true">🦚</span> Team vCGE: Marketing</a><a href="/teams/homelab/"><span aria-hidden="true">🐧</span> Team HomeLab</a><a href="/teams/email/"><span aria-hidden="true">🐝</span> Team eMail</a><a href="/teams/history/"><span aria-hidden="true">🐿️</span> Team History</a><a href="/teams/finance/"><span aria-hidden="true">🐜</span> Team Finance</a><a href="/teams/vault/"><span aria-hidden="true">🦏</span> Team Vault</a><a href="/teams/auto-fixer/"><span aria-hidden="true">🐒</span> Team Auto-Fixer</a><a href="/teams/9to5/"><span aria-hidden="true">🤖</span> TEAM 9to5</a><a href="/teams/never-forget/"><span aria-hidden="true">🦒</span> TEAM Never Forget</a></div></details><details><summary><span aria-hidden="true">🐘</span> vCGE lab</summary><div class="db-list"><a href="/vcge/"><span aria-hidden="true">🐘</span> The Elephant&#x27;s Memory</a><a href="/vcge/latest/"><span aria-hidden="true">🛫</span> Newest build</a><a href="/vcge/bench/"><span aria-hidden="true">🦉</span> The Reading Room</a><a href="/vcge/bench/handwriting.html"><span aria-hidden="true">✍️</span> The Scriptorium</a><a href="/vcge/edge-bench/"><span aria-hidden="true">🐈</span> The Darkroom</a><a href="/vcge/logo-bench/"><span aria-hidden="true">🦎</span> The Paint Shop</a><a href="/vcge/funhouse/"><span aria-hidden="true">🎪</span> The Funhouse</a><a href="/vcge/shelf/"><span aria-hidden="true">📚</span> The Card Shelf</a><a href="/vcge/inbox/"><span aria-hidden="true">📬</span> Card Inbox</a><a href="/vcge/testbench/" aria-current="page"><span aria-hidden="true">🧪</span> The Test Bench</a><a href="/vcge/testing/"><span aria-hidden="true">🦝</span> Wipe Trials</a></div></details><span class="db-here">The Test Bench</span></nav><!-- /deckbar -->
+<header class="top">
+  <h1 id="benchTitle">🧪 The Test Bench</h1>
+  <p class="tag"><span id="benchIntro">Every open test in one list.</span> What you write, say and every picture you add stay on this lab server.</p>
+  <div class="bar" role="progressbar" aria-label="Steps done" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="allBar"></i></div>
+  <p id="allNote" class="note"></p>
+  <div id="tally" class="tally" aria-live="polite"></div>
+  <div id="takes" class="takes" role="status" hidden></div>
+  <div class="row" role="group" aria-label="Show">
+    <span class="note">Show:</span>
+    <button class="chip on" type="button" data-filter="open">Still to do</button>
+    <button class="chip" type="button" data-filter="all">All</button>
+    <button class="chip" type="button" data-filter="human">👤 Mine</button>
+    <button class="chip" type="button" data-filter="robot">🤖 Robot</button>
+    <button class="chip" type="button" data-filter="decide">👉 Needs my yes/no</button>
+    <button class="chip" type="button" data-filter="interactive">🔁 Interactive</button>
+    <button class="chip" type="button" data-filter="fail">❌ Failed</button>
+    <button class="chip" type="button" data-filter="pass">✅ Passed</button>
+  </div>
+</header>
+
+<main>
+<section class="panel" aria-labelledby="ravenTitle">
+  <h2 id="ravenTitle"><span id="ravenName">🙋 Needs raven575</span> <span class="note">hands-on checks, top to bottom</span></h2>
+  <p class="note">👤 steps are yours; 🤖 steps a Claude robot runs and fills in. 🔁 <b>Interactive</b> means: post what each step shows in the named thread before going on, so Claude can check it step by step. 👉 <b>Needs my yes/no</b> means a choice waits on you; its button opens the place to answer it.</p>
+  <ol id="ravenList" class="items"><li class="empty">Loading…</li></ol>
+</section>
+
+<section id="autoPanel" class="panel" aria-labelledby="autoTitle">
+  <h2 id="autoTitle"><span id="autoName">🤖 Automatic</span> <span class="note">read from the real GitHub Actions runs</span></h2>
+  <div class="row">
+    <button id="refreshBtn" class="btn" type="button">↻ Check CI now</button>
+    <span id="fetchNote" class="note" role="status"></span>
+  </div>
+  <ul id="autoList" class="items"><li class="empty">Loading…</li></ul>
+</section>
+
+<section class="panel" aria-labelledby="addTitle">
+  <h2 id="addTitle">➕ Add a test</h2>
+  <form id="addForm" class="addform">
+    <label class="field">Title <input name="title" type="text" maxlength="120" required></label>
+    <label class="field">Who it belongs to <input name="area" type="text" maxlength="60" placeholder="e.g. 🐈 Iris (MOD03)"></label>
+    <label class="field">Why <input name="why" type="text" maxlength="600"></label>
+    <label class="field">Steps, one per line <textarea name="steps" rows="4" required></textarea></label>
+    <label class="check"><input name="interactive" type="checkbox"> 🔁 Interactive, report each step in thread:</label>
+    <input name="thread" type="text" maxlength="120" placeholder="thread name" aria-label="Thread name">
+    <label>Needs a yes or no from you? Link to where you answer it:
+      <input name="decisionLink" type="url" maxlength="300" placeholder="https://… (claude.ai, a PR, a Run button)"></label>
+    <div class="row"><button class="btn primary" type="submit">Add it</button><span id="addNote" class="note" role="status"></span></div>
+  </form>
+</section>
+<p class="note foot">Lab only. Never put a real person's name, number or card in a note; pictures of test cards are fine here, they never go in a repo.</p>
+</main>
+<div id="jumpBar" class="jumpbar" role="region" aria-label="Go through the matching tests" hidden></div>
+<script type="module" src="testbench.js"></script>
+</body>
+</html>
