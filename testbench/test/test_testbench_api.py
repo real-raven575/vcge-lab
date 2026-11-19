@@ -253,6 +253,8 @@ class TestBench(unittest.TestCase):
                         if isinstance(st, dict):
                             self.assertIn(st['who'], ('human', 'robot'))
                             self.assertIn(st.get('state', ''), tb.STEP_RESULTS)
+                    for a in i.get('ask', []):
+                        self.assertTrue(a['label'] and a['link'].startswith('https://claude.ai/code/project/'), i['id'])
                     if i.get('link'):
                         self.assertTrue(i['link'].startswith('https://github.com/real-raven575/'))
                 else:
