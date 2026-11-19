@@ -25,6 +25,8 @@ frames from its live camera preview instead of one still.
   <INBOX_ROOT> <LAB_ROOT>/www`, as the lab user). Card nicknames and numbers only: per card and overall character
   accuracy, the vote, fields, why angles were not read, and what the unreadable check throws away (builds with the
   `gate: false` option keep those readings, marked `failedGate`, so they can be scored).
+  It also says why each field missed (not found, put in another box, or a slip of N characters) and, for cards rerun
+  with `?variants=1` on the page, how rejected angles read when inverted, per colour channel or contrast-stretched.
 - `test/`: `test_inbox_api.py` (service, against the real Card Shelf), `inbox.test.mjs` (frame scoring and the vote),
   `inbox.e2e.cjs` (the whole thing in Chromium with a published build; drawn cards and a clip recorded in the browser).
 

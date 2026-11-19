@@ -13,7 +13,7 @@ const lab = mkdtempSync(join(tmpdir(), 'inbox-test-'));
 cpSync(join(repo, 'bench/www'), join(lab, 'bench'), { recursive: true });
 cpSync(join(repo, 'card-inbox/www'), join(lab, 'inbox'), { recursive: true });
 process.on('exit', () => rmSync(lab, { recursive: true, force: true }));
-const { sharpness, glareShare, toGrey, frameScore, pickFrames, voteLines, likeness, angleSummary, fieldTally } = await import(pathToFileURL(join(lab, 'inbox/inbox.js')).href);
+const { sharpness, glareShare, toGrey, frameScore, pickFrames, voteLines, likeness, angleSummary, fieldTally, variantPixels, VARIANTS } = await import(pathToFileURL(join(lab, 'inbox/inbox.js')).href);
 const { scoreSample } = await import(pathToFileURL(join(lab, 'bench/bench.js')).href);
 
 const W = 32, H = 32;
@@ -60,6 +60,15 @@ test('voteLines: two angles that each slip a letter still keep the line; differe
     const apart = voteLines([[{ text: 'Velmar Studio', role: 'organization' }], [{ text: 'Kalo Renmi', role: 'name' }]]);
     assert.equal(apart.length, 0, 'unlike lines do not merge');
     assert.equal(likeness('abcd', 'abcd'), 1); assert.equal(likeness('abcd', 'abce'), 0.75); assert.equal(likeness('', 'a'), 0);
+});
+
+test('colour variants: white on blue becomes dark on light when inverted; the blue channel keeps the light text light', () => {
+    const px = new Uint8ClampedArray([255, 255, 255, 255, 20, 40, 160, 255]);   // a white pixel, then a blue one
+    const inv = variantPixels(px, 'invert'), blue = variantPixels(px, 'blue'), st = variantPixels(px, 'stretch');
+    assert.ok(inv[0] < 10 && inv[4] > 200, 'inverted: the white text goes dark, the blue ground light');
+    assert.ok(blue[0] === 255 && blue[4] === 160);
+    assert.ok(st[0] === 255 && st[4] === 0, 'stretch spreads the two greys to black and white');
+    assert.ok(inv[3] === 255 && VARIANTS.length === 5);
 });
 
 test('angleSummary names the best and weakest angle', () => {
