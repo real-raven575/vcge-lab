@@ -1,0 +1,38 @@
+name: Bug report
+description: A lab page or bench broke, froze or scored something wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping. **Please never attach a real business card photo or anyone's real name, number or address.** Describe the problem, or use made-up details.
+  - type: input
+    id: tool
+    attributes:
+      label: Which tool?
+      description: For example "Reading Room", "Card Inbox", "Flight Deck".
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: vCGE build or lab commit
+      description: The short commit shown on the page, if there is one.
+  - type: input
+    id: browser
+    attributes:
+      label: Device and browser
+      description: For example "Windows 10, Firefox".
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen again
+      placeholder: "1. Open the Reading Room\n2. ..."
