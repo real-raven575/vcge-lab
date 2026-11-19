@@ -71,29 +71,47 @@ export function pickFrames(frames, n = FRAMES_KEPT, gap = FRAME_GAP) {
     return kept.sort((a, b) => a.t - b.t);
 }
 
+/** How alike two strings are, 0 to 1: one minus the edit distance over the longer length. */
+export function likeness(a, b) {
+    if (a === b) return 1;
+    if (!a.length || !b.length) return 0;
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+        const row = [i];
+        for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        prev = row;
+    }
+    return 1 - prev[b.length] / Math.max(a.length, b.length);
+}
+
+// Two readings are the same line when at least this alike (ignoring case and spacing): one slip in four characters.
+// Exact matching threw most lines away, because each angle misreads a letter or two (Card Inbox run, 2026-11-18).
+export const VOTE_LIKENESS = 0.75;
+
 /**
- * All angles voted: the lines that more than half of the angles that were read agree on (same text, ignoring case and
- * spacing). Each kept line takes its most common spelling and role. reads = [[{text, role}, ...], ...] per angle.
+ * All angles voted: the lines that more than half of the angles that were read agree on (near-same text, ignoring case
+ * and spacing, see VOTE_LIKENESS). Each kept line takes its most common spelling and role. reads = [[{text, role}, ...], ...] per angle.
  */
 export function voteLines(reads) {
     const read = reads.filter(r => Array.isArray(r) && r.length);
     if (!read.length) return [];
-    const groups = new Map();
+    const groups = [];
     read.forEach((lines, angle) => {
-        const seen = new Set();
-        for (const l of lines) {
+        const voted = new Set();
+        lines.forEach((l, at) => {
             const key = norm(l.text).toLowerCase();
-            if (!key || seen.has(key)) continue;
-            seen.add(key);
-            if (!groups.has(key)) groups.set(key, { angles: 0, texts: new Map(), roles: new Map(), first: angle * 1000 + lines.indexOf(l) });
-            const g = groups.get(key);
-            g.angles++;
-            g.texts.set(norm(l.text), (g.texts.get(norm(l.text)) || 0) + 1);
-            g.roles.set(l.role, (g.roles.get(l.role) || 0) + 1);
-        }
+            if (!key) return;
+            let best = null, score = VOTE_LIKENESS;
+            for (const g of groups) { const k = likeness(key, g.key); if (k >= score && !voted.has(g)) { best = g; score = k; } }
+            if (!best) { best = { key, angles: 0, texts: new Map(), roles: new Map(), first: angle * 1000 + at }; groups.push(best); }
+            voted.add(best);
+            best.angles++;
+            best.texts.set(norm(l.text), (best.texts.get(norm(l.text)) || 0) + 1);
+            best.roles.set(l.role, (best.roles.get(l.role) || 0) + 1);
+        });
     });
     const top = (m) => [...m.entries()].sort((a, b) => b[1] - a[1])[0][0];
-    return [...groups.values()].filter(g => g.angles * 2 > read.length).sort((a, b) => a.first - b.first)
+    return groups.filter(g => g.angles * 2 > read.length).sort((a, b) => a.first - b.first)
         .map(g => ({ text: top(g.texts), role: top(g.roles), votes: g.angles, of: read.length }));
 }
 
@@ -211,9 +229,18 @@ async function runAngle(photo) {
             shown.getContext('2d').putImageData(new ImageData(flat.data, width, height), 0, 0);
         }
         t = performance.now();
-        const read = await ocr.executeOCRScan(shown.toDataURL('image/png'), { onStatus: () => {} });
+        // gate: false asks builds that know it to hand back a reading the app would call unreadable, marked failedGate:
+        // it still counts as unreadable here, but its lines are kept so the report can score what the check throws away.
+        // Older builds ignore the option and reject as before.
+        const read = await ocr.executeOCRScan(shown.toDataURL('image/png'), { onStatus: () => {}, gate: false });
         r.ms.read = Math.round(performance.now() - t);
         r.confidence = read.confidence;
+        if (read.failedGate) {
+            const g = read.failedGate;
+            r.outcome = 'OCR_UNREADABLE';
+            r.failedGate = g;
+            r.error = `Image ${g.sharp ? 'sharp but its lettering could not be read' : 'too blurry or unclear to read'} (confidence ${g.confidence}, ${g.readableWords} readable words)`;
+        }
         const lines = mapper.classifyLines(read.lines && read.lines.length ? read.lines : read.text);
         mapper.buildFields(lines);
         r.lines = lines.map(l => ({ text: l.text, role: l.role, check: l.check || null }));

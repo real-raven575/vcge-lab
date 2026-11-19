@@ -13,7 +13,7 @@ const lab = mkdtempSync(join(tmpdir(), 'inbox-test-'));
 cpSync(join(repo, 'bench/www'), join(lab, 'bench'), { recursive: true });
 cpSync(join(repo, 'card-inbox/www'), join(lab, 'inbox'), { recursive: true });
 process.on('exit', () => rmSync(lab, { recursive: true, force: true }));
-const { sharpness, glareShare, toGrey, frameScore, pickFrames, voteLines, angleSummary, fieldTally } = await import(pathToFileURL(join(lab, 'inbox/inbox.js')).href);
+const { sharpness, glareShare, toGrey, frameScore, pickFrames, voteLines, likeness, angleSummary, fieldTally } = await import(pathToFileURL(join(lab, 'inbox/inbox.js')).href);
 const { scoreSample } = await import(pathToFileURL(join(lab, 'bench/bench.js')).href);
 
 const W = 32, H = 32;
@@ -44,14 +44,22 @@ test('pickFrames keeps the best frames, spaced apart, in time order', () => {
     assert.equal(pickFrames([{ t: 0, score: 0 }]).length, 0, 'zero-score frames are never kept');
 });
 
-test('voteLines keeps lines most angles agree on, with the usual spelling and role', () => {
+test('voteLines keeps lines most angles agree on (one slip allowed), with the usual spelling and role', () => {
     const a = [{ text: 'Velmar Studio', role: 'organization' }, { text: 'Kalo Renmi', role: 'name' }, { text: '555-0123', role: 'phone' }];
     const b = [{ text: 'Velmar  Studio', role: 'organization' }, { text: 'Kal0 Renmi', role: 'name' }, { text: '555-0123', role: 'phone' }];
     const c = [{ text: 'velmar studio', role: 'name' }, { text: 'Kalo Renmi', role: 'name' }, { text: 'noise', role: 'notes' }];
     const v = voteLines([a, b, c, []]);
-    assert.deepEqual(v.map(l => [l.text, l.role, l.votes]), [['Velmar Studio', 'organization', 3], ['Kalo Renmi', 'name', 2], ['555-0123', 'phone', 2]]);
+    assert.deepEqual(v.map(l => [l.text, l.role, l.votes]), [['Velmar Studio', 'organization', 3], ['Kalo Renmi', 'name', 3], ['555-0123', 'phone', 2]]);
     assert.ok(v.every(l => l.of === 3), 'an angle that read nothing does not vote');
     assert.deepEqual(voteLines([]), []);
+});
+
+test('voteLines: two angles that each slip a letter still keep the line; different lines stay apart', () => {
+    const v = voteLines([[{ text: 'hello@velmar.studio', role: 'email' }, { text: '555-0123', role: 'phone' }], [{ text: 'hell0@velmar.studio', role: 'email' }, { text: '555-O123', role: 'phone' }]]);
+    assert.deepEqual(v.map(l => [l.role, l.votes]), [['email', 2], ['phone', 2]]);
+    const apart = voteLines([[{ text: 'Velmar Studio', role: 'organization' }], [{ text: 'Kalo Renmi', role: 'name' }]]);
+    assert.equal(apart.length, 0, 'unlike lines do not merge');
+    assert.equal(likeness('abcd', 'abcd'), 1); assert.equal(likeness('abcd', 'abce'), 0.75); assert.equal(likeness('', 'a'), 0);
 });
 
 test('angleSummary names the best and weakest angle', () => {
