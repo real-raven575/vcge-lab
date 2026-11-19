@@ -4,7 +4,7 @@
  "emoji": "🚀",
  "team": "Herd of Helpers",
  "theme": "vcge",
- "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 9 are yours (most are one tap); everything from 10 down, the teams are already doing.",
+ "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 9 are yours (most are one tap); done ones sit just below them, then everything the teams are already doing.",
  "sections": {
   "raven": "🚀 Ranked, most important first",
   "auto": "🤖 Automatic"
@@ -35,22 +35,34 @@
     "Finish the identity and phone checks Play asks for.",
     "Set up the payments profile as Herd of Helpers (you need it to sell a paid app).",
     "Create app: name vCGE, App, Paid.",
-    "Testing, Closed testing: create the track and add the testers Google Group (step 3).",
+    "Testing, Closed testing: create the track and add the vcge-testers Google Group.",
     "Fill the App content forms (privacy policy, Data safety, content rating). The 🐢 app-store thread has the answers ready."
    ],
    "status": "ready",
    "section": "raven"
   },
   {
-   "id": "h4-tester-group",
-   "title": "👥 Make the Google Group for Play testers",
-   "area": "🙋 You · vCGE critical path",
-   "why": "Testers join this group to get into the closed test. Creative's Facebook post will point here. Aim for about 20 people so 12 stay the full 14 days.",
-   "where": "Google Groups, signed in as you.",
+   "id": "h4b-google-storage",
+   "title": "💾 Free up Google storage (90% full)",
+   "area": "🙋 You + 🐝 Team eMail",
+   "why": "Google is at 90%: Gmail about 78 GB, Drive 63, Photos 40. At 100%, Gmail stops getting mail, including store and account emails. Junk goes first because it's fastest, which also makes Takeout smaller.",
    "steps": [
-    "Open https://groups.google.com/my-groups and press Create group. Name: vCGE testers.",
-    "Who can join: Ask to join. Who can see the group: anyone on the web.",
-    "Paste the group's web address in the note box so 🐼 Creative and 🦚 Marketing can share it."
+    {
+     "text": "Team eMail cleans Gmail junk first (old promotions, big attachments, newsletters). Nothing personal is deleted without your yes.",
+     "who": "robot"
+    },
+    {
+     "text": "Set up rclone on Beastly and run the Survey (the eMail thread gives you the lines).",
+     "who": "human"
+    },
+    {
+     "text": "Start Google Takeout for old mail and photos: https://takeout.google.com",
+     "who": "human"
+    },
+    {
+     "text": "Move the Takeout files into Nextcloud and check they open before anything is removed from Google.",
+     "who": "robot"
+    }
    ],
    "status": "ready",
    "section": "raven"
@@ -108,12 +120,13 @@
   },
   {
    "id": "h9-quick-yes",
-   "title": "✅ Two quick answers for teams",
+   "title": "✅ Quick answers for teams",
    "area": "🙋 You · one line each",
    "why": "🦏 Deadbolt (Vault) needs a list of which launch accounts exist to start the 2FA check. 🐿 History needs a go for a Nextcloud session to write the Herd story.",
    "steps": [
     "Tell 🦏 Deadbolt (Team Vault): the names of the accounts you've made (no passwords).",
-    "Say 'go' in 🐿 History's mail thread for their Nextcloud session."
+    "Say 'go' in 🐿 History's mail thread for their Nextcloud session.",
+    "🐧 HomeLab: type your yes for the Lounge tools v1.1 in their thread, and set a fresh Lounge B Nextcloud sync password yourself (never paste it in the Herd)."
    ],
    "status": "ready",
    "section": "raven"
@@ -127,6 +140,17 @@
     "Call the state unemployment office (the number is in the Rank Herd priorities thread) and ask if your contract work can count as misclassification."
    ],
    "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h4-tester-group",
+   "title": "👥 Google Group for Play testers: done",
+   "area": "🙋 You · vCGE critical path",
+   "why": "Made: vcge-testers. Join link for 🐼 Creative and 🦚 Marketing to share: https://groups.google.com/g/vcge-testers",
+   "steps": [
+    "Group made with Ask to join (done)."
+   ],
+   "status": "pass",
    "section": "raven"
   },
   {
@@ -234,7 +258,7 @@
    "id": "t7-other-teams",
    "title": "📬 Waiting on top-3 lists",
    "area": "🤖 Herd Mailbox",
-   "why": "2 of 10 teams have answered HQ-0342 (Vault, History). Left: Creative, Marketing, 9to5, Auto-Fixer, Bankers, HomeLab, eMail, Never Forget. Their items join this list as they answer.",
+   "why": "3 of 10 teams have answered HQ-0342 (Vault, History, HomeLab). Left: Creative, Marketing, 9to5, Auto-Fixer, Bankers, eMail, Never Forget. Their items join this list as they answer.",
    "steps": [
     {
      "text": "Herd Drive thread checks the Mailbox at :17 and adds each reply here.",
