@@ -1,0 +1,264 @@
+{
+ "about": "The Launch bench: one ranked 'do this first' list for the Herd's product launch (raven575 lost their job 2026-11-19; goal: launch vCGE and earn). Steps 1-9 are raven575's own human steps; 10+ are what teams are doing. Built from HQ-0342 replies, the Launch Board and the app-store plan. Update by editing this file and rerunning the installer; ticks match by id + step number.",
+ "title": "Do This First",
+ "emoji": "🚀",
+ "team": "Herd of Helpers",
+ "theme": "vcge",
+ "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 9 are yours (most are one tap); everything from 10 down, the teams are already doing.",
+ "sections": {
+  "raven": "🚀 Ranked, most important first",
+  "auto": "🤖 Automatic"
+ },
+ "items": [
+  {
+   "id": "h1-unemployment",
+   "title": "💼 File for unemployment (today)",
+   "area": "🙋 You · money first",
+   "why": "Benefits usually count from the week you file, so filing today protects the money. Nothing else on this list is as time-sensitive.",
+   "where": "Your state's unemployment site (the US Labor Dept finder lists every state).",
+   "steps": [
+    "Open https://www.careeronestop.org/LocalHelp/UnemploymentBenefits/find-unemployment-benefits.aspx and pick your state.",
+    "File the claim. Have your last employer's name and address and your last day (today) ready.",
+    "Tick Pass here when it's filed. Write the weekly claim day in the note box so the Herd can remind you."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h2-health",
+   "title": "🩺 Health coverage: check the end date",
+   "area": "🙋 You · protect the family",
+   "why": "Losing job coverage opens a 60-day window to pick new coverage, and open enrollment also runs now (to 2027-01-15).",
+   "where": "Your benefits/HR email and HealthCare.gov.",
+   "steps": [
+    "Find the date your work coverage ends (HR or benefits email). Write it in the note box.",
+    "Open https://www.healthcare.gov/ and see plans (job loss counts as a life event). Pick one before the end date."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h3-play-account",
+   "title": "🟢 Google Play developer account",
+   "area": "🙋 You · vCGE critical path",
+   "why": "Play needs 12 testers for 14 days in a row before vCGE can go on sale. That clock can't start until the account exists, so this is the longest pole. One-time fee is $25 (your money, your yes).",
+   "where": "Play Console sign-up (personal account, your Google sign-in).",
+   "steps": [
+    "Open https://play.google.com/console/signup and make a Personal account (skip if you have one).",
+    "Do the ID check it asks for. Tick Pass when the Console opens."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h4-tester-group",
+   "title": "👥 Make the Google Group for Play testers",
+   "area": "🙋 You · vCGE critical path",
+   "why": "Testers join this group to get into the closed test. Creative's Facebook post will point here. Aim for about 20 people so 12 stay the full 14 days.",
+   "where": "Google Groups, signed in as you.",
+   "steps": [
+    "Open https://groups.google.com/my-groups and press Create group. Name: vCGE testers.",
+    "Who can join: Ask to join. Who can see the group: anyone on the web.",
+    "Paste the group's web address in the note box so 🐼 Creative and 🦚 Marketing can share it."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h5-play-key",
+   "title": "🔑 Pick how the Play upload key signs",
+   "area": "🙋 You · one tap",
+   "why": "Protected (recommended): CI signs each build only after you click Approve. Offline: you sign by hand on your PC. The key backup goes in Vaultwarden once it's built.",
+   "steps": [
+    "Tap Answer here and pick Protected or Offline on the card in the app-store thread."
+   ],
+   "status": "ready",
+   "decision": {
+    "ask": "Play key: Protected or Offline?",
+    "where": "thread 🐢 Get vCGE onto app stores",
+    "label": "Answer here",
+    "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2"
+   },
+   "section": "raven"
+  },
+  {
+   "id": "h6-stripe",
+   "title": "💛 Tip jar accounts: Stripe, then Sponsors, then Liberapay",
+   "area": "🙋 You · first money in",
+   "why": "Tips are the fastest money: no store review. PR #51 is ready to switch the links on the moment each account is live.",
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/51",
+   "steps": [
+    "Stripe: https://dashboard.stripe.com/register (Individual / sole proprietor). Make a Payment Link 'Tip for vCGE', paste the link in the tip-jar thread.",
+    "GitHub Sponsors: https://github.com/sponsors/accounts (GitHub reviews it in a few days).",
+    "Liberapay: https://liberapay.com/sign-up, connect Stripe only, paste your username in the tip-jar thread."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h7-ein",
+   "title": "🧾 Free EIN (10 minutes)",
+   "area": "🙋 You · business basics",
+   "why": "Keeps your Social Security number off store, Stripe and tax forms. Free from the IRS; never pay a site for it.",
+   "steps": [
+    "Open https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number and apply online (sole proprietor).",
+    "Save the letter it gives you to your private files. Do not paste the number anywhere in the Herd."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h8-ms-store",
+   "title": "🪟 Reserve the name vCGE in Microsoft Partner Center",
+   "area": "🙋 You · second store",
+   "why": "Locks the name and gives the identity values the Windows package needs (PR #53 holds test values until then).",
+   "steps": [
+    "Open https://partner.microsoft.com/dashboard/apps-and-games/overview, then New product, MSIX or PWA app, type vCGE, Reserve.",
+    "Copy the Product identity values (Name, Publisher CN=, Store ID 9N...) into the app-store thread. These are safe to share."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h9-quick-yes",
+   "title": "✅ Two quick answers for teams",
+   "area": "🙋 You · one line each",
+   "why": "🦏 Deadbolt (Vault) needs a list of which launch accounts exist to start the 2FA check. 🐿 History needs a go for a Nextcloud session to write the Herd story.",
+   "steps": [
+    "Tell 🦏 Deadbolt (Team Vault): the names of the accounts you've made (no passwords).",
+    "Say 'go' in 🐿 History's mail thread for their Nextcloud session."
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "t1-store-prep",
+   "title": "🐢 Store builds: Play bundle + Windows package (PR #53)",
+   "area": "🤖 Team vCGE · working now",
+   "why": "Builds the files both stores take, with the privacy policy and listing text.",
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/53",
+   "steps": [
+    {
+     "text": "Get PR #53 CI green 11/11, then ready for review.",
+     "who": "robot"
+    },
+    {
+     "text": "Plug in the Play key after your pick (step 5) and the Microsoft identity after step 8.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "t2-testers",
+   "title": "🦚 Tester sign-up note + listing review",
+   "area": "🤖 Team vCGE: Marketing · critical path",
+   "why": "A friendly note to recruit about 20 real testers (no tester farms) and a review of the store text.",
+   "steps": [
+    {
+     "text": "Write the 14-day tester note and post it with the Google Group link.",
+     "who": "robot"
+    },
+    {
+     "text": "Review store/listing.json wording.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "t3-art",
+   "title": "🐼 Store art + Facebook tester post",
+   "area": "🤖 Team vCGE: Creative",
+   "why": "Play icon 512, feature graphic 1024x500, Microsoft logo set, screenshots from made-up cards.",
+   "steps": [
+    {
+     "text": "Make the store art into vcge-drop/.",
+     "who": "robot"
+    },
+    {
+     "text": "Post the tester call on Facebook, pointing at the Google Group.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "t4-vault",
+   "title": "🦏 Keys, 2FA check, secret sweep",
+   "area": "🤖 Team Vault",
+   "why": "Every account gets 2FA and paper recovery codes; nothing secret goes public.",
+   "steps": [
+    {
+     "text": "Sheriff check on each account you list (step 9).",
+     "who": "robot"
+    },
+    {
+     "text": "Read-only secret sweep of repo, listing, screenshots and tester note before anything goes public.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "t5-money",
+   "title": "🐹 Price, fees and tax-form names",
+   "area": "🤖 Bankers",
+   "why": "$0.99 nets about $0.84 a sale. Bankers check store shares and payout forms.",
+   "steps": [
+    {
+     "text": "Send the fee and tax-form summary on HQ-0342.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "t6-story",
+   "title": "🐿 Herd story + Meet the Herd",
+   "area": "🤖 Team History",
+   "why": "Story for the tip jar and About pages; one line per character for store pages.",
+   "steps": [
+    {
+     "text": "Draft after your go (step 9).",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "t7-other-teams",
+   "title": "📬 Waiting on top-3 lists",
+   "area": "🤖 Herd Mailbox",
+   "why": "2 of 10 teams have answered HQ-0342 (Vault, History). Left: Creative, Marketing, 9to5, Auto-Fixer, Bankers, HomeLab, eMail, Never Forget. Their items join this list as they answer.",
+   "steps": [
+    {
+     "text": "Herd Drive thread checks the Mailbox at :17 and adds each reply here.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "t8-later",
+   "title": "⏳ Later: Helper Board keyboard",
+   "area": "🤖 After launch",
+   "why": "Starts after vCGE and Auto-Fixer are on sale. Nothing to do now.",
+   "steps": [
+    {
+     "text": "Parked until launch.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  }
+ ]
+}
