@@ -26,7 +26,7 @@ stays with Iris (Camera) for now and comes to this repository later.
 
 ## Status (November 2026)
 
-- The app it tests, vCGE, is in **public beta at 0.8.1** ([live page](https://real-raven575.github.io/vCGE-Master/)). The lab follows the app's `main` builds.
+- The app it tests, vCGE, is in **public beta at 0.8.1** ([live page](https://real-raven575.github.io/vCGE-Master/)) and goes to Google Play next at $0.99, starting with a closed test. The lab follows the app's `main` builds.
 - Working now: the Reading Room with a field-by-field Scoreboard (accuracy round 1), the Scriptorium, the Card Inbox, the Card Shelf, Wipe Trials, the Paint Shop and the Flight Deck with a page per Herd team.
 - Still to come: the Darkroom and the Funhouse move into this repository from Iris's bench.
 
@@ -121,6 +121,8 @@ Created by **raven575** and the **Herd of Helpers**: **Team vCGE (Claude)** and 
 
 **Made with AI.** Most of the code and text here was written by AI models (Claude by Anthropic, and Gemini by Google)
 working for raven575, who reviews and approves every change. Test it before you rely on it.
+
+Herd of Helpers is raven575's small app studio: vCGE comes first (Google Play, $0.99), then Auto-Fixer. Contact: admin@herdofhelpers.com.
 
 ## Feedback
 
