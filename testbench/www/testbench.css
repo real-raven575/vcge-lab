@@ -71,6 +71,7 @@ body:has(.jumpbar:not([hidden])) { padding-bottom: 72px; }
 .decide-sum { grid-column: 2 / 4; justify-self: start; font-size: .85rem; }
 .ask-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .ask-sum { grid-column: 2 / 4; justify-self: start; }
+.pm-sum { grid-column: 2 / 4; justify-self: start; min-height: 36px; padding: 4px 12px; font-size: .85rem; border-radius: 99px; }
 .ask { display: inline-block; font-weight: 700; font-size: .85rem; text-decoration: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 99px; padding: 2px 10px; }
 .ask:hover, .ask:focus-visible { text-decoration: underline; }
 .decide-box { border: 2px solid var(--accent); border-radius: 8px; padding: 8px 10px; margin: 0; }

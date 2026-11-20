@@ -17,6 +17,9 @@ One engine, one bench per team. raven575 works down a bench instead of hunting t
 - **👉 Needs my yes/no** cards carry `decision: {ask, where?, label?, link}`: a one-tap button, on the closed card too,
   to the exact place the choice is answered (a PR, a Run button, or claude.ai with the thread named in `where`).
   Links are https only. Every card waiting on a raven575 choice must have one.
+- **💬 PM chat** button on every hands-on card: taps through to the owning team's PM chat. The team is the card's
+  `pm` (e.g. `"marketing"`), else the bench's `pm`. The links live in one file, `flight-deck/www/pm-links.js` (served
+  at `/pm-links.js`, also used by the Flight Deck hangars); a team with no pasted link shows "PM link not pasted yet".
 - **🤖 Automatic** lines read the newest real GitHub Actions run (workflow + branch, or one job) every 15 minutes and on
   "Check CI now": jobs green, the failed job and step, the build, a link to the run.
 - Every count at the top is a button: tap it to open and scroll to the next card it counted (switching to All if the

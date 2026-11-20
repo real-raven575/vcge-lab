@@ -56,6 +56,7 @@ function standIn() {
 (async () => {
     fs.cpSync(path.join(REPO, 'testbench/www'), path.join(W, 'testbench'), { recursive: true });
     fs.copyFileSync(path.join(REPO, 'flight-deck/www/deckbar.css'), path.join(W, 'deckbar.css'));
+    for (const f of ['pm-links.js', 'pm-links.css']) fs.copyFileSync(path.join(REPO, 'flight-deck/www', f), path.join(W, f));
     const gh = fakeGitHub().listen(PORTS.gh), web = standIn().listen(PORTS.web);
     // A stand-in speech reader: the real one (faster-whisper) only runs on the lab. It answers in place of the Python.
     const reader = path.join(T, 'fake-reader.sh');
@@ -80,6 +81,12 @@ function standIn() {
         ok(await auto.count() === seedAuto.length, `every automatic line is listed (${seedAuto.length})`);
         ok((await raven.first().locator('.ttl').textContent()).startsWith(seedRaven[0].title), 'in the seed\'s order');
         ok(await page.locator('#tally').textContent().then(t => t.includes(`${seedRaven.filter(i => i.status === 'ready').length} ready`)), 'tally counts ready tests');
+
+        // Every hands-on card taps through to the owning PM's chat (the vCGE bench: 🐘 Cornerstone)
+        const pmHref = require(path.join(REPO, 'flight-deck/www/pm-links.js')).pmFor('vcge').href;
+        ok(await page.locator('#ravenList > li.item summary a.pm-link').count() === seedRaven.length
+            && (await page.locator('#ravenList a.pm-link').evaluateAll(a => a.map(x => x.href))).every(h => h === pmHref), 'every hands-on card has the PM chat button');
+        ok(await page.locator('#autoList .pm-link').count() === 0, 'automatic lines have no PM button');
 
         // Tapping a count goes to the next card it counted
         const waits = seedRaven.filter(i => i.status === 'waiting');

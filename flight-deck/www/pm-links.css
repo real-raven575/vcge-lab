@@ -1,0 +1,16 @@
+/* PM chat buttons from pm-links.js (Flight Deck hangars and the Test Bench). Works in light and dark. */
+.pm-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; box-sizing: border-box; padding: 10px 14px;
+  border-radius: 12px; font: 700 .95rem/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; text-decoration: none;
+  color: #1F4FC4; background: #FFFFFF; border: 2px solid #2B5FD9; }
+a.pm-link:hover, .tools .pm-tool a.pm-link:hover { background: #EAF0FF; }
+a.pm-link:focus-visible { outline: 3px solid #2B5FD9; outline-offset: 2px; }
+.pm-link.none { color: #5A6475; border: 2px dashed #B8C1CE; font-weight: 500; background: transparent; }
+.pm-tool .pm-link { display: flex; width: 100%; }
+.tools .pm-tool a.pm-link { color: #1F4FC4; border: 2px solid #2B5FD9; background: #FFFFFF; }
+@media (prefers-color-scheme: dark) {
+  .pm-link { color: #9DBBFF; background: #161B24; border-color: #79A6FF; }
+  a.pm-link:hover, .tools .pm-tool a.pm-link:hover { background: #1F2A3D; }
+  .tools .pm-tool a.pm-link { color: #9DBBFF; border-color: #79A6FF; background: #161B24; }
+  .pm-link.none { color: #9AA4B4; border-color: #3A4558; background: transparent; }
+}
+@media print { .pm-link { border: 1px solid #000; color: #000; } }

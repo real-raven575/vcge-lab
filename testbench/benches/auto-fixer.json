@@ -3,6 +3,7 @@
  "title": "Auto-Fixer Test Bench",
  "emoji": "🔧",
  "team": "TEAM Auto-Fixer",
+ "pm": "auto-fixer",
  "theme": "auto-fixer",
  "intro": "Every open Auto-Fixer PR and what still needs testing. 👤 steps are yours; 🤖 steps a Claude robot runs and fills in.",
  "sections": {

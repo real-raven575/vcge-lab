@@ -8,6 +8,7 @@
 <title>Flight Deck</title>
 <link rel="icon" href="tower.svg" type="image/svg+xml">
 <link rel="stylesheet" href="portal.css">
+<link rel="stylesheet" href="pm-links.css">
 <link rel="stylesheet" href="/deckbar.css">
 </head>
 <body>
@@ -41,7 +42,7 @@
   <p class="desk-note">The Desk is the one part of the deck that talks to Google: you sign in with Google and it reads one Sheet.</p>
 
   <ol class="hangars">
-    <li class="hangar live">
+    <li class="hangar live" data-pm="vcge">
       <div class="bay">HANGAR 01</div>
       <p class="comms">Comms: ✅ Connected to the Herd comms desk</p>
       <h2>Team vCGE <span class="badge prime">vCGE Prime</span> <span class="badge">founding division</span></h2>
@@ -67,7 +68,7 @@
       </ul>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="creative">
       <div class="bay">HANGAR 02</div>
       <p class="comms">Comms: ✅ Connected (Herd Mailbox)</p>
       <h2>Team vCGE:&nbsp; Creative <span class="badge">Claude HQ</span></h2>
@@ -80,7 +81,7 @@
       <p class="lights" aria-hidden="true">Lights on, ink wells full. Inkwell just hung the final vCGE logo.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="marketing">
       <div class="bay">HANGAR 03</div>
       <p class="comms">Comms: ✅ Connected (Herd Mailbox)</p>
       <h2>Team vCGE:&nbsp; Marketing <span class="badge">Claude HQ</span></h2>
@@ -93,7 +94,7 @@
       <p class="lights" aria-hidden="true">Lights on, banners up. Banner is rehearsing launch day.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="homelab">
       <div class="bay">HANGAR 04</div>
       <p class="comms">Comms: ✅ Connected</p>
       <h2>Team HomeLab <span class="badge">division</span></h2>
@@ -106,7 +107,7 @@
       <p class="lights" aria-hidden="true">Lights on, racks humming. Uptime keeps every green light green.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="email">
       <div class="bay">HANGAR 05</div>
       <p class="comms">Comms: ✅ Connected (Herd Mailbox)</p>
       <h2>Team eMail <span class="badge">division</span></h2>
@@ -119,7 +120,7 @@
       <p class="lights" aria-hidden="true">Lights on, inbox at zero. Waggle's crew is sorting mail somewhere quiet.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="history">
       <div class="bay">HANGAR 06</div>
       <p class="comms">Comms: ✅ Connected</p>
       <h2>Team History <span class="badge">division</span></h2>
@@ -131,7 +132,7 @@
       <p class="lights" aria-hidden="true">Lights on, acorns filed by date. Keepsake is writing it all down.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="finance">
       <div class="bay">HANGAR 07</div>
       <p class="comms">Comms: ✅ Connected</p>
       <h2>Team Finance <span class="badge">division</span></h2>
@@ -143,7 +144,7 @@
       <p class="lights" aria-hidden="true">Lights on, ledgers balanced. Ledger is counting tokens one crumb at a time.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="vault">
       <div class="bay">HANGAR 08</div>
       <p class="comms">Comms: ✅ Connected (raven575 carries replies)</p>
       <h2>Team Vault <span class="badge">division</span></h2>
@@ -154,7 +155,7 @@
       <p class="lights" aria-hidden="true">Lights on, door bolted. Deadbolt checks the lock twice.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="auto-fixer">
       <div class="bay">HANGAR 09</div>
       <p class="comms">Comms: ✅ Connected (Herd Mailbox)</p>
       <h2>Team Auto-Fixer <span class="badge">division</span></h2>
@@ -167,7 +168,7 @@
       <p class="lights" aria-hidden="true">Lights on, toolbox open. Wrench just passed 15 of 15 on the test run.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="9to5">
       <div class="bay">HANGAR 10</div>
       <p class="comms">Comms: ✅ Connected (raven575 carries cards)</p>
       <h2>TEAM 9to5 <span class="badge">division</span></h2>
@@ -179,7 +180,7 @@
       <p class="lights" aria-hidden="true">Lights on, time clock punched. Punchcard clocks in at nine sharp.</p>
     </li>
 
-    <li class="hangar reserved">
+    <li class="hangar reserved" data-pm="never-forget">
       <div class="bay">HANGAR 11</div>
       <p class="comms">Comms: ✅ Connected (Herd Mailbox)</p>
       <h2>TEAM Never Forget <span class="badge">division</span></h2>
@@ -203,6 +204,7 @@
   <span aria-hidden="true">✈</span> Lab only. Every tool here runs on this machine and is reached only over raven575's private network. No ads, no tracking, nothing calls home. The one exception is the Desk, which signs in with Google and reads one Sheet, only after you press Sign in. The Menu also lists teams' tools kept outside the lab (marked &#8599;); those open only when you click them.
   <span class="hint">Pilots who know the word can call a <kbd>formation</kbd>.</span>
 </footer>
+<script src="pm-links.js"></script>
 <script src="portal.js"></script>
 </body>
 </html>
