@@ -1,0 +1,104 @@
+# Helper Board prototype: keyboard rules tests, the installable Android app, a no-internet check, and a smoke run on
+# an Android 14 emulator (installs the keyboard, turns it on, opens a text box, and fails on any crash).
+# Only runs when helper-board/ or this file changes. The APK is a debug build for sideloading and testing.
+name: Helper Board
+
+on:
+  push:
+    branches: [main]
+    paths: ['helper-board/**', '.github/workflows/helper-board.yml']
+  pull_request:
+    paths: ['helper-board/**', '.github/workflows/helper-board.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: helper-board-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Rules tests + Android build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: helper-board
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Keyboard rules tests (core)
+        run: gradle :core:test --console=plain
+
+      - name: Build the app
+        run: gradle :app:assembleDebug :app:lintDebug --console=plain
+
+      - name: No internet permission (fails if the app could go online)
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2
+          "$AAPT2" dump permissions "$APK" | tee permissions.txt
+          if grep -q 'android.permission.INTERNET' permissions.txt; then
+            echo "::error::The app asks for the internet permission. Helper Board must never go online."; exit 1
+          fi
+          echo "OK: no internet permission."
+
+      - name: Name the APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk "helper-board-proto-${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helper-board-proto-${{ github.run_number }}
+          path: helper-board/helper-board-proto-${{ github.run_number }}.apk
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: helper-board-reports-${{ github.run_number }}
+          path: |
+            helper-board/core/build/reports/tests/
+            helper-board/app/build/reports/lint-results-debug.html
+            helper-board/permissions.txt
+          retention-days: 14
+
+  emulator:
+    name: Android 14 emulator smoke test
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: helper-board-proto-${{ github.run_number }}
+          path: apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run smoke test on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash helper-board/ci/emulator-smoke.sh apk/helper-board-proto-${{ github.run_number }}.apk shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: helper-board-screenshots-${{ github.run_number }}
+          path: shots/
+          retention-days: 14

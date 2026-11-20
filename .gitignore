@@ -6,3 +6,10 @@ wipe-trials/vcge-lab-testing-install.sh
 __pycache__/
 # Desk: each lab keeps its own Google Client ID
 flight-deck/www/desk/config.js
+# Helper Board build output
+helper-board/**/build/
+helper-board/.gradle/
+helper-board/.kotlin/
+helper-board/local.properties
+helper-board/*.apk
+helper-board/permissions.txt
