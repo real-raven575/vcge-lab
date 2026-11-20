@@ -115,6 +115,9 @@ class HelperBoardIme : InputMethodService() {
             }
             val c = chip(k.label, active) { onKey(k) }.apply {
                 setPadding(0, 0, 0, 0)
+                // One line that shrinks to fit, so "🎙 Takes" never wraps and gets cut off on a narrow phone.
+                maxLines = 1
+                setAutoSizeTextTypeUniformWithConfiguration(9, 14, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
                 if (k.kind == KeyKind.MODE_NUMBERS) setOnLongClickListener { openSettings(); true }
             }
             row.addView(c, LinearLayout.LayoutParams(0, KeyLook.dp(this, 32), k.weight).apply {
