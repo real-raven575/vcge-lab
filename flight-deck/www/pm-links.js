@@ -12,15 +12,15 @@
   const TEAMS = {
     vcge:           { name: 'Team vCGE',       emoji: '🐘', pm: 'Cornerstone', link: 'https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2' },
     creative:       { name: 'Creative',        emoji: '🐼', pm: 'Inkwell',     link: 'https://claude.ai/code/project/chan_01FmXJmy8KCy4hAMGkMvgrFp' },
-    marketing:      { name: 'Marketing',       emoji: '🦚', pm: 'Banner',      link: '' },
-    homelab:        { name: 'Team HomeLab',    emoji: '🐧', pm: 'Uptime',      link: '' },
-    email:          { name: 'Team eMail',      emoji: '🐝', pm: 'Waggle',      link: '' },
-    history:        { name: 'Team History',    emoji: '🐿️', pm: 'Keepsake',    link: '' },
+    marketing:      { name: 'Marketing',       emoji: '🦚', pm: 'Banner',      link: 'https://claude.ai/code/project/chan_0136DRWnMW4hFjD7SMbR7FbS' },
+    homelab:        { name: 'Team HomeLab',    emoji: '🐧', pm: 'Uptime',      link: 'https://claude.ai/code/project/chan_01BA5wT8yB2REQjaoRCGfDHW' },
+    email:          { name: 'Team eMail',      emoji: '🐝', pm: 'Waggle',      link: 'https://claude.ai/code/project/chan_011cTjbKG3VoVW2DZpYyYqGx' },
+    history:        { name: 'Team History',    emoji: '🐿️', pm: 'Keepsake',    link: 'https://claude.ai/code/project/chan_01UntUB2eupLbg1zMJFLRy9k' },
     finance:        { name: 'Team Finance',    emoji: '🐜', pm: 'Ledger',      link: 'https://claude.ai/code/project/chan_011L4UpUiD3cXuza8oLkSPqy' },
-    vault:          { name: 'Team Vault',      emoji: '🦏', pm: 'Deadbolt',    link: '' },
-    'auto-fixer':   { name: 'Team Auto-Fixer', emoji: '🐒', pm: 'Wrench',      link: '' },
-    '9to5':         { name: 'TEAM 9to5',       emoji: '🤖', pm: 'Punchcard',   link: '' },
-    'never-forget': { name: 'TEAM Never Forget', emoji: '🦒', pm: 'Milestone', link: '' },
+    vault:          { name: 'Team Vault',      emoji: '🦏', pm: 'Deadbolt',    link: 'https://claude.ai/code/project/chan_01HnNn9MncnQvaTwviqM2yQu' },
+    'auto-fixer':   { name: 'Team Auto-Fixer', emoji: '🐒', pm: 'Wrench',      link: 'https://claude.ai/code/project/chan_01PxwWhZtmc1AxLmjp2kSTgu' },
+    '9to5':         { name: 'TEAM 9to5',       emoji: '🤖', pm: 'Punchcard',   link: 'https://claude.ai/code/project/chan_01FgrPF54Lo2Bn2XuzFFqKMq' },
+    'never-forget': { name: 'TEAM Never Forget', emoji: '🦒', pm: 'Milestone', link: 'https://claude.ai/code/project/chan_01BpNfWAZdFpP5CeEsWfkVEe' },
   };
   const SHAPE = /^https:\/\/claude\.ai\/code\/project\/chan_[A-Za-z0-9]+$/;
 
