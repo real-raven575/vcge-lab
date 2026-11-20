@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm")
+    kotlin("jvm") version "2.0.21"
 }
 
 // Built for Java 17 bytecode with whatever JDK runs Gradle, so the Android app can use this module directly.
