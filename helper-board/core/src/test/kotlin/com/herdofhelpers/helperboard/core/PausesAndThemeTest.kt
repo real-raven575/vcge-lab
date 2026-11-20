@@ -107,3 +107,40 @@ class EmojiTest {
         assertEquals(8, (1..20).fold(emptyList<String>()) { acc, i -> Layouts.rememberEmoji(acc, "$i") }.size)
     }
 }
+
+class KeyPlacesTest {
+    @Test fun backspaceIsNextToZeroAndAQuarterToAHalfWider() {
+        val row = Layouts.abc(NumberStyle.ROW).first { r -> r.any { it.output == "0" } }
+        assertEquals(KeyKind.BACKSPACE, row.last().kind); assertEquals("0", row[row.size - 2].output)
+        assertTrue(row.last().weight in 1.2f..1.5f)
+        for (n in NumberStyle.entries) for (m in Mode.entries) {
+            assertTrue(Layouts.forMode(m, n).flatten().filter { it.kind == KeyKind.BACKSPACE }.all { it.weight in 1.2f..1.5f })
+        }
+    }
+
+    @Test fun enterIsBigAndTwoRowsTallWhereApostropheAndBackspaceWere() {
+        for (n in NumberStyle.entries) {
+            val layout = Layouts.abc(n)
+            val i = layout.indexOfFirst { r -> r.any { it.kind == KeyKind.ENTER } }
+            val enter = layout[i].last()
+            assertEquals(KeyKind.ENTER, enter.kind); assertEquals(2, enter.rows)
+            assertTrue(layout[i + 1].first().kind == KeyKind.SHIFT, "the row below is the z row")
+            assertTrue(layout.flatten().count { it.kind == KeyKind.ENTER } == 1)
+        }
+    }
+
+    @Test fun punctuationIsAmongTheLettersNotInItsOwnRow() {
+        val layout = Layouts.abc(NumberStyle.ROW)
+        for (p in listOf(",", ".", "-", "?")) {
+            val row = layout.first { r -> r.any { it.output == p } }
+            assertTrue(row.count { it.output.length == 1 && it.output[0].isLetter() } >= 7, "$p sits with letters")
+            assertEquals(1f, row.first { it.output == p }.weight)
+        }
+    }
+
+    @Test fun everyModeHasAnEnter() {
+        for (n in NumberStyle.entries) for (m in Mode.entries) if (m != Mode.EMOJI) {
+            assertTrue(Layouts.forMode(m, n).flatten().any { it.kind == KeyKind.ENTER }, "$m")
+        }
+    }
+}

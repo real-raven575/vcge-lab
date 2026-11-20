@@ -148,9 +148,8 @@ class LayoutsTest {
 
     @Test fun numberRowOnlyWhenChosen() {
         val digits = "1234567890".map { it.toString() }
-        assertTrue(Layouts.abc(NumberStyle.ROW).any { r -> r.map { it.output } == digits })
-        assertFalse(Layouts.abc(NumberStyle.GRID).any { r -> r.map { it.output } == digits })
-        assertFalse(Layouts.abc(NumberStyle.OFF).any { r -> r.map { it.output } == digits })
+        fun hasDigits(n: NumberStyle) = Layouts.abc(n).any { r -> r.take(10).map { it.output } == digits }
+        assertTrue(hasDigits(NumberStyle.ROW)); assertFalse(hasDigits(NumberStyle.GRID)); assertFalse(hasDigits(NumberStyle.OFF))
     }
 
     @Test fun keypadIsAPhoneGrid() {

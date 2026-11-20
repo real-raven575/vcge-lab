@@ -92,7 +92,13 @@ class HelperBoardIme : InputMethodService() {
         r.addView(modeStrip())
         r.addView(suggestionBar())
         if (mode == Mode.TAKES) r.addView(takesDrawer())
-        for (row in Layouts.forMode(mode, prefs.numberStyle, recentEmoji = prefs.recentEmoji)) r.addView(keyRow(row))
+        val rows = Layouts.forMode(mode, prefs.numberStyle, recentEmoji = prefs.recentEmoji)
+        var i = 0
+        while (i < rows.size) {
+            val tall = rows[i].lastOrNull()?.takeIf { it.rows == 2 && i + 1 < rows.size }
+            if (tall != null) { r.addView(tallBlock(rows[i].dropLast(1), rows[i + 1], tall)); i += 2 }
+            else { r.addView(keyRow(rows[i])); i++ }
+        }
         refreshSuggestions()
     }
 
@@ -166,6 +172,20 @@ class HelperBoardIme : InputMethodService() {
             startActivity(Intent(this, VaultActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         })
         return list
+    }
+
+    /** Two rows side by side with one tall key at the right that covers both (the big ⏎). */
+    private fun tallBlock(top: List<Key>, bottom: List<Key>, tall: Key): View {
+        val block = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val left = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        left.addView(keyRow(top)); left.addView(keyRow(bottom))
+        val leftWeight = maxOf(top.sumOf { it.weight.toDouble() }, bottom.sumOf { it.weight.toDouble() }).toFloat()
+        block.addView(left, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, leftWeight))
+        val gap = KeyLook.dp(this, prefs.rowGapDp)
+        block.addView(keyView(tall), LinearLayout.LayoutParams(0, KeyLook.dp(this, prefs.keyHeightDp) * 2 + gap, tall.weight).apply {
+            setMargins(KeyLook.dp(this@HelperBoardIme, 2), gap / 2, KeyLook.dp(this@HelperBoardIme, 2), gap / 2)
+        })
+        return block
     }
 
     private fun keyRow(keys: List<Key>): View {

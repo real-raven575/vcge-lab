@@ -9,7 +9,10 @@ enum class KeyKind {
     MODE_ABC, MODE_NUMBERS, MODE_SYMBOLS, MODE_TAKES, MODE_EMOJI, SETTINGS, SWITCH_KEYBOARD, HIDE,
 }
 
-data class Key(val label: String, val output: String = label, val weight: Float = 1f, val kind: KeyKind = KeyKind.CHAR)
+/** [rows] = 2 makes a tall key: it ends its row and also covers the end of the row below (the big ⏎). */
+data class Key(
+    val label: String, val output: String = label, val weight: Float = 1f, val kind: KeyKind = KeyKind.CHAR, val rows: Int = 1,
+)
 
 /**
  * Key layouts. Rules from testers: the space bar is the same width in every mode and every kind of text box (T1);
@@ -43,24 +46,30 @@ object Layouts {
 
     private fun chars(s: String) = s.map { Key(it.toString()) }
 
+    /** The same bottom row in every mode, so the space bar never changes width (T1). ⏎ lives up in the keys. */
     private fun bottomRow(modeKey: Key) = listOf(
         modeKey,
         Key("↶", kind = KeyKind.UNDO),
         Key("◀", kind = KeyKind.LEFT),
         Key("space", " ", SPACE_WEIGHT, KeyKind.SPACE),
         Key("▶", kind = KeyKind.RIGHT),
-        Key("🎙", kind = KeyKind.MIC, weight = 1.2f),
-        Key("⏎", kind = KeyKind.ENTER, weight = 1.3f),
+        Key("🎙", kind = KeyKind.MIC, weight = 1.5f),
     )
+
+    /** ⌫ is always a bit wider than a letter (raven575: 120 to 150 %), so it is easy to find and hit. */
+    const val BACKSPACE_WEIGHT = 1.4f
+    private val backspace get() = Key("⌫", kind = KeyKind.BACKSPACE, weight = BACKSPACE_WEIGHT)
+    /** The big ⏎: two rows tall at the right edge, where ' and ⌫ used to be, so it's hard to miss (raven575, 11-20). */
+    private val bigEnter get() = Key("⏎", kind = KeyKind.ENTER, weight = 1.6f, rows = 2)
 
     fun abc(numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW): List<List<Key>> = buildList {
         if (myRow.isNotEmpty()) add(myRow)
-        if (numbers == NumberStyle.ROW) add(chars("1234567890"))
-        add(chars("qwertyuiop"))
-        add(chars("asdfghjkl") + Key("'"))
-        add(listOf(Key("⇧", kind = KeyKind.SHIFT, weight = 1.3f)) + chars("zxcvbnm") +
-            listOf(Key("⌫", kind = KeyKind.BACKSPACE, weight = 1.3f)))
-        add(listOf(Key(","), Key("."), Key("-"), Key("?")))
+        // ⌫ sits right after 0; with no number row it ends the top letter row instead.
+        if (numbers == NumberStyle.ROW) { add(chars("1234567890") + backspace); add(chars("qwertyuiop")) }
+        else add(chars("qwertyuiop") + backspace)
+        // , . - ? ' live among the letters now, not in a row of their own.
+        add(chars("asdfghjkl") + listOf(Key("'"), Key("-"), bigEnter))
+        add(listOf(Key("⇧", kind = KeyKind.SHIFT, weight = 1.3f)) + chars("zxcvbnm") + listOf(Key(","), Key("."), Key("?")))
         add(bottomRow(Key("123", kind = KeyKind.MODE_NUMBERS, weight = 1.2f)))
     }
 
@@ -69,7 +78,7 @@ object Layouts {
         chars("123") + listOf(Key("+"), Key("%")),
         chars("456") + listOf(Key("-"), Key("$")),
         chars("789") + listOf(Key("*"), Key("/")),
-        listOf(Key(","), Key("0"), Key("."), Key("="), Key("⌫", kind = KeyKind.BACKSPACE)),
+        listOf(Key(","), Key("0"), Key("."), Key("="), backspace, Key("⏎", kind = KeyKind.ENTER, weight = 1.4f)),
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
 
@@ -77,7 +86,7 @@ object Layouts {
         chars("!@#&*()_"),
         chars("\"':;/\\|~"),
         chars("<>[]{}^`") ,
-        listOf(Key("¿"), Key("€"), Key("ñ"), Key("£"), Key("¡"), Key("⌫", kind = KeyKind.BACKSPACE)),
+        listOf(Key("¿"), Key("€"), Key("ñ"), Key("£"), Key("¡"), backspace, Key("⏎", kind = KeyKind.ENTER, weight = 1.4f)),
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
 
@@ -95,7 +104,7 @@ object Layouts {
         val rows = EMOJI.chunked(8)
         rows.forEachIndexed { i, row ->
             // ⌫ ends the last emoji row; the only space bar is the usual one below (same width everywhere, T1).
-            add(row.map { Key(it) } + if (i == rows.lastIndex) listOf(Key("⌫", kind = KeyKind.BACKSPACE, weight = 1.3f)) else emptyList())
+            add(row.map { Key(it) } + if (i == rows.lastIndex) listOf(backspace) else emptyList())
         }
         add(bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)))
     }
