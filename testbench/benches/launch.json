@@ -65,14 +65,16 @@
    "id": "h4b-google-storage",
    "title": "💾 Free up Google storage (90% full)",
    "area": "🙋 You + 🐝 Team eMail · vCGE top 2",
-   "why": "vCGE's second most important item. Google is at 90%; at 100% Gmail stops getting mail, including store and account emails. Gmail cleanup is running now (about 2,540 emails, about 222 MB to Trash, undo available). Next: rclone config and the Survey on Beastly.",
+   "why": "vCGE's second most important item. Google was at 90%; at 100% Gmail stops getting mail, including store and account emails. Gmail cleanup is DONE (2,542 emails, about 222 MB to Trash at 02:32 UTC 11-20; undo kept 30 days). Next is yours: rclone config and the Survey on Beastly.",
    "steps": [
     {
-     "text": "Team eMail cleans Gmail junk first (old promotions, big attachments, newsletters). Nothing personal is deleted without your yes.",
-     "who": "robot"
+     "text": "Team eMail cleaned Gmail junk: 2,542 emails, about 222 MB to Trash (02:32 UTC 11-20). Undo is kept 30 days.",
+     "who": "robot",
+     "state": "pass",
+     "resultAt": "2026-11-20T02:32:00Z"
     },
     {
-     "text": "Set up rclone on Beastly and run the Survey (the eMail thread gives you the lines).",
+     "text": "Next: set up rclone on Beastly (rclone config) and run the Survey (the eMail thread gives you the lines).",
      "who": "human"
     },
     {
@@ -231,9 +233,9 @@
   },
   {
    "id": "w1-mail-outside",
-   "title": "🤖 9to5: mail going outside (security check)",
+   "title": "🤖 9to5 #1: mail going outside (security)",
    "area": "🤖 Team 9to5 · #1 · security",
-   "why": "A read-only check is ready and waits on you running Part A. (WORK-0039)",
+   "why": "One user's mail is reaching outside addresses. A read-only check of inbox rules, forwarding and message trace is ready for the user's own tenant. (WORK-0039)",
    "steps": [
     {
      "text": "Run Part A from 9to5's thread.",
@@ -394,6 +396,140 @@
    "section": "raven"
   },
   {
+   "id": "w2-unusual-signin",
+   "title": "🤖 9to5 #2: unusual sign-in (security)",
+   "area": "🤖 Team 9to5 · day-job IT · #2",
+   "why": "No sign of compromise so far (likely a VPN exit). Two checks open: the user's public IP and inbox rules. Advice: move from per-user MFA to Conditional Access and review App Passwords; each change needs its own yes. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Run the two open checks from 9to5's thread.",
+     "who": "human"
+    },
+    {
+     "text": "Say yes or no to each advised change, one at a time.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w3-firewalls",
+   "title": "🤖 9to5 #3: firewall firmware (48 client firewalls)",
+   "area": "🤖 Team 9to5 · day-job IT · #3",
+   "why": "20 end-of-support units to replace, 20 to update, 8 current. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Pick which firewalls to plan first in 9to5's thread.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w4-dental-imaging",
+   "title": "🤖 9to5 #4: dental imaging server backup",
+   "area": "🤖 Team 9to5 · day-job IT · #4",
+   "why": "The live imaging database has no verified backup since 2024. The vendor's database-move request went out 11-16; no change until they reply. (WORK-0039)",
+   "steps": [
+    {
+     "text": "9to5 watches for the vendor's reply.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "w5-unifi",
+   "title": "🤖 9to5 #5: UniFi Wi-Fi fleet",
+   "area": "🤖 Team 9to5 · day-job IT · #5",
+   "why": "14 controllers offline; 4 consoles and 86 devices behind on updates. A 6-step to-do list is made. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Say yes to the read-only service check script in 9to5's thread.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w6-ssd-firmware",
+   "title": "🤖 9to5 #6: server SSD firmware advisory (4 servers)",
+   "area": "🤖 Team 9to5 · day-job IT · #6",
+   "why": "2 done (no vendor fix yet); server 3 needs a look in its management page; server 4 not run yet. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Look at server 3's management page.",
+     "who": "human"
+    },
+    {
+     "text": "Run the check on server 4.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w7-client-disk",
+   "title": "🤖 9to5 #7: client PC disk space: fixed",
+   "area": "🤖 Team 9to5 · day-job IT · #7",
+   "why": "29.9 GB free now. One final read-only check left. Findings for the client: disk encryption off and no restore points. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Run the final read-only check.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w8-remote-firewall",
+   "title": "🤖 9to5 #8: safe remote firewall access plan",
+   "area": "🤖 Team 9to5 · day-job IT · #8",
+   "why": "Plan ready: cloud management, no open ports. Waits on whether the cloud-management licences are owned. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Find out if the cloud-management licences are owned and tell 9to5.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w9-herd-mail",
+   "title": "🤖 9to5 #9: Herd mail owed by 9to5",
+   "area": "🤖 Team 9to5 · day-job IT · #9",
+   "why": "Owed: HQ-0342 top 3, HIST-0033 resume records, HQ-0346 text refresh. (WORK-0039)",
+   "steps": [
+    {
+     "text": "9to5 sends the three owed cards.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "w10-lower",
+   "title": "🤖 9to5 #10: lower: test laptop disk, sauna tablet, Chrome tiles",
+   "area": "🤖 Team 9to5 · day-job IT · #10",
+   "why": "Test laptop disk repair (one check after a restart); sauna tablet remote control (after an on-site visit); Chrome locked tiles (on hold). (WORK-0039)",
+   "steps": [
+    {
+     "text": "Restart the test laptop and run its one check when convenient.",
+     "who": "human"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
    "id": "h4-tester-group",
    "title": "👥 Google Group for Play testers: done",
    "area": "🙋 You · vCGE critical path",
@@ -512,6 +648,20 @@
      "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
     }
    ],
+   "section": "raven"
+  },
+  {
+   "id": "hq0347-biggest-wins",
+   "title": "📬 HQ-0347 biggest wins: waiting on team replies",
+   "area": "🤖 Herd Mailbox",
+   "why": "Sent to all 10 teams at 01:31 UTC 11-20; 1 of 10 replied by 02:35 UTC (History). Never Forget has not sent its top items yet; they join this list when they do.",
+   "steps": [
+    {
+     "text": "Collect the replies and fold each new #1 into this bench.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
    "section": "raven"
   }
  ]
