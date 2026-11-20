@@ -34,17 +34,19 @@ adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity"
 sleep 3
 shot 1-vault
 
-step "4 of 6: open a text box so the keyboard shows"
-adb shell am start -W -a android.intent.action.INSERT -t vnd.android.cursor.dir/contact || true
+step "4 of 6: focus the try-it box so the keyboard draws itself"
+adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --ez focusTry true
 sleep 4
-adb shell input tap 540 600 || true
-sleep 2
 shot 2-keyboard
+SHOWN=$(adb shell dumpsys input_method | tr -d '\r' | grep -o "mInputShown=[a-z]*" | head -1)
+echo "Keyboard on screen: $SHOWN"
+[[ "$SHOWN" == "mInputShown=true" ]]
 
-step "5 of 6: type on the keyboard"
-adb shell input text "hello" || true
-sleep 1
-shot 3-typed
+step "5 of 6: switch keyboard modes by tapping the screen"
+# Tap across the lower part of the screen, where the keyboard sits, to press real keys.
+for y in 1500 1700 1900 2100; do for x in 150 540 930; do adb shell input tap $x $y; done; done
+sleep 2
+shot 3-after-taps
 
 step "6 of 6: check for crashes"
 if adb logcat -d | grep -E "FATAL EXCEPTION|AndroidRuntime: Process: $PKG" | grep -q .; then

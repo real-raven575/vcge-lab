@@ -18,6 +18,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.CompoundButton
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -36,6 +37,7 @@ class VaultActivity : Activity() {
     private lateinit var takes: TakeStore
     private lateinit var page: LinearLayout
     private var player: MediaPlayer? = null
+    private var tryBox: EditText? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +78,15 @@ class VaultActivity : Activity() {
         }
         button("Switch to Helper Board now") {
             (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+        }
+        page.addView(EditText(this).apply {
+            hint = "Try Helper Board here"
+            id = View.generateViewId()
+            tryBox = this
+        })
+        if (intent.getBooleanExtra(EXTRA_FOCUS_TRY, false)) tryBox?.post {
+            tryBox?.requestFocus()
+            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(tryBox, InputMethodManager.SHOW_IMPLICIT)
         }
         if (!Transcriber(this).available()) text(
             "ℹ️ Voice → text needs Android 13+ with an offline speech pack (Settings › System › Languages › " +
@@ -315,5 +326,9 @@ class VaultActivity : Activity() {
         }
     }
 
-    private companion object { const val PICK_PHOTO = 7 }
+    companion object {
+        private const val PICK_PHOTO = 7
+        /** Used by the emulator smoke test: open with the try-it box focused so the keyboard appears. */
+        const val EXTRA_FOCUS_TRY = "focusTry"
+    }
 }
