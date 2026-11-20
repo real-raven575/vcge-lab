@@ -4,23 +4,28 @@
  "emoji": "🚀",
  "team": "Herd of Helpers",
  "theme": "vcge",
- "intro": "Breathe. One thing at a time, top to bottom. Steps 1 to 9 are yours (most are one tap); done ones sit just below them, then everything the teams are already doing.",
+ "intro": "Breathe. One thing at a time, top to bottom. Team vCGE's top 3 come first, then the rest of your steps (most are one tap); done ones sit just below them, then everything the teams are already doing.",
  "sections": {
   "raven": "🚀 Ranked, most important first",
   "auto": "🤖 Automatic"
  },
  "items": [
   {
-   "id": "h5b-admin-login",
-   "title": "🛡 Set up admin@herdofhelpers.com as the Herd admin login",
-   "area": "🙋 You · one login for the Herd",
-   "why": "You picked admin@herdofhelpers.com as the Herd-wide admin login, and its mailbox is ready. The vCGE Gmail stays the Play owner; this one does the day-to-day admin and is the public contact.",
+   "id": "h3-play-setup",
+   "title": "🟢 Play closed test: in Google review",
+   "area": "🙋 You · vCGE top 1 · critical path",
+   "why": "vCGE's most important item. The app is in Google's review since 23:04 UTC 11-19. Next: add the vcge-testers group to the closed test track, and make the merge call on the store-setup PR #53. The closed test starts the 14-day tester clock.",
+   "where": "Play Console: https://play.google.com/console",
    "steps": [
-    "Make a Google account with it: https://accounts.google.com/signup, then 'Use your existing email'.",
-    "Play Console, Users and permissions: invite admin@herdofhelpers.com as Admin. Keep the vCGE Gmail as owner.",
-    "Switch the public contact email (Play developer page and store listing) to admin@herdofhelpers.com.",
-    "Turn on 2-Step Verification on BOTH accounts and print the backup codes. Keep the paper offline, never in the Herd.",
-    "Name Stripe 'Herd of Helpers' too."
+    "Finish the identity and phone checks Play asks for.",
+    "Set up the payments profile as Herd of Helpers (you need it to sell a paid app).",
+    "Create app: name vCGE, App, Paid.",
+    "Testing, Closed testing: create the track and add the vcge-testers Google Group.",
+    "Fill the App content forms (privacy policy, Data safety, content rating). The 🐢 app-store thread has the answers ready.",
+    {
+     "text": "Make the merge call on store-setup PR #53 (https://github.com/real-raven575/vCGE-Master/pull/53) when its checks are green.",
+     "who": "human"
+    }
    ],
    "status": "ready",
    "ask": [
@@ -32,17 +37,20 @@
    "section": "raven"
   },
   {
-   "id": "h3-play-setup",
-   "title": "🟢 Finish setting up Play Console",
-   "area": "🙋 You · vCGE critical path",
-   "why": "Your Play developer account is made (Herd of Helpers, 17:04 UTC). These steps get vCGE to the closed test, which starts the 14-day tester clock.",
-   "where": "Play Console: https://play.google.com/console",
+   "id": "t1-store-prep",
+   "title": "🐢 Store builds: Play bundle + Windows package (PR #53)",
+   "area": "🤖 Team vCGE · working now",
+   "why": "Builds the files both stores take, with the privacy policy and listing text.",
+   "link": "https://github.com/real-raven575/vCGE-Master/pull/53",
    "steps": [
-    "Finish the identity and phone checks Play asks for.",
-    "Set up the payments profile as Herd of Helpers (you need it to sell a paid app).",
-    "Create app: name vCGE, App, Paid.",
-    "Testing, Closed testing: create the track and add the vcge-testers Google Group.",
-    "Fill the App content forms (privacy policy, Data safety, content rating). The 🐢 app-store thread has the answers ready."
+    {
+     "text": "Get PR #53 CI green 11/11, then ready for review.",
+     "who": "robot"
+    },
+    {
+     "text": "Sign with the Play key once it's in place (step 5); add the Microsoft identity after step 7.",
+     "who": "robot"
+    }
    ],
    "status": "ready",
    "ask": [
@@ -56,8 +64,8 @@
   {
    "id": "h4b-google-storage",
    "title": "💾 Free up Google storage (90% full)",
-   "area": "🙋 You + 🐝 Team eMail",
-   "why": "Google is at 90%: Gmail about 78 GB, Drive 63, Photos 40. At 100%, Gmail stops getting mail, including store and account emails. Junk goes first because it's fastest, which also makes Takeout smaller.",
+   "area": "🙋 You + 🐝 Team eMail · vCGE top 2",
+   "why": "vCGE's second most important item. Google is at 90%; at 100% Gmail stops getting mail, including store and account emails. Gmail cleanup is running now (about 2,540 emails, about 222 MB to Trash, undo available). Next: rclone config and the Survey on Beastly.",
    "steps": [
     {
      "text": "Team eMail cleans Gmail junk first (old promotions, big attachments, newsletters). Nothing personal is deleted without your yes.",
@@ -85,6 +93,45 @@
     {
      "label": "🗄 Organize Herd storage",
      "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT2E3dypd823i6gAiwabspVp5"
+    }
+   ],
+   "section": "raven"
+  },
+  {
+   "id": "h10-herd-refresh",
+   "title": "📣 Public Herd refresh: README and wiki updates",
+   "area": "🙋 You · vCGE top 3",
+   "why": "vCGE's third most important item. The public README and wiki updates are ready and wait on your push card.",
+   "steps": [
+    {
+     "text": "Answer the push card for the README and wiki updates (Yes, No, or explain by voice).",
+     "who": "human"
+    },
+    {
+     "text": "After your yes, the team pushes and checks the public pages.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "h5b-admin-login",
+   "title": "🛡 Set up admin@herdofhelpers.com as the Herd admin login",
+   "area": "🙋 You · one login for the Herd",
+   "why": "You picked admin@herdofhelpers.com as the Herd-wide admin login, and its mailbox is ready. The vCGE Gmail stays the Play owner; this one does the day-to-day admin and is the public contact.",
+   "steps": [
+    "Make a Google account with it: https://accounts.google.com/signup, then 'Use your existing email'.",
+    "Play Console, Users and permissions: invite admin@herdofhelpers.com as Admin. Keep the vCGE Gmail as owner.",
+    "Switch the public contact email (Play developer page and store listing) to admin@herdofhelpers.com.",
+    "Turn on 2-Step Verification on BOTH accounts and print the backup codes. Keep the paper offline, never in the Herd.",
+    "Name Stripe 'Herd of Helpers' too."
+   ],
+   "status": "ready",
+   "ask": [
+    {
+     "label": "🐢 Get vCGE onto app stores",
+     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
     }
    ],
    "section": "raven"
@@ -213,31 +260,6 @@
     "Group made with Ask to join (done)."
    ],
    "status": "pass",
-   "ask": [
-    {
-     "label": "🐢 Get vCGE onto app stores",
-     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
-    }
-   ],
-   "section": "raven"
-  },
-  {
-   "id": "t1-store-prep",
-   "title": "🐢 Store builds: Play bundle + Windows package (PR #53)",
-   "area": "🤖 Team vCGE · working now",
-   "why": "Builds the files both stores take, with the privacy policy and listing text.",
-   "link": "https://github.com/real-raven575/vCGE-Master/pull/53",
-   "steps": [
-    {
-     "text": "Get PR #53 CI green 11/11, then ready for review.",
-     "who": "robot"
-    },
-    {
-     "text": "Sign with the Play key once it's in place (step 5); add the Microsoft identity after step 7.",
-     "who": "robot"
-    }
-   ],
-   "status": "ready",
    "ask": [
     {
      "label": "🐢 Get vCGE onto app stores",
