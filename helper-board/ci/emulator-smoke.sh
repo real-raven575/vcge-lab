@@ -28,6 +28,9 @@ adb shell ime set "$IME"
 CURRENT=$(adb shell settings get secure default_input_method | tr -d '\r')
 echo "Current keyboard: $CURRENT"
 [[ "$CURRENT" == *HelperBoardIme ]]
+# The emulator reports a hardware keyboard ("qwerty" in its config), and Android hides on-screen keyboards
+# while one is attached. Phones have none; tell the emulator to show the on-screen keyboard anyway.
+adb shell settings put secure show_ime_with_hard_keyboard 1
 
 step "3 of 6: open the Helper Board app (Take Vault and settings)"
 adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity"
