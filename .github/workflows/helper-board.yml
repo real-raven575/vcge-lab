@@ -36,6 +36,14 @@ jobs:
         with:
           gradle-version: '8.14.3'
 
+      # Keep the same debug signing key from build to build, so a new build installs over the old one (your takes
+      # and settings stay). Without this every run makes a new key and the phone makes you uninstall first.
+      - name: Reuse the debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: helper-board-debug-keystore-v1
+
       - name: Keyboard rules tests (core)
         run: gradle :core:test --console=plain
 

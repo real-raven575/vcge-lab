@@ -49,18 +49,21 @@ class Transcriber(private val context: Context) {
             main.post {
                 if (parts.isEmpty()) { done(null, "No talking heard in this take. Your audio is saved."); return@post }
                 val texts = mutableListOf<String>()
+                val codes = sortedSetOf<Int>()
                 var empty = 0
                 fun next(i: Int) {
                     if (i == parts.size) {
                         val text = texts.joinToString(" ").trim().takeIf { it.isNotEmpty() }
+                        val code = if (codes.isEmpty()) "" else " (engine code ${codes.joinToString(", ")})"
                         val reason = when {
-                            text == null -> "The speech engine couldn't read this take. Your audio is saved."
+                            text == null -> "The speech engine couldn't read this take$code. Your audio is saved."
                             empty > 0 -> "$empty of ${parts.size} parts had no text. Play the take or tap Re-listen."
                             else -> null
                         }
                         done(text, reason); return
                     }
-                    recognize(audio, Pauses.byteRange(parts[i], dataBytes), language) { t ->
+                    recognize(audio, Pauses.byteRange(parts[i], dataBytes), language) { t, err ->
+                        err?.let { codes += it }
                         if (t.isNullOrBlank()) empty++ else texts += t.trim()
                         next(i + 1)
                     }
@@ -87,24 +90,31 @@ class Transcriber(private val context: Context) {
         return out.toIntArray()
     }
 
-    /** Text for one part of the take ([bytes] of PCM after the header), or null. */
-    private fun recognize(audio: File, bytes: LongRange, language: String, done: (String?) -> Unit) {
-        if (Build.VERSION.SDK_INT < 33) { done(null); return }
+    /**
+     * Text for one part of the take ([bytes] of PCM after the header), or null and the engine's error code.
+     * Uses the engine's segmented mode, the mode that worked on the first phone test (build 8); the plain mode gave no
+     * text at all on that phone (build 9).
+     */
+    private fun recognize(audio: File, bytes: LongRange, language: String, done: (String?, Int?) -> Unit) {
+        if (Build.VERSION.SDK_INT < 33) { done(null, null); return }
         val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
         val pipe = ParcelFileDescriptor.createPipe()
         val readEnd = pipe[0]
         val writeEnd = pipe[1]
         var finished = false
         val token = Any()
+        val heard = mutableListOf<String>()
 
-        fun finish(text: String?) {
+        fun finish(error: Int? = null) {
             if (finished) return
             finished = true
             main.removeCallbacksAndMessages(token)
             runCatching { recognizer.destroy() }
             runCatching { readEnd.close() }
-            done(text)
+            val text = heard.joinToString(" ").trim().takeIf { it.isNotEmpty() }
+            done(text, if (text == null) error else null)
         }
+        fun first(b: Bundle?) = b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.takeIf { it.isNotBlank() }
 
         recognizer.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {}
@@ -114,10 +124,10 @@ class Transcriber(private val context: Context) {
             override fun onEndOfSpeech() {}
             override fun onPartialResults(partialResults: Bundle?) {}
             override fun onEvent(eventType: Int, params: Bundle?) {}
-            override fun onResults(results: Bundle?) {
-                finish(results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull())
-            }
-            override fun onError(error: Int) { finish(null) }
+            override fun onSegmentResults(segmentResults: Bundle) { first(segmentResults)?.let { heard += it } }
+            override fun onEndOfSegmentedSession() { finish() }
+            override fun onResults(results: Bundle?) { first(results)?.let { heard += it }; finish() }
+            override fun onError(error: Int) { finish(error) }
         })
 
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -128,9 +138,7 @@ class Transcriber(private val context: Context) {
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_CHANNEL_COUNT, 1)
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_SAMPLING_RATE, 16_000)
-            // A part has no long pauses, but ask the engine to wait anyway rather than stop early.
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 3_000L)
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3_000L)
+            putExtra(RecognizerIntent.EXTRA_SEGMENTED_SESSION, RecognizerIntent.EXTRA_AUDIO_SOURCE)
         }
         recognizer.startListening(intent)
 
@@ -155,6 +163,6 @@ class Transcriber(private val context: Context) {
         }, "helper-board-feed").start()
 
         val seconds = (bytes.last - bytes.first + 1) / 32_000
-        main.postAtTime({ finish(null) }, token, android.os.SystemClock.uptimeMillis() + 20_000L + seconds * 2_000L)
+        main.postAtTime({ finish() }, token, android.os.SystemClock.uptimeMillis() + 20_000L + seconds * 2_000L)
     }
 }
