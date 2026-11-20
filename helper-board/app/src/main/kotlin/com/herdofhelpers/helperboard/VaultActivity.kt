@@ -25,6 +25,10 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import com.herdofhelpers.helperboard.core.ColourVision
+import com.herdofhelpers.helperboard.core.HerdLook
+import com.herdofhelpers.helperboard.core.HerdPalette
+import com.herdofhelpers.helperboard.core.HerdTheme
 import com.herdofhelpers.helperboard.core.NumberStyle
 import java.util.Date
 
@@ -58,16 +62,45 @@ class VaultActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        watchTakes()
         takes.applyRetention(prefs)
         build()
     }
 
     override fun onPause() {
         player?.release(); player = null
+        main.removeCallbacksAndMessages(null)
         super.onPause()
     }
 
+    // The keyboard can add takes while this page is open (the try-it box). Check every 2 s and redraw only the
+    // Take Vault part, so the box keeps its focus and the keyboard stays up.
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+    private var takesBox: LinearLayout? = null
+    private var takesSeen = ""
+    private fun takesSignature() = takes.all().joinToString { "${it.id}:${it.status}:${it.kept}:${it.trashedAtMs}" }
+    private fun watchTakes() {
+        main.postDelayed({
+            val now = takesSignature()
+            if (now != takesSeen) refreshTakes()
+            watchTakes()
+        }, 2_000)
+    }
+    private fun refreshTakes() {
+        val box = takesBox ?: return
+        val real = page
+        box.removeAllViews(); page = box
+        try { takesSection() } finally { page = real }
+        takesSeen = takesSignature()
+    }
+
+    private var pal = HerdTheme.DARK
+
     private fun build() {
+        pal = KeyLook.palette(this, prefs)
+        window.decorView.setBackgroundColor(pal.bg)
+        window.statusBarColor = pal.bg
+        window.navigationBarColor = pal.bg
         page.removeAllViews()
         title("Helper Board")
         text("Types what you meant. Keeps what you said. Never goes online. (Prototype ${versionName()})")
@@ -87,6 +120,7 @@ class VaultActivity : Activity() {
         }
         page.addView(EditText(this).apply {
             hint = "Try Helper Board here"
+            setTextColor(pal.text); setHintTextColor(pal.muted)
             id = View.generateViewId()
             tryBox = this
         })
@@ -101,7 +135,9 @@ class VaultActivity : Activity() {
                 "On-device speech recognition). Without it, every take is still saved as audio."
         )
 
-        takesSection()
+        takesBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        page.addView(takesBox)
+        refreshTakes()
         keyboardSection()
         themeSection()
         dictionarySection()
@@ -130,7 +166,7 @@ class VaultActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             val p = dp(10); setPadding(p, p, p, p)
-            setBackgroundColor(0x22888888)
+            background = KeyLook.keyBackground(this@VaultActivity, pal.surface, 0, edge = pal.border)
         }
         val whenText = DateFormat.format("EEE MMM d, h:mm a", Date(t.createdAtMs))
         val status = when (t.status) {
@@ -141,7 +177,7 @@ class VaultActivity : Activity() {
         }
         card.addView(small("${if (t.kept) "✅ Kept · " else ""}$whenText · ${takes.seconds(t.id)} s$status"))
         card.addView(TextView(this).apply {
-            text = t.text.ifEmpty { "(no text yet)" }; textSize = 16f; setTextIsSelectable(true)
+            text = t.text.ifEmpty { "(no text yet)" }; textSize = 16f; setTextIsSelectable(true); setTextColor(pal.text)
         })
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         row.addView(smallButton("▶ Play") { play(t) })
@@ -182,6 +218,7 @@ class VaultActivity : Activity() {
     private fun relisten(t: Take) {
         t.status = Take.STATUS_TRANSCRIBING; takes.save(t); build()
         Transcriber(this).transcribe(takes.audio(t.id), t.language) { text, reason ->
+            if (reason != null && text != null) toast(reason)
             if (text != null) { t.text = text; t.status = Take.STATUS_DONE } else {
                 t.status = if (t.text.isEmpty()) Take.STATUS_SAVED else Take.STATUS_DONE
                 toast(reason ?: "Couldn't make text")
@@ -200,11 +237,16 @@ class VaultActivity : Activity() {
         slider("Space between rows", 0, 16, prefs.rowGapDp, "dp") { prefs.rowGapDp = it }
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
-        text("Tips: double-tap ⇧ for caps lock, hold ⌫ to delete a word, hold the space bar to switch keyboards.")
+        toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }
+        text("Tips: double-tap ⇧ for caps lock. Hold ⌫ to keep deleting (it speeds up to whole words). " +
+            "Tap ⚙ on the keyboard, or hold 123, to come straight here. Hold the space bar to switch keyboards.")
     }
 
     private fun themeSection() {
         section("4. Look (all free)")
+        choice("Colours", HerdLook.values().map { it.label to it }, prefs.herdLook) { prefs.herdLook = it }
+        choice("Colour vision", ColourVision.values().map { it.label to it }, prefs.colourVision) { prefs.colourVision = it }
+        text(prefs.colourVision.hint)
         button(if (prefs.themePhoto.exists()) "🖼 Change photo" else "🖼 Pick a photo for the keyboard") {
             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE); type = "image/*"
@@ -217,15 +259,13 @@ class VaultActivity : Activity() {
             choice("Photo position", listOf("Top" to "TOP", "Middle" to "CENTER", "Bottom" to "BOTTOM"), prefs.themeAlign) {
                 prefs.themeAlign = it
             }
-            text("Photo tint")
-            palette(includeNone = true, selected = prefs.themeTint) { prefs.themeTint = it }
+            choice("Photo tint (Herd colours)", listOf("None" to "NONE", "Teal" to "ACCENT", "Green" to "GOOD",
+                "Gold" to "WARN", "Coral" to "STOP"), prefs.themeTint) { prefs.themeTint = it }
         }
-        text("Key color")
-        palette(includeNone = false, selected = prefs.keyColor) { prefs.keyColor = it }
         slider("Bubble look", 0, 100, prefs.bubble, "%") { prefs.bubble = it }
         choice("Key font", listOf("Standard" to "DEFAULT", "Serif" to "SERIF", "Mono" to "MONO", "Bold" to "BOLD"),
             prefs.keyFont) { prefs.keyFont = it }
-        text("Dyslexia-friendly fonts and colorblind palettes come next.")
+        text("A dyslexia-friendly key font comes next.")
     }
 
     @Deprecated("Activity result API needs AndroidX; this prototype stays framework-only.")
@@ -248,7 +288,7 @@ class VaultActivity : Activity() {
         toggle("Learn new words as I type (asks before saving)", prefs.learnWords) { prefs.learnWords = it }
         for (w in d.pending) {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-            row.addView(TextView(this).apply { text = "Save \"$w\"?"; textSize = 16f },
+            row.addView(TextView(this).apply { text = "Save \"$w\"?"; textSize = 16f; setTextColor(pal.text) },
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             row.addView(smallButton("Yes") { d.approve(w); prefs.saveDictionary(d); build() })
             row.addView(smallButton("No") { d.reject(w); prefs.saveDictionary(d); build() })
@@ -280,26 +320,43 @@ class VaultActivity : Activity() {
     private fun toast(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
     private fun versionName(): String = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: "?"
 
-    private fun title(s: String) = page.addView(TextView(this).apply { text = s; textSize = 28f; setTypeface(typeface, Typeface.BOLD) })
+    // Every piece of the page is drawn in the Herd palette (pal), so Herd Dark, Herd Light and colour vision all apply here too.
+    private fun title(s: String) = page.addView(TextView(this).apply {
+        text = s; textSize = 28f; setTypeface(typeface, Typeface.BOLD); setTextColor(pal.text)
+    })
     private fun section(s: String) = page.addView(TextView(this).apply {
-        text = s; textSize = 20f; setTypeface(typeface, Typeface.BOLD); setPadding(0, dp(20), 0, dp(6))
+        text = s; textSize = 20f; setTypeface(typeface, Typeface.BOLD); setPadding(0, dp(20), 0, dp(6)); setTextColor(pal.accentText())
     })
-    private fun text(s: String) = page.addView(TextView(this).apply { text = s; textSize = 15f; setPadding(0, dp(4), 0, dp(4)) })
-    private fun small(s: String) = TextView(this).apply { text = s; textSize = 13f; alpha = 0.8f }
-    private fun button(s: String, onClick: () -> Unit) = page.addView(Button(this).apply {
-        text = s; isAllCaps = false; setOnClickListener { onClick() }
+    private fun text(s: String) = page.addView(TextView(this).apply {
+        text = s; textSize = 15f; setPadding(0, dp(4), 0, dp(4)); setTextColor(pal.text)
     })
-    private fun smallButton(s: String, onClick: () -> Unit) = Button(this).apply {
-        text = s; isAllCaps = false; textSize = 13f; setOnClickListener { onClick() }
+    private fun small(s: String) = TextView(this).apply { text = s; textSize = 13f; setTextColor(pal.muted) }
+    private fun styled(b: Button, picked: Boolean = false, size: Float = 15f) = b.apply {
+        isAllCaps = false; textSize = size; stateListAnimator = null
+        setTextColor(if (picked) pal.onAccent else pal.text)
+        background = KeyLook.keyBackground(this@VaultActivity, if (picked) pal.accent else pal.surface, 0,
+            edge = if (picked) pal.text else pal.border, edgeDp = if (picked) 2 else 1)
+        val p = dp(12); setPadding(p, 0, p, 0)
+    }
+    private fun button(s: String, onClick: () -> Unit) = page.addView(styled(Button(this)).apply {
+        text = s; setOnClickListener { onClick() }
+    }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+        setMargins(0, dp(3), 0, dp(3))
+    })
+    private fun smallButton(s: String, picked: Boolean = false, onClick: () -> Unit) = styled(Button(this), picked, 13f).apply {
+        text = s; setOnClickListener { onClick() }
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(dp(3), dp(3), dp(3), dp(3))
+        }
     }
 
     private fun toggle(s: String, on: Boolean, set: (Boolean) -> Unit) = page.addView(Switch(this).apply {
-        text = s; textSize = 15f; isChecked = on
+        text = s; textSize = 15f; isChecked = on; setTextColor(pal.text)
         setOnCheckedChangeListener { _: CompoundButton, v: Boolean -> set(v) }
     })
 
     private fun slider(s: String, min: Int, max: Int, value: Int, unit: String, set: (Int) -> Unit) {
-        val label = TextView(this).apply { text = "$s: $value $unit"; textSize = 15f }
+        val label = TextView(this).apply { text = "$s: $value $unit"; textSize = 15f; setTextColor(pal.text) }
         page.addView(label)
         page.addView(SeekBar(this).apply {
             this.max = max - min; progress = value - min
@@ -313,26 +370,20 @@ class VaultActivity : Activity() {
         })
     }
 
+    /** Options as buttons. The picked one is filled in the Herd accent with a ✓ and a bold edge, so it shows on every look. */
     private fun <T> choice(s: String, options: List<Pair<String, T>>, current: T, set: (T) -> Unit) {
-        page.addView(TextView(this).apply { text = s; textSize = 15f })
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        for ((name, v) in options) row.addView(smallButton((if (v == current) "● " else "○ ") + name) { set(v); build() })
-        page.addView(row)
-    }
-
-    private fun palette(includeNone: Boolean, selected: Int, set: (Int) -> Unit) {
-        val colors = (if (includeNone) listOf(0) else emptyList()) + KeyLook.PALETTE.toList()
-        colors.chunked(6).forEach { chunk ->
+        page.addView(TextView(this).apply { text = s; textSize = 15f; setTextColor(pal.text); setPadding(0, dp(8), 0, 0) })
+        options.chunked(3).forEach { chunk ->
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            for (c in chunk) row.addView(View(this).apply {
-                background = KeyLook.keyBackground(this@VaultActivity, if (c == 0) Color.LTGRAY else c, 30)
-                contentDescription = if (c == 0) "no tint" else "color"
-                alpha = if (c == selected) 1f else 0.6f
-                setOnClickListener { set(c); build() }
-            }, LinearLayout.LayoutParams(dp(40), dp(40)).apply { setMargins(dp(4), dp(4), dp(4), dp(4)) })
+            for ((name, v) in chunk) row.addView(smallButton((if (v == current) "✓ " else "") + name, picked = v == current) {
+                set(v); build()
+            })
             page.addView(row)
         }
     }
+
+    /** Headings in the accent colour when it reads well on the page, else in the text colour. */
+    private fun HerdPalette.accentText(): Int = if (HerdTheme.contrast(accent, bg) >= 4.5) accent else text
 
     companion object {
         private const val PICK_PHOTO = 7

@@ -1,6 +1,8 @@
 package com.herdofhelpers.helperboard
 
 import android.content.Context
+import com.herdofhelpers.helperboard.core.ColourVision
+import com.herdofhelpers.helperboard.core.HerdLook
 import com.herdofhelpers.helperboard.core.NumberStyle
 import com.herdofhelpers.helperboard.core.PersonalDictionary
 import com.herdofhelpers.helperboard.core.RetentionSettings
@@ -66,24 +68,38 @@ class Prefs(context: Context) {
     var themeOpacity: Int  // 0..100
         get() = sp.getInt("themeOpacity", 70)
         set(v) = sp.edit().putInt("themeOpacity", v).apply()
-    var themeTint: Int     // ARGB, 0 = none
-        get() = sp.getInt("themeTint", 0)
-        set(v) = sp.edit().putInt("themeTint", v).apply()
+    var themeTint: String  // NONE, ACCENT, GOOD, WARN, STOP: Herd colours only
+        get() = sp.getString("themeTintName", "NONE")!!
+        set(v) = sp.edit().putString("themeTintName", v).apply()
     var themeTile: Boolean
         get() = sp.getBoolean("themeTile", false)
         set(v) = sp.edit().putBoolean("themeTile", v).apply()
     var themeAlign: String  // TOP, CENTER, BOTTOM
         get() = sp.getString("themeAlign", "CENTER")!!
         set(v) = sp.edit().putString("themeAlign", v).apply()
-    var keyColor: Int
-        get() = sp.getInt("keyColor", 0xFF3A3F55.toInt())
-        set(v) = sp.edit().putInt("keyColor", v).apply()
+    /** Herd Dark, Herd Light, or match the phone (first phone test: Herd theming only). */
+    var herdLook: HerdLook
+        get() = runCatching { HerdLook.valueOf(sp.getString("herdLook", "PHONE")!!) }.getOrDefault(HerdLook.PHONE)
+        set(v) = sp.edit().putString("herdLook", v.name).apply()
+    /** Colour vision, the same choices as vCGE. */
+    var colourVision: ColourVision
+        get() = runCatching { ColourVision.valueOf(sp.getString("colourVision", "TYPICAL")!!) }.getOrDefault(ColourVision.TYPICAL)
+        set(v) = sp.edit().putString("colourVision", v.name).apply()
     var bubble: Int  // 0..100 bevel strength
         get() = sp.getInt("bubble", 60)
         set(v) = sp.edit().putInt("bubble", v).apply()
     var keyFont: String  // DEFAULT, SERIF, MONO, BOLD
         get() = sp.getString("keyFont", "DEFAULT")!!
         set(v) = sp.edit().putString("keyFont", v).apply()
+
+    /** The 😀 tab on the mode strip (on by default). */
+    var showEmoji: Boolean
+        get() = sp.getBoolean("showEmoji", true)
+        set(v) = sp.edit().putBoolean("showEmoji", v).apply()
+    /** Up to 8 recently used emoji, newest first, kept on the phone only. */
+    var recentEmoji: List<String>
+        get() = sp.getString("recentEmoji", "")!!.split(" ").filter { it.isNotEmpty() }
+        set(v) = sp.edit().putString("recentEmoji", v.joinToString(" ")).apply()
 
     val themePhoto: File get() = File(app.filesDir, "theme-photo")
 

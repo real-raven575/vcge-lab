@@ -2,11 +2,11 @@ package com.herdofhelpers.helperboard.core
 
 enum class NumberStyle { ROW, GRID, OFF }
 
-enum class Mode { ABC, NUMBERS, SYMBOLS, TAKES }
+enum class Mode { ABC, NUMBERS, SYMBOLS, TAKES, EMOJI }
 
 enum class KeyKind {
     CHAR, SHIFT, BACKSPACE, ENTER, SPACE, MIC, LEFT, RIGHT, UNDO, CAPS_LOCK,
-    MODE_ABC, MODE_NUMBERS, MODE_SYMBOLS, MODE_TAKES,
+    MODE_ABC, MODE_NUMBERS, MODE_SYMBOLS, MODE_TAKES, MODE_EMOJI, SETTINGS, SWITCH_KEYBOARD, HIDE,
 }
 
 data class Key(val label: String, val output: String = label, val weight: Float = 1f, val kind: KeyKind = KeyKind.CHAR)
@@ -23,7 +23,14 @@ object Layouts {
         Key("ABC", kind = KeyKind.MODE_ABC),
         Key("123", kind = KeyKind.MODE_NUMBERS),
         Key("#+=", kind = KeyKind.MODE_SYMBOLS),
+        // Emoji one tap away (raven575, 11-20); the user can hide this tab in settings.
+        Key("😀", kind = KeyKind.MODE_EMOJI, weight = 0.7f),
         Key("🎙 Takes", kind = KeyKind.MODE_TAKES),
+        // One tap straight to Helper Board's own settings (first phone test: the phone's keyboard menu is a maze).
+        Key("⚙", kind = KeyKind.SETTINGS, weight = 0.6f),
+        // The phone's own switch and hide buttons, inside the keyboard, so the phone's bar under it can be turned off.
+        Key("🌐", kind = KeyKind.SWITCH_KEYBOARD, weight = 0.6f),
+        Key("⌄", kind = KeyKind.HIDE, weight = 0.6f),
     )
 
     /** Default "my row" (raven575, 2026-11-20): @ · .com · caps lock · keypad. */
@@ -74,9 +81,35 @@ object Layouts {
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
 
-    fun forMode(mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW): List<List<Key>> = when (mode) {
+    /** The mode strip, with or without the emoji tab. */
+    fun modeStrip(showEmoji: Boolean): List<Key> = MODE_STRIP.filter { showEmoji || it.kind != KeyKind.MODE_EMOJI }
+
+    /** 48 everyday emoji, 6 rows of 8, Herd animals included. Space-separated because one emoji can be several chars. */
+    val EMOJI = ("😀 😂 🥲 😊 😍 😘 😎 🤔 😅 😭 😡 😴 🙂 🙃 😬 🤗 " +
+        "👍 👎 👏 🙏 💪 👋 🤝 ✌️ ❤️ 💔 🔥 ✨ 🎉 ✅ ❌ ⚠️ " +
+        "⭐ 💯 🐘 🦒 🐢 🦝 ☕ 🍕 🎂 🚗 🏠 💼 📞 📅 ⏰ 💊").split(" ")
+
+    /** Emoji keys: the user's recent ones first (kept on the phone only), then the everyday set. */
+    fun emoji(recent: List<String> = emptyList()): List<List<Key>> = buildList {
+        if (recent.isNotEmpty()) add(recent.take(8).map { Key(it) })
+        val rows = EMOJI.chunked(8)
+        rows.forEachIndexed { i, row ->
+            // ⌫ ends the last emoji row; the only space bar is the usual one below (same width everywhere, T1).
+            add(row.map { Key(it) } + if (i == rows.lastIndex) listOf(Key("⌫", kind = KeyKind.BACKSPACE, weight = 1.3f)) else emptyList())
+        }
+        add(bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)))
+    }
+
+    /** Most recent first, no repeats, at most [max]. */
+    fun rememberEmoji(recent: List<String>, used: String, max: Int = 8): List<String> =
+        (listOf(used) + recent.filter { it != used }).take(max)
+
+    fun forMode(
+        mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW, recentEmoji: List<String> = emptyList(),
+    ): List<List<Key>> = when (mode) {
         Mode.ABC, Mode.TAKES -> abc(numbers, myRow)
         Mode.NUMBERS -> numbers()
         Mode.SYMBOLS -> symbols()
+        Mode.EMOJI -> emoji(recentEmoji)
     }
 }

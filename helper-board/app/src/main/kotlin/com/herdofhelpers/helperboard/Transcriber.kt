@@ -11,6 +11,7 @@ import android.os.ParcelFileDescriptor
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import com.herdofhelpers.helperboard.core.Pauses
 import com.herdofhelpers.helperboard.core.Wav
 import java.io.File
 import java.io.FileInputStream
@@ -31,35 +32,79 @@ class Transcriber(private val context: Context) {
     fun available(): Boolean = Build.VERSION.SDK_INT >= 33 &&
         SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
 
-    /** [done] is called on the main thread with the text, or null and a reason. */
+    /**
+     * [done] is called on the main thread with the text, or null and a reason. Text plus a reason means some parts of
+     * the take gave no text; the audio is all still saved, so the user can play those parts or Re-listen.
+     */
     fun transcribe(audio: File, language: String, done: (String?, String?) -> Unit) {
         if (Build.VERSION.SDK_INT < 33) { done(null, "Text needs Android 13 or newer. Your audio is saved."); return }
         if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
             done(null, "No offline speech pack on this phone yet. Your audio is saved."); return
         }
-        main.post { start(audio, language, done) }
+        // Find the talking parts off the main thread, then make text from each part in turn. A long pause can no
+        // longer end the take's text early: every part after it gets its own turn (first phone test, 11-20).
+        Thread({
+            val dataBytes = (audio.length() - Wav.HEADER_BYTES).coerceAtLeast(0)
+            val parts = runCatching { Pauses.speechParts(levelsOf(audio)) }.getOrDefault(emptyList())
+            main.post {
+                if (parts.isEmpty()) { done(null, "No talking heard in this take. Your audio is saved."); return@post }
+                val texts = mutableListOf<String>()
+                var empty = 0
+                fun next(i: Int) {
+                    if (i == parts.size) {
+                        val text = texts.joinToString(" ").trim().takeIf { it.isNotEmpty() }
+                        val reason = when {
+                            text == null -> "The speech engine couldn't read this take. Your audio is saved."
+                            empty > 0 -> "$empty of ${parts.size} parts had no text. Play the take or tap Re-listen."
+                            else -> null
+                        }
+                        done(text, reason); return
+                    }
+                    recognize(audio, Pauses.byteRange(parts[i], dataBytes), language) { t ->
+                        if (t.isNullOrBlank()) empty++ else texts += t.trim()
+                        next(i + 1)
+                    }
+                }
+                next(0)
+            }
+        }, "helper-board-pauses").start()
     }
 
-    private fun start(audio: File, language: String, done: (String?, String?) -> Unit) {
-        if (Build.VERSION.SDK_INT < 33) return
+    /** Loudness of every 30 ms of the take, read a block at a time so long takes don't fill memory. */
+    private fun levelsOf(audio: File): IntArray {
+        val out = ArrayList<Int>()
+        val buf = ByteArray(Pauses.FRAME_BYTES * 512)
+        FileInputStream(audio).use { input ->
+            input.skip(Wav.HEADER_BYTES.toLong())
+            while (true) {
+                var n = 0
+                while (n < buf.size) { val r = input.read(buf, n, buf.size - n); if (r < 0) break; n += r }
+                if (n == 0) break
+                Pauses.levels(buf, n).forEach { out += it }
+                if (n < buf.size) break
+            }
+        }
+        return out.toIntArray()
+    }
+
+    /** Text for one part of the take ([bytes] of PCM after the header), or null. */
+    private fun recognize(audio: File, bytes: LongRange, language: String, done: (String?) -> Unit) {
+        if (Build.VERSION.SDK_INT < 33) { done(null); return }
         val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
         val pipe = ParcelFileDescriptor.createPipe()
         val readEnd = pipe[0]
         val writeEnd = pipe[1]
-        val parts = mutableListOf<String>()
         var finished = false
+        val token = Any()
 
-        fun finish(text: String?, reason: String?) {
+        fun finish(text: String?) {
             if (finished) return
             finished = true
-            main.removeCallbacksAndMessages(TIMEOUT_TOKEN)
+            main.removeCallbacksAndMessages(token)
             runCatching { recognizer.destroy() }
             runCatching { readEnd.close() }
-            done(text?.trim()?.takeIf { it.isNotEmpty() }, reason)
+            done(text)
         }
-
-        fun texts(b: Bundle?): String =
-            b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
 
         recognizer.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {}
@@ -69,18 +114,10 @@ class Transcriber(private val context: Context) {
             override fun onEndOfSpeech() {}
             override fun onPartialResults(partialResults: Bundle?) {}
             override fun onEvent(eventType: Int, params: Bundle?) {}
-            override fun onSegmentResults(segmentResults: Bundle) {
-                texts(segmentResults).takeIf { it.isNotBlank() }?.let { parts += it }
-            }
-            override fun onEndOfSegmentedSession() { finish(parts.joinToString(" "), null) }
             override fun onResults(results: Bundle?) {
-                texts(results).takeIf { it.isNotBlank() }?.let { parts += it }
-                finish(parts.joinToString(" "), null)
+                finish(results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull())
             }
-            override fun onError(error: Int) {
-                if (parts.isNotEmpty()) finish(parts.joinToString(" "), null)
-                else finish(null, "The speech engine couldn't read this take (code $error). Your audio is saved.")
-            }
+            override fun onError(error: Int) { finish(null) }
         })
 
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -91,18 +128,25 @@ class Transcriber(private val context: Context) {
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_CHANNEL_COUNT, 1)
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_SAMPLING_RATE, 16_000)
-            // Keep going through pauses: one long take, many sentences.
-            putExtra(RecognizerIntent.EXTRA_SEGMENTED_SESSION, RecognizerIntent.EXTRA_AUDIO_SOURCE)
+            // A part has no long pauses, but ask the engine to wait anyway rather than stop early.
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 3_000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3_000L)
         }
         recognizer.startListening(intent)
 
-        // Feed the saved audio (without its header) into the recognizer, then close the pipe to mark the end.
+        // Feed just this part, then close the pipe to mark its end.
         Thread({
             try {
                 ParcelFileDescriptor.AutoCloseOutputStream(writeEnd).use { out ->
-                    FileInputStream(audio).use { input ->
-                        input.skip(Wav.HEADER_BYTES.toLong())
-                        input.copyTo(out, 8_192)
+                    java.io.RandomAccessFile(audio, "r").use { raf ->
+                        raf.seek(Wav.HEADER_BYTES + bytes.first)
+                        var left = bytes.last - bytes.first + 1
+                        val buf = ByteArray(8_192)
+                        while (left > 0) {
+                            val n = raf.read(buf, 0, minOf(buf.size.toLong(), left).toInt())
+                            if (n < 0) break
+                            out.write(buf, 0, n); left -= n
+                        }
                     }
                 }
             } catch (_: Exception) {
@@ -110,11 +154,7 @@ class Transcriber(private val context: Context) {
             }
         }, "helper-board-feed").start()
 
-        main.postAtTime({ finish(parts.joinToString(" "), if (parts.isEmpty()) "Timed out. Your audio is saved." else null) },
-            TIMEOUT_TOKEN, android.os.SystemClock.uptimeMillis() + timeoutFor(audio))
+        val seconds = (bytes.last - bytes.first + 1) / 32_000
+        main.postAtTime({ finish(null) }, token, android.os.SystemClock.uptimeMillis() + 20_000L + seconds * 2_000L)
     }
-
-    private fun timeoutFor(audio: File): Long = 30_000L + Wav.seconds(audio.length()) * 2_000L
-
-    private companion object { val TIMEOUT_TOKEN = Any() }
 }

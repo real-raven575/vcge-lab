@@ -84,27 +84,34 @@ class HelperBoardIme : InputMethodService() {
         val r = root ?: return
         r.removeAllViews()
         r.background = KeyLook.background(this, prefs)
+        // The phone's bar under the keyboard takes the keyboard's own colour, so it doesn't read as a black gap.
+        window?.window?.navigationBarColor = KeyLook.palette(this, prefs).bg
         val pad = KeyLook.dp(this, 4)
         r.setPadding(pad, pad, pad, pad)
 
         r.addView(modeStrip())
         r.addView(suggestionBar())
         if (mode == Mode.TAKES) r.addView(takesDrawer())
-        for (row in Layouts.forMode(mode, prefs.numberStyle)) r.addView(keyRow(row))
+        for (row in Layouts.forMode(mode, prefs.numberStyle, recentEmoji = prefs.recentEmoji)) r.addView(keyRow(row))
         refreshSuggestions()
     }
 
     private fun modeStrip(): View {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        for (k in Layouts.MODE_STRIP) {
+        for (k in Layouts.modeStrip(prefs.showEmoji)) {
             val active = when (k.kind) {
                 KeyKind.MODE_ABC -> mode == Mode.ABC
                 KeyKind.MODE_NUMBERS -> mode == Mode.NUMBERS
                 KeyKind.MODE_SYMBOLS -> mode == Mode.SYMBOLS
                 KeyKind.MODE_TAKES -> mode == Mode.TAKES
+                KeyKind.MODE_EMOJI -> mode == Mode.EMOJI
                 else -> false
             }
-            row.addView(chip(k.label, active) { onKey(k) }, LinearLayout.LayoutParams(0, KeyLook.dp(this, 32), 1f).apply {
+            val c = chip(k.label, active) { onKey(k) }.apply {
+                setPadding(0, 0, 0, 0)
+                if (k.kind == KeyKind.MODE_NUMBERS) setOnLongClickListener { openSettings(); true }
+            }
+            row.addView(c, LinearLayout.LayoutParams(0, KeyLook.dp(this, 32), k.weight).apply {
                 setMargins(KeyLook.dp(this@HelperBoardIme, 2), 0, KeyLook.dp(this@HelperBoardIme, 2), KeyLook.dp(this@HelperBoardIme, 4))
             })
         }
@@ -117,7 +124,7 @@ class HelperBoardIme : InputMethodService() {
         return HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             addView(row)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, KeyLook.dp(this@HelperBoardIme, 36))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, KeyLook.dp(this@HelperBoardIme, 30))
         }
     }
 
@@ -188,30 +195,42 @@ class HelperBoardIme : InputMethodService() {
         tv.gravity = Gravity.CENTER
         tv.textSize = if (k.label.length > 2) 14f else 20f
         tv.typeface = KeyLook.typeface(prefs)
-        val color = when (k.kind) {
-            KeyKind.MIC -> if (recorder != null) 0xFFB3264A.toInt() else 0xFFB86A00.toInt()
-            KeyKind.SHIFT -> if (shift.state == Shift.OFF) prefs.keyColor else 0xFF0B7A6F.toInt()
-            else -> prefs.keyColor
+        val p = KeyLook.palette(this, prefs)
+        val capsOn = (k.kind == KeyKind.SHIFT && shift.state != Shift.OFF) ||
+            (k.kind == KeyKind.CAPS_LOCK && shift.state == Shift.LOCKED)
+        val (color, ink) = when {
+            k.kind == KeyKind.MIC && recorder != null -> p.stop to p.onStop
+            k.kind == KeyKind.MIC -> p.accent to p.onAccent
+            capsOn -> p.good to p.onGood
+            k.kind == KeyKind.CHAR || k.kind == KeyKind.SPACE -> p.surface to p.text
+            else -> p.sunk to p.text
         }
-        tv.setTextColor(KeyLook.textColor(color))
-        tv.background = KeyLook.keyBackground(this, color, prefs.bubble)
+        tv.setTextColor(ink)
+        tv.background = KeyLook.keyBackground(this, color, prefs.bubble, edge = p.border)
         tv.contentDescription = when (k.kind) {
             KeyKind.SPACE -> "space"; KeyKind.BACKSPACE -> "delete"; KeyKind.ENTER -> "enter"
             KeyKind.MIC -> "voice typing"; KeyKind.SHIFT -> "shift"; KeyKind.UNDO -> "undo"
             KeyKind.LEFT -> "cursor left"; KeyKind.RIGHT -> "cursor right"; else -> k.label
         }
+        val repeats = k.kind == KeyKind.BACKSPACE || k.kind == KeyKind.LEFT || k.kind == KeyKind.RIGHT
         tv.setOnTouchListener { v, e ->
             when (e.action) {
-                MotionEvent.ACTION_DOWN -> v.background = KeyLook.keyBackground(this, color, prefs.bubble, pressed = true)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.background = KeyLook.keyBackground(this, color, prefs.bubble)
+                MotionEvent.ACTION_DOWN -> {
+                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, pressed = true, edge = p.border)
+                    if (repeats) startRepeat(k)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, edge = p.border)
+                    if (repeats) stopRepeat()
+                }
             }
-            false
+            repeats // repeating keys handle the whole press here; the rest go on to click and long-press
         }
         tv.setOnClickListener { onKey(k) }
         tv.setOnLongClickListener {
             when (k.kind) {
                 KeyKind.SHIFT -> { shift.lock(); render(); true }
-                KeyKind.BACKSPACE -> { deleteWord(); true }
+                KeyKind.MODE_NUMBERS, KeyKind.SETTINGS -> { openSettings(); true }
                 KeyKind.SPACE -> {
                     (getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
                         .showInputMethodPicker(); true
@@ -229,15 +248,15 @@ class HelperBoardIme : InputMethodService() {
         textSize = 14f
         val pad = KeyLook.dp(this@HelperBoardIme, 10)
         setPadding(pad, 0, pad, 0)
-        val c = if (active) 0xFF2B3A8F.toInt() else 0xCC1B1E2A.toInt()
-        setTextColor(KeyLook.textColor(c or 0xFF000000.toInt()))
-        background = KeyLook.keyBackground(this@HelperBoardIme, c, 0)
+        val p = KeyLook.palette(this@HelperBoardIme, prefs)
+        setTextColor(if (active) p.onAccent else p.softInk)
+        background = KeyLook.keyBackground(this@HelperBoardIme, if (active) p.accent else p.soft, 0, edge = p.border)
         minHeight = KeyLook.dp(this@HelperBoardIme, 30)
         setOnClickListener { onClick() }
     }
 
     private fun label(text: String) = TextView(this).apply {
-        this.text = text; textSize = 14f; setTextColor(0xFFFFFFFF.toInt())
+        this.text = text; textSize = 14f; setTextColor(KeyLook.palette(this@HelperBoardIme, prefs).text)
         val p = KeyLook.dp(this@HelperBoardIme, 6); setPadding(p, p, p, p)
     }
 
@@ -249,6 +268,10 @@ class HelperBoardIme : InputMethodService() {
             KeyKind.CHAR -> {
                 ic.commitText(shift.apply(k.output), 1)
                 if (k.output.length == 1 && k.output[0].isLetter()) shift.afterLetter()
+                // Recent emoji are remembered on the phone only, and never from private boxes.
+                if (mode == Mode.EMOJI && !policy.isPrivate) {
+                    prefs.recentEmoji = Layouts.rememberEmoji(prefs.recentEmoji, k.output)
+                }
                 rerenderKeysIfShiftChanged()
             }
             KeyKind.SPACE -> {
@@ -279,7 +302,45 @@ class HelperBoardIme : InputMethodService() {
             KeyKind.MODE_NUMBERS -> { mode = Mode.NUMBERS; render() }
             KeyKind.MODE_SYMBOLS -> { mode = Mode.SYMBOLS; render() }
             KeyKind.MODE_TAKES -> { mode = if (mode == Mode.TAKES) Mode.ABC else Mode.TAKES; render() }
+            KeyKind.MODE_EMOJI -> { mode = if (mode == Mode.EMOJI) Mode.ABC else Mode.EMOJI; render() }
+            KeyKind.SETTINGS -> openSettings()
+            KeyKind.SWITCH_KEYBOARD -> (getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
+                .showInputMethodPicker()
+            KeyKind.HIDE -> requestHideSelf(0)
         }
+    }
+
+    /** Straight to Helper Board's own settings page, no hunting through the phone's keyboard menus. */
+    private fun openSettings() {
+        startActivity(Intent(this, VaultActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
+    // Hold ⌫, ◀ or ▶ to keep going: first repeat after 0.4 s, then 20 a second; ⌫ moves up to whole words after 1.5 s.
+    private var repeatCount = 0
+    private val repeatToken = Any()
+    private fun startRepeat(k: Key) {
+        repeatCount = 0
+        repeatOnce(k)
+        main.postAtTime({ repeatLoop(k) }, repeatToken, SystemClock.uptimeMillis() + 400)
+    }
+    private fun repeatLoop(k: Key) {
+        repeatCount++
+        repeatOnce(k)
+        val wordsNow = k.kind == KeyKind.BACKSPACE && repeatCount > 22
+        main.postAtTime({ repeatLoop(k) }, repeatToken, SystemClock.uptimeMillis() + if (wordsNow) 160 else 50)
+    }
+    private fun repeatOnce(k: Key) {
+        // No redraw while the key is held: redrawing would replace the key under the finger and end the hold.
+        when (k.kind) {
+            KeyKind.BACKSPACE -> if (repeatCount > 22) deleteWord(redraw = false) else sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+            KeyKind.LEFT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_LEFT)
+            KeyKind.RIGHT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_RIGHT)
+            else -> {}
+        }
+    }
+    private fun stopRepeat() {
+        main.removeCallbacksAndMessages(repeatToken)
+        updateAutoCap(); render()
     }
 
     private var lastShiftDrawn = Shift.OFF
@@ -294,14 +355,14 @@ class HelperBoardIme : InputMethodService() {
         lastShiftDrawn = shift.state
     }
 
-    private fun deleteWord() {
+    private fun deleteWord(redraw: Boolean = true) {
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(64, 0)?.toString() ?: return
         val trimmed = before.trimEnd()
         val word = PersonalDictionary.currentWord(trimmed)
         val n = (before.length - trimmed.length) + word.length
         ic.deleteSurroundingText(if (n == 0) 1 else n, 0)
-        updateAutoCap(); render()
+        if (redraw) { updateAutoCap(); render() }
     }
 
     private fun replaceCurrentWord(word: String, with: String) {
@@ -370,11 +431,17 @@ class HelperBoardIme : InputMethodService() {
                 takes.save(take)
             } else audio.delete()
             notice = when {
+                text != null && reason != null -> "⚠ $reason"
                 text != null && insert -> null
                 text != null -> "✅ Text ready in the Take Vault"
                 else -> "💾 $reason"
             }
-            if (text != null && insert) currentInputConnection?.commitText(text + " ", 1)
+            if (text != null && insert) {
+                // Dictated text starts a new word: add a space if it would run into the word before it.
+                val before = currentInputConnection?.getTextBeforeCursor(1, 0)
+                val gap = if (!before.isNullOrEmpty() && !before.last().isWhitespace()) " " else ""
+                currentInputConnection?.commitText(gap + text + " ", 1)
+            }
             render()
         }
     }
