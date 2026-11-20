@@ -171,7 +171,7 @@ test('every team hangar taps through to its PM chat from the one link list', () 
     assert.ok(!/thread=|cmsg_|session_/.test(t.link), key);
   }
   assert.equal(pm.pmFor('creative').href, 'https://claude.ai/code/project/chan_01FmXJmy8KCy4hAMGkMvgrFp');
-  assert.equal(pm.pmFor('marketing').href, null);
-  assert.match(pm.label(pm.pmFor('marketing')), /not pasted yet/);
+  assert.ok(Object.keys(pm.TEAMS).every((k) => pm.pmFor(k).href), 'all 11 teams have a link (raven575 pasted them 12:57 UTC 11-20)');
+  assert.match(pm.label({ ...pm.pmFor('marketing'), href: null }), /not pasted yet/);
   assert.equal(pm.pmFor('nobody'), null);
 });
