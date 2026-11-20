@@ -199,7 +199,7 @@
   },
   {
    "id": "h8-ms-store",
-   "title": "🪟 Reserve the name vCGE in Microsoft Partner Center",
+   "title": "🏪 Reserve the name vCGE in Microsoft Partner Center",
    "area": "🙋 You · second store",
    "why": "Locks the name and gives the identity values the Windows package needs (PR #53 holds test values until then).",
    "steps": [
