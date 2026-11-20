@@ -100,3 +100,5 @@ code { font-family: var(--mono); font-size: .85em; }
 @media (max-width: 560px) { .item > details > summary { grid-template-columns: auto 1fr; } .item .pill { grid-column: 2; justify-self: start; } .item .sub { grid-column: 2; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 @media (max-width: 560px) { .bar.mini { grid-column: 2; justify-self: start; } }
+
+.pm-sum { grid-column: 2 / 4; justify-self: start; min-height: 36px; padding: 4px 12px; font-size: .85rem; border-radius: 99px; }
