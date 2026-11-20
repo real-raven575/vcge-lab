@@ -4,7 +4,7 @@
  "emoji": "🚀",
  "team": "Herd of Helpers",
  "theme": "vcge",
- "intro": "Breathe. One thing at a time, top to bottom. Team vCGE's top 3 come first, then the rest of your steps (most are one tap); done ones sit just below them, then everything the teams are already doing.",
+ "intro": "Breathe. One thing at a time, top to bottom. Team vCGE's top 3 come first, then each team's #1 (Marketing's listing review is critical path), then the rest of your steps; done ones sit just below them, then everything the teams are already doing.",
  "sections": {
   "raven": "🚀 Ranked, most important first",
   "auto": "🤖 Automatic"
@@ -113,6 +113,148 @@
     }
    ],
    "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "m1-listing-review",
+   "title": "🦚 CRITICAL PATH: store listing review + 14-day tester note",
+   "area": "🦚 Team Marketing · #1 · critical path",
+   "why": "The Play listing and the tester note have not started; they wait on your go. From each team's reply to raven575's 11-20 poke (notes/flight-deck/2026-11-20-test-bench-team-items.md). (MKTG-0025)",
+   "steps": [
+    {
+     "text": "Give Marketing your go in the Marketing thread.",
+     "who": "human"
+    },
+    {
+     "text": "Marketing reviews the listing and writes the 14-day tester note.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "c1-store-art",
+   "title": "🐼 vCGE store art: built, copy it to vcge-drop",
+   "area": "🐼 Team Creative · #1",
+   "why": "50 files built at 00:52 UTC (Drive: TEAM_Creative > 10 vCGE > 'vCGE store art HQ-0342 2026-11-20'). The copy to vcge-drop waits on your okay for the device step. (CRTV-0074)",
+   "steps": [
+    {
+     "text": "Okay the device step in Creative's thread.",
+     "who": "human"
+    },
+    {
+     "text": "Creative copies the art to vcge-drop.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "af1-log-redaction",
+   "title": "🐒 Auto-Fixer: test the log redaction fix (PR #39) on BEASTLY",
+   "area": "🐒 Team Auto-Fixer · #1 · privacy",
+   "why": "A privacy fix: logs could keep details they should hide. It needs a hand test on BEASTLY. (FIXW-0037)",
+   "steps": [
+    {
+     "text": "Reply 'go BEASTLY' in the 'Fix log redaction gaps' thread, then run the test it gives you.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "hl1-lounge-tools",
+   "title": "🐧 HomeLab: Lounge tools v1.1",
+   "area": "🐧 Team HomeLab · #1",
+   "why": "The Lounge tools update is ready to install. (HMLB-0068)",
+   "steps": [
+    {
+     "text": "Type 'yes v1.1' in HomeLab's thread.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "v1-credentials",
+   "title": "🦏 Vault: build Vaultwarden, then move the credential files",
+   "area": "🦏 Team Vault · #1 · security",
+   "why": "Credential files still sit in the synced Team Vault/Claude/ folder. Moving them waits on Vaultwarden, which needs your yes; it also unblocks the password clean-up and the Play key backup. (VALT-0035)",
+   "steps": [
+    {
+     "text": "Say yes to building Vaultwarden in Vault's thread.",
+     "who": "human"
+    },
+    {
+     "text": "Vault moves the credential files into Vaultwarden.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "f1-launch-money",
+   "title": "🐜 Finance: launch money, tip-jar checklist",
+   "area": "🐜 Finance · #1 · first money in",
+   "why": "The tip-jar sign-up checklist is ready; the Bankers still owe the $0.99 price check. (CASH-0034)",
+   "steps": [
+    {
+     "text": "Say go for each sign-up step in Finance's thread.",
+     "who": "human"
+    },
+    {
+     "text": "Bankers finish the $0.99 check.",
+     "who": "robot"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "hi1-thank-you",
+   "title": "🐿 History: thank-you letter to former teammates",
+   "area": "🐿 Team History · #1",
+   "why": "One choice: one letter to the group, or separate letters. (HIST-0034)",
+   "steps": [
+    {
+     "text": "Pick group or separate letters in History's thread.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "w1-mail-outside",
+   "title": "🤖 9to5: mail going outside (security check)",
+   "area": "🤖 Team 9to5 · #1 · security",
+   "why": "A read-only check is ready and waits on you running Part A. (WORK-0039)",
+   "steps": [
+    {
+     "text": "Run Part A from 9to5's thread.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "e1-role-addresses",
+   "title": "🐝 eMail: role addresses bugs@, support@, privacy@",
+   "area": "🐝 Team eMail · #1",
+   "why": "Planning; your answer is in (Mailbox row 12624). Nothing needed from you right now. (MAIL-0070)",
+   "steps": [
+    {
+     "text": "eMail finishes the role-address plan.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
    "section": "raven"
   },
   {
@@ -260,54 +402,6 @@
     "Group made with Ask to join (done)."
    ],
    "status": "pass",
-   "ask": [
-    {
-     "label": "🐢 Get vCGE onto app stores",
-     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
-    }
-   ],
-   "section": "raven"
-  },
-  {
-   "id": "t2-testers",
-   "title": "🦚 Tester sign-up note + listing review",
-   "area": "🤖 Team vCGE: Marketing · critical path",
-   "why": "A friendly note to recruit about 20 real testers (no tester farms) and a review of the store text.",
-   "steps": [
-    {
-     "text": "Write the 14-day tester note and post it with the Google Group link.",
-     "who": "robot"
-    },
-    {
-     "text": "Review store/listing.json wording.",
-     "who": "robot"
-    }
-   ],
-   "status": "waiting",
-   "ask": [
-    {
-     "label": "🐢 Get vCGE onto app stores",
-     "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
-    }
-   ],
-   "section": "raven"
-  },
-  {
-   "id": "t3-art",
-   "title": "🐼 Store art + Facebook tester post",
-   "area": "🤖 Team vCGE: Creative",
-   "why": "Play icon 512, feature graphic 1024x500, Microsoft logo set, screenshots from made-up cards.",
-   "steps": [
-    {
-     "text": "Make the store art into vcge-drop/.",
-     "who": "robot"
-    },
-    {
-     "text": "Post the tester call on Facebook, pointing at the Google Group.",
-     "who": "robot"
-    }
-   ],
-   "status": "ready",
    "ask": [
     {
      "label": "🐢 Get vCGE onto app stores",
