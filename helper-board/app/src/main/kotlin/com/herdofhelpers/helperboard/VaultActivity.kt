@@ -238,6 +238,8 @@ class VaultActivity : Activity() {
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
         toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }
+        slider("Recent emoji to show", com.herdofhelpers.helperboard.core.EmojiBook.MIN_RECENT,
+            com.herdofhelpers.helperboard.core.EmojiBook.MAX_RECENT, prefs.recentEmojiCount, "") { prefs.recentEmojiCount = it }
         text("Tips: double-tap ⇧ for caps lock. Hold ⌫ to keep deleting (it speeds up to whole words). " +
             "Tap ⚙ on the keyboard, or hold 123, to come straight here. Hold the space bar to switch keyboards.")
     }

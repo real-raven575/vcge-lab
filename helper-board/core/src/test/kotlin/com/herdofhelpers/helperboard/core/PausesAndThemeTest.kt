@@ -90,14 +90,31 @@ class EmojiTest {
         assertTrue(Layouts.modeStrip(false).none { it.kind == KeyKind.MODE_EMOJI })
     }
 
-    @Test fun emojiKeysAreWholeEmojiAndTheBottomRowMatchesOtherModes() {
-        assertEquals(48, Layouts.EMOJI.size)
-        assertTrue("✌️" in Layouts.EMOJI && "⚠️" in Layouts.EMOJI)
-        val rows = Layouts.emoji(listOf("🐘"))
-        assertEquals(listOf("🐘"), rows.first().map { it.label })
+    @Test fun emojiPageKeepsTheSameBottomRowAndBigDeleteAndEnter() {
+        val rows = Layouts.emoji()
         fun shape(r: List<Key>) = r.map { (if (it.kind == KeyKind.MODE_ABC) KeyKind.MODE_NUMBERS else it.kind) to it.weight }
         assertEquals(shape(Layouts.abc(NumberStyle.ROW).last()), shape(rows.last()))
-        assertTrue(rows.dropLast(1).last().any { it.kind == KeyKind.BACKSPACE })
+        assertEquals(listOf(KeyKind.BACKSPACE, KeyKind.ENTER), rows.first().map { it.kind })
+    }
+
+    @Test fun searchFindsEmojiByNameOrFeeling() {
+        assertEquals("🐘", EmojiBook.search("elephant").first().char)
+        val happy = EmojiBook.search("happy").map { it.char }
+        assertTrue("😀" in happy && "😊" in happy)
+        assertTrue("😴" in EmojiBook.search("tired").map { it.char })
+        assertTrue("😢" in EmojiBook.search("sa").map { it.char }, "a partly typed word still finds it")
+        assertTrue(EmojiBook.search("love heart").all { it.matches("love heart") })
+        assertTrue(EmojiBook.search("").isEmpty() && EmojiBook.search("zzqx").isEmpty())
+    }
+
+    @Test fun namesComeBeforeFeelings() {
+        val r = EmojiBook.search("heart")
+        assertTrue(r.first().name.contains("heart"))
+    }
+
+    @Test fun everyGroupHasEmojiAndNoneRepeat() {
+        for (g in EmojiGroup.entries) assertTrue(EmojiBook.inGroup(g).size >= 25, "$g")
+        assertEquals(EmojiBook.ALL.size, EmojiBook.ALL.map { it.char }.toSet().size)
     }
 
     @Test fun recentEmojiAreNewestFirstWithoutRepeats() {
@@ -105,6 +122,7 @@ class EmojiTest {
         for (e in listOf("👍", "🐘", "👍")) r = Layouts.rememberEmoji(r, e)
         assertEquals(listOf("👍", "🐘"), r)
         assertEquals(8, (1..20).fold(emptyList<String>()) { acc, i -> Layouts.rememberEmoji(acc, "$i") }.size)
+        assertEquals(12, (1..20).fold(emptyList<String>()) { acc, i -> Layouts.rememberEmoji(acc, "$i", 12) }.size)
     }
 }
 
@@ -139,7 +157,7 @@ class KeyPlacesTest {
     }
 
     @Test fun everyModeHasAnEnter() {
-        for (n in NumberStyle.entries) for (m in Mode.entries) if (m != Mode.EMOJI) {
+        for (n in NumberStyle.entries) for (m in Mode.entries) {
             assertTrue(Layouts.forMode(m, n).flatten().any { it.kind == KeyKind.ENTER }, "$m")
         }
     }

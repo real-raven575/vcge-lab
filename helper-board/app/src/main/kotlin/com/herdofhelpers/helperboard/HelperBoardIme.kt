@@ -18,7 +18,10 @@ import android.view.inputmethod.EditorInfo
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.herdofhelpers.helperboard.core.EmojiBook
+import com.herdofhelpers.helperboard.core.EmojiGroup
 import com.herdofhelpers.helperboard.core.FieldPolicy
+import com.herdofhelpers.helperboard.core.NumberStyle
 import com.herdofhelpers.helperboard.core.Key
 import com.herdofhelpers.helperboard.core.KeyKind
 import com.herdofhelpers.helperboard.core.Layouts
@@ -90,9 +93,12 @@ class HelperBoardIme : InputMethodService() {
         r.setPadding(pad, pad, pad, pad)
 
         r.addView(modeStrip())
-        r.addView(suggestionBar())
+        if (mode != Mode.EMOJI) emojiQuery = null
+        if (mode == Mode.EMOJI) { suggestionRow = null; r.addView(emojiPanel()) } else r.addView(suggestionBar())
         if (mode == Mode.TAKES) r.addView(takesDrawer())
-        val rows = Layouts.forMode(mode, prefs.numberStyle, recentEmoji = prefs.recentEmoji)
+        // While searching emoji, the letter keys type into the search line instead of the text box.
+        val rows = if (emojiQuery != null) Layouts.abc(NumberStyle.OFF, myRow = emptyList())
+        else Layouts.forMode(mode, prefs.numberStyle)
         var i = 0
         while (i < rows.size) {
             val tall = rows[i].lastOrNull()?.takeIf { it.rows == 2 && i + 1 < rows.size }
@@ -191,6 +197,72 @@ class HelperBoardIme : InputMethodService() {
         return block
     }
 
+    // ---------- Emoji window ----------
+
+    private var emojiGroup = EmojiGroup.FEELINGS
+    /** Non-null while searching emoji: what has been typed into the search line. */
+    private var emojiQuery: String? = null
+
+    /** A big emoji window: search line, recent emoji, group tabs, and a scrolling grid (or the search results). */
+    private fun emojiPanel(): View {
+        val p = KeyLook.palette(this, prefs)
+        val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val q = emojiQuery
+        top.addView(chip(if (q == null) "🔍 Search by name or feeling" else "🔍 $q▏", q != null) {
+            if (emojiQuery == null) { emojiQuery = ""; render() }
+        }, LinearLayout.LayoutParams(0, KeyLook.dp(this, 34), 1f))
+        if (q != null) top.addView(chip("✕ Done", false) { emojiQuery = null; render() })
+        panel.addView(top)
+
+        if (q != null) {
+            // Results in one scrolling line, so the letter keys fit underneath.
+            val hits = EmojiBook.search(q)
+            val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            if (q.isBlank()) line.addView(label("Type a name or a feeling, like happy, tired, love, dog"))
+            else if (hits.isEmpty()) line.addView(label("No emoji for \"$q\" yet"))
+            for (e in hits) line.addView(emojiCell(e.char, p))
+            panel.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(line) },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, KeyLook.dp(this, 52)))
+            return panel
+        }
+
+        val recent = prefs.recentEmoji.take(prefs.recentEmojiCount)
+        if (recent.isNotEmpty()) {
+            val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            line.addView(label("Recent"))
+            for (e in recent) line.addView(emojiCell(e, p))
+            panel.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(line) })
+        }
+        val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        for (g in EmojiGroup.entries) tabs.addView(chip("${g.icon} ${g.label}", g == emojiGroup) { emojiGroup = g; render() })
+        panel.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(tabs) })
+
+        val grid = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        EmojiBook.inGroup(emojiGroup).chunked(8).forEach { chunk ->
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            for (e in chunk) row.addView(emojiCell(e.char, p), LinearLayout.LayoutParams(0, KeyLook.dp(this, 50), 1f))
+            repeat(8 - chunk.size) { row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f)) }
+            grid.addView(row)
+        }
+        panel.addView(android.widget.ScrollView(this).apply { addView(grid) },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, KeyLook.dp(this, prefs.keyHeightDp * 4)))
+        return panel
+    }
+
+    private fun emojiCell(e: String, p: com.herdofhelpers.helperboard.core.HerdPalette) = TextView(this).apply {
+        text = e; textSize = 26f; gravity = Gravity.CENTER
+        val pad = KeyLook.dp(this@HelperBoardIme, 6); setPadding(pad, 0, pad, 0)
+        minWidth = KeyLook.dp(this@HelperBoardIme, 44); minHeight = KeyLook.dp(this@HelperBoardIme, 48)
+        setTextColor(p.text)
+        setOnClickListener {
+            currentInputConnection?.commitText(e, 1)
+            // Recent emoji are remembered on the phone only, and never from private boxes.
+            if (!policy.isPrivate) prefs.recentEmoji = Layouts.rememberEmoji(prefs.recentEmoji, e, EmojiBook.MAX_RECENT)
+            if (emojiQuery == null) render()
+        }
+    }
+
     private fun keyRow(keys: List<Key>): View {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val gap = KeyLook.dp(this, prefs.rowGapDp)
@@ -287,14 +359,20 @@ class HelperBoardIme : InputMethodService() {
 
     private fun onKey(k: Key) {
         val ic = currentInputConnection ?: return
+        val q = emojiQuery
+        if (q != null) {
+            when (k.kind) {
+                KeyKind.CHAR -> { emojiQuery = q + k.output.lowercase(); render(); return }
+                KeyKind.SPACE -> { emojiQuery = "$q "; render(); return }
+                KeyKind.BACKSPACE -> { emojiQuery = q.dropLast(1); render(); return }
+                KeyKind.ENTER -> { emojiQuery = null; render(); return }
+                else -> {}
+            }
+        }
         when (k.kind) {
             KeyKind.CHAR -> {
                 ic.commitText(shift.apply(k.output), 1)
                 if (k.output.length == 1 && k.output[0].isLetter()) shift.afterLetter()
-                // Recent emoji are remembered on the phone only, and never from private boxes.
-                if (mode == Mode.EMOJI && !policy.isPrivate) {
-                    prefs.recentEmoji = Layouts.rememberEmoji(prefs.recentEmoji, k.output)
-                }
                 rerenderKeysIfShiftChanged()
             }
             KeyKind.SPACE -> {
@@ -342,6 +420,8 @@ class HelperBoardIme : InputMethodService() {
     private var repeatCount = 0
     private val repeatToken = Any()
     private fun startRepeat(k: Key) {
+        // Editing the emoji search line: one key press, no repeat (the line redraws on every change).
+        if (emojiQuery != null && k.kind == KeyKind.BACKSPACE) { onKey(k); return }
         repeatCount = 0
         repeatOnce(k)
         main.postAtTime({ repeatLoop(k) }, repeatToken, SystemClock.uptimeMillis() + 400)

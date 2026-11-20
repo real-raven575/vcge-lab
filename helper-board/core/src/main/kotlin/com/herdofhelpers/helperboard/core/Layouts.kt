@@ -93,32 +93,23 @@ object Layouts {
     /** The mode strip, with or without the emoji tab. */
     fun modeStrip(showEmoji: Boolean): List<Key> = MODE_STRIP.filter { showEmoji || it.kind != KeyKind.MODE_EMOJI }
 
-    /** 48 everyday emoji, 6 rows of 8, Herd animals included. Space-separated because one emoji can be several chars. */
-    val EMOJI = ("😀 😂 🥲 😊 😍 😘 😎 🤔 😅 😭 😡 😴 🙂 🙃 😬 🤗 " +
-        "👍 👎 👏 🙏 💪 👋 🤝 ✌️ ❤️ 💔 🔥 ✨ 🎉 ✅ ❌ ⚠️ " +
-        "⭐ 💯 🐘 🦒 🐢 🦝 ☕ 🍕 🎂 🚗 🏠 💼 📞 📅 ⏰ 💊").split(" ")
-
-    /** Emoji keys: the user's recent ones first (kept on the phone only), then the everyday set. */
-    fun emoji(recent: List<String> = emptyList()): List<List<Key>> = buildList {
-        if (recent.isNotEmpty()) add(recent.take(8).map { Key(it) })
-        val rows = EMOJI.chunked(8)
-        rows.forEachIndexed { i, row ->
-            // ⌫ ends the last emoji row; the only space bar is the usual one below (same width everywhere, T1).
-            add(row.map { Key(it) } + if (i == rows.lastIndex) listOf(backspace) else emptyList())
-        }
-        add(bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)))
-    }
+    /**
+     * Emoji page keys: only ⌫ and ⏎ under the emoji window, then the usual bottom row. The emoji themselves are a big
+     * scrolling window with groups, recents and search (EmojiBook), drawn by the keyboard.
+     */
+    fun emoji(): List<List<Key>> = listOf(
+        listOf(Key("⌫", kind = KeyKind.BACKSPACE, weight = BACKSPACE_WEIGHT), Key("⏎", kind = KeyKind.ENTER, weight = BACKSPACE_WEIGHT)),
+        bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
+    )
 
     /** Most recent first, no repeats, at most [max]. */
-    fun rememberEmoji(recent: List<String>, used: String, max: Int = 8): List<String> =
+    fun rememberEmoji(recent: List<String>, used: String, max: Int = EmojiBook.DEFAULT_RECENT): List<String> =
         (listOf(used) + recent.filter { it != used }).take(max)
 
-    fun forMode(
-        mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW, recentEmoji: List<String> = emptyList(),
-    ): List<List<Key>> = when (mode) {
+    fun forMode(mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW): List<List<Key>> = when (mode) {
         Mode.ABC, Mode.TAKES -> abc(numbers, myRow)
         Mode.NUMBERS -> numbers()
         Mode.SYMBOLS -> symbols()
-        Mode.EMOJI -> emoji(recentEmoji)
+        Mode.EMOJI -> emoji()
     }
 }

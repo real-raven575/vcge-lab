@@ -101,6 +101,11 @@ class Prefs(context: Context) {
         get() = sp.getString("recentEmoji", "")!!.split(" ").filter { it.isNotEmpty() }
         set(v) = sp.edit().putString("recentEmoji", v.joinToString(" ")).apply()
 
+    /** How many recent emoji show at the top of the emoji window: 4 to 12 (raven575, 11-20). */
+    var recentEmojiCount: Int
+        get() = sp.getInt("recentEmojiCount", com.herdofhelpers.helperboard.core.EmojiBook.DEFAULT_RECENT)
+        set(v) = sp.edit().putInt("recentEmojiCount", v).apply()
+
     val themePhoto: File get() = File(app.filesDir, "theme-photo")
 
     // Personal dictionary, kept as a small text file in private storage.
