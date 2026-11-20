@@ -50,6 +50,12 @@ class VaultActivity : Activity() {
         setContentView(ScrollView(this).apply { addView(page) })
     }
 
+    // A second "open" while the page is already up arrives here, not in onCreate; keep it so build() sees it.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     override fun onResume() {
         super.onResume()
         takes.applyRetention(prefs)
@@ -85,6 +91,8 @@ class VaultActivity : Activity() {
             tryBox = this
         })
         if (intent.getBooleanExtra(EXTRA_FOCUS_TRY, false)) tryBox?.post {
+            intent.removeExtra(EXTRA_FOCUS_TRY)  // focus once, not on every return to this page
+            window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
             tryBox?.requestFocus()
             (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(tryBox, InputMethodManager.SHOW_IMPLICIT)
         }

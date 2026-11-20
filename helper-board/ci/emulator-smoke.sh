@@ -44,7 +44,10 @@ echo "Keyboard on screen: $SHOWN"
 
 step "5 of 6: switch keyboard modes by tapping the screen"
 # Tap across the lower part of the screen, where the keyboard sits, to press real keys.
-for y in 1500 1700 1900 2100; do for x in 150 540 930; do adb shell input tap $x $y; done; done
+# Screen size comes from the emulator, so the taps land on keys whatever its resolution.
+read -r W H < <(adb shell wm size | tr -d '\r' | sed -n 's/.*: \([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -1)
+echo "Screen: ${W}x${H}"
+for fy in 62 70 78 86 94; do for fx in 15 50 85; do adb shell input tap $((W*fx/100)) $((H*fy/100)); done; done
 sleep 2
 shot 3-after-taps
 
