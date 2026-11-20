@@ -25,7 +25,9 @@ done
 echo "Keyboards Android knows about:"; adb shell ime list -a -s
 adb shell ime enable "$IME"
 adb shell ime set "$IME"
-adb shell settings get secure default_input_method | tee /dev/stderr | grep -q "HelperBoardIme"
+CURRENT=$(adb shell settings get secure default_input_method | tr -d '\r')
+echo "Current keyboard: $CURRENT"
+[[ "$CURRENT" == *HelperBoardIme ]]
 
 step "3 of 6: open the Helper Board app (Take Vault and settings)"
 adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity"
