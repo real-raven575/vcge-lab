@@ -31,7 +31,12 @@ test('plain stays plain: no characters, emoji or hangar wording', () => {
 });
 
 test('every tool link stays on the deck (relative, no scheme, no host)', () => {
-  const hrefs = [...page.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+  // The one exception: a team's PM chat button (class pm-link), and only to a claude.ai project page.
+  const shape = require(path.join(www, 'pm-links.js')).SHAPE;
+  const hrefs = [...page.matchAll(/<a (?!class="pm-link")[^>]*?href="([^"]+)"|<link [^>]*?href="([^"]+)"/g)].map((m) => m[1] || m[2]);
+  const pmHrefs = [...page.matchAll(/<a class="pm-link" data-pm="[^"]+" href="([^"]+)"/g)].map((m) => m[1]);
+  assert.equal(pmHrefs.length + hrefs.length, (page.match(/href="/g) || []).length, 'every href is counted once');
+  for (const h of pmHrefs) assert.match(h, shape, h);
   assert.ok(hrefs.includes('vcge/funhouse/'));
   for (const h of hrefs) assert.doesNotMatch(h, /^([a-z]+:|\/\/)/i, h);
 });
@@ -142,4 +147,20 @@ test('no page uses an emoji newer than Emoji 12.0 (Windows 10 shows a box)', () 
       assert.ok(!bad, `${path.relative(root, f)}: U+${c.toString(16).toUpperCase()} ${ch} is newer than Emoji 12.0`);
     }
   }
+});
+
+test('every team taps through to its PM chat; the front page links match pm-links.js', () => {
+  const pm = require(path.join(www, 'pm-links.js'));
+  const rows = [...page.matchAll(/<p class="pm-row"><(a|span) class="pm-link[^"]*" data-pm="([^"]+)"(?: href="([^"]+)")?/g)];
+  assert.deepEqual(rows.map((m) => m[2]).sort(), Object.keys(pm.TEAMS).sort());
+  for (const [, tag, key, href] of rows) {
+    const want = pm.pmFor(key).href;
+    assert.equal(tag === 'a' ? href : null, want, key);
+  }
+  for (const [key, t] of Object.entries(pm.TEAMS)) {
+    assert.ok(t.link === '' || pm.SHAPE.test(t.link), `${key}: ${t.link}`);
+    assert.ok(!/thread=|cmsg_|session_/.test(t.link), key);
+  }
+  assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(pm.label(pm.pmFor('creative'))), 'plain labels carry no emoji');
+  assert.ok(page.includes('href="pm-links.css"') && !page.includes('<script'), 'front page stays script-free');
 });
