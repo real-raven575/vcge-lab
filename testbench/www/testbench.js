@@ -226,7 +226,7 @@ function shell(it, num, summaryKids, bodyKids) {
     const d = el('details', { open: page.open.has(it.id), ontoggle: () => (d.open ? page.open.add(it.id) : page.open.delete(it.id)) },
         el('summary', {}, el('span', { class: 'num', text: num }), el('span', { class: 'ttl' }, it.title,
             it.interactive ? el('span', { class: 'badge', text: '🔁 Interactive' }) : null),
-        el('span', { class: `pill ${s}`, text: `${STATUS[s][0]} ${STATUS[s][1]}` }), ...summaryKids, decideLink(it, 'decide-sum'), askRow(it, 'ask-sum')),
+        el('span', { class: `pill ${s}`, text: `${STATUS[s][0]} ${STATUS[s][1]}` }), ...summaryKids, decideLink(it, 'decide-sum'), askRow(it, 'ask-sum'), pmButton(it, 'pm-sum')),
         el('div', { class: 'body' }, ...bodyKids));
     return el('li', { class: 'item', 'data-status': s, 'data-id': it.id }, d);
 }
@@ -241,6 +241,21 @@ function askRow(it, cls) {
     if (!links.length) return null;
     return el('span', { class: `ask-row ${cls}` }, ...links.map(a => el('a', { class: 'ask', href: a.href, target: '_blank', rel: 'noopener noreferrer',
         onclick: e => e.stopPropagation(), text: `💬 Ask in ${a.label} ↗` })));
+}
+
+/** Which team's PM chat an item taps through to: its own seed field pm, else the bench's pm (keys as in /pm-links.js). */
+export function pmKey(it, bench) {
+    const k = (it && typeof it.pm === 'string' && it.pm) || (bench && typeof bench.pm === 'string' && bench.pm) || '';
+    return /^[a-z0-9-]{1,24}$/.test(k) ? k : null;
+}
+
+/** The owning PM's chat button from /pm-links.js (one list for the whole deck); nothing if that file or the key is missing. */
+function pmButton(it, cls) {
+    const pm = globalThis.HERD_PM, key = pmKey(it, page.bench);
+    if (!pm || !key || it.section === 'auto') return null;
+    const node = pm.element(document, key, cls);
+    if (node && node.tagName === 'A') node.addEventListener('click', e => e.stopPropagation());
+    return node;
 }
 
 /** The one-tap link to where raven575 answers a yes or no (claude.ai, a PR, a Run button). */

@@ -6,7 +6,8 @@
 # What it does, and nothing else:
 #  1. Backs up the live deck folder to <portal>/www.before-deck-<UTC time>.
 #  2. Copies the deck front page, every team page + team.css, the Menu, the Desk page, deckbar.css and
-#     elephant.svg from ../www (root, 644). config.js, desk.js and portal.css are not touched.
+#     elephant.svg, and pm-links.js + pm-links.css (every PM chat link) from ../www (root, 644). config.js, desk.js and
+#     portal.css are not touched.
 #  3. The lab pages (Reading Room, Card Shelf, Paint Shop, Wipe Trials, Darkroom, Funhouse): puts the deck bar into
 #     each live index.html IN PLACE (so parts that exist only on this server stay), first keeping a copy as
 #     index.html.before-deckbar. The Card Shelf also gets shelf.js (a tile shows the photo if its preview fails).
@@ -24,7 +25,7 @@ CHECK_URL=${CHECK_URL:-http://127.0.0.1:8080}
 W=$PORTAL/www
 [ "$(id -u)" = 0 ] || [ -n "${DECK_TEST:-}" ] || { echo "Run through the sudo gate: sudo /usr/local/sbin/vcge-lab-run flight-deck/install/deck-pages-update.sh" >&2; exit 1; }
 for f in www/index.html www/menu/index.html www/desk/index.html www/teams/team.css www/teams/never-forget/index.html \
-         www/deckbar.css www/elephant.svg install/put_deckbar.py install/deckbar-pages.json; do
+         www/deckbar.css www/pm-links.js www/pm-links.css www/elephant.svg install/put_deckbar.py install/deckbar-pages.json; do
     [ -f "$HERE/$f" ] || { echo "  STOP missing $HERE/$f. Nothing changed." >&2; exit 1; }
 done
 [ -f "$W/index.html" ] && [ -d "$W/desk" ] || { echo "  STOP $W is not the live deck (no index.html or desk/). Nothing changed." >&2; exit 1; }
@@ -40,6 +41,8 @@ echo "[2/5] deck pages"
 install -m 644 "$HERE/www/index.html" "$W/index.html"
 install -m 644 "$HERE/www/deckbar.css" "$W/deckbar.css"
 install -m 644 "$HERE/www/elephant.svg" "$W/elephant.svg"
+install -m 644 "$HERE/www/pm-links.js" "$W/pm-links.js"      # every team's PM chat link (hangars + Test Bench)
+install -m 644 "$HERE/www/pm-links.css" "$W/pm-links.css"
 install -m 644 "$HERE/www/desk/index.html" "$W/desk/index.html"
 install -d -m 755 "$W/menu" "$W/teams"
 install -m 644 "$HERE/www/menu/index.html" "$W/menu/index.html"
@@ -101,7 +104,7 @@ fi
 
 echo "[5/5] check"
 if [ -z "${DECK_TEST:-}" ]; then
-    for p in / /menu/ /desk/ /deckbar.css /teams/vcge/ /teams/never-forget/ /teams/history/stash/ /vcge/ /vcge/bench/ /vcge/bench/handwriting.html /vcge/shelf/ \
+    for p in / /menu/ /desk/ /deckbar.css /pm-links.js /pm-links.css /teams/vcge/ /teams/never-forget/ /teams/history/stash/ /vcge/ /vcge/bench/ /vcge/bench/handwriting.html /vcge/shelf/ \
              /vcge/logo-bench/ /vcge/testing/ /vcge/edge-bench/ /vcge/funhouse/; do
         c=$(curl -s -o /dev/null -w '%{http_code}' "$CHECK_URL$p" || true)
         [ "$c" = 200 ] && echo "  OK   $p 200" || echo "  WARN $p answered $c"

@@ -151,7 +151,7 @@ def view(b, s):
         if item['section'] == 'auto':
             v['ci'] = s['auto'].get(item['id'])
         out.append(v)
-    meta = {k: v for k, v in seed_file(b).items() if k in ('title', 'emoji', 'intro', 'theme', 'team', 'sections')}
+    meta = {k: v for k, v in seed_file(b).items() if k in ('title', 'emoji', 'intro', 'theme', 'team', 'pm', 'sections')}
     return {'bench': {'id': b, **meta}, 'benches': benches(), 'items': out, 'autoFetch': s['autoFetch'], 'now': now()}
 
 

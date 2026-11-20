@@ -1,7 +1,7 @@
 // Test Bench page helpers:  node --test testbench/test/testbench.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nextMatch, safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf, askLinks } from '../www/testbench.js';
+import { nextMatch, safeLink, autoStatus, statusOf, stepsDone, matches, tally, resultsText, when, progress, stepOf, askLinks, pmKey } from '../www/testbench.js';
 
 const hand = { id: 'h', section: 'raven', title: 'Hands-on', status: 'ready', steps: ['open it', 'press GO', 'look'],
     stepResults: { 0: { result: 'pass', note: '' }, 1: { result: 'fail', note: 'froze' } },
@@ -84,4 +84,23 @@ test('ask links keep only https threads', () => {
     const it = { ask: [{ label: 'app stores', link: 'https://claude.ai/code/project/chan_x?thread=cmsg_y' }, { label: 'bad', link: 'javascript:alert(1)' }, { link: 'https://claude.ai/z' }] };
     assert.deepEqual(askLinks(it), [{ label: 'app stores', href: 'https://claude.ai/code/project/chan_x?thread=cmsg_y' }, { label: 'the thread', href: 'https://claude.ai/z' }]);
     assert.deepEqual(askLinks({}), []);
+});
+
+test('an item taps through to its own PM, else the bench PM', () => {
+    assert.equal(pmKey({ pm: 'marketing' }, { pm: 'vcge' }), 'marketing');
+    assert.equal(pmKey({}, { pm: 'auto-fixer' }), 'auto-fixer');
+    assert.equal(pmKey({}, {}), null);
+    assert.equal(pmKey({ pm: 'x"><img' }, {}), null);
+});
+
+test('every bench and item pm key is a team in /pm-links.js', async () => {
+    const { createRequire } = await import('node:module');
+    const fs = await import('node:fs');
+    const pm = createRequire(import.meta.url)('../../flight-deck/www/pm-links.js');
+    const dir = new URL('../benches/', import.meta.url);
+    for (const f of fs.readdirSync(dir).filter(n => n.endsWith('.json'))) {
+        const b = JSON.parse(fs.readFileSync(new URL(f, dir), 'utf8'));
+        assert.ok(pm.TEAMS[b.pm], `${f}: bench pm ${b.pm}`);
+        for (const it of b.items) if (it.pm) assert.ok(pm.TEAMS[it.pm], `${f} ${it.id}: ${it.pm}`);
+    }
 });

@@ -3,6 +3,7 @@
  "title": "Do This First",
  "emoji": "🚀",
  "team": "Herd of Helpers",
+ "pm": "vcge",
  "theme": "vcge",
  "intro": "Breathe. One thing at a time, top to bottom. Team vCGE's top 3 come first, then each team's #1 (Marketing's listing review is critical path), then the rest of your steps; done ones sit just below them, then everything the teams are already doing.",
  "sections": {
@@ -133,7 +134,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "marketing"
   },
   {
    "id": "c1-store-art",
@@ -151,7 +153,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "creative"
   },
   {
    "id": "af1-log-redaction",
@@ -165,7 +168,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "auto-fixer"
   },
   {
    "id": "hl1-lounge-tools",
@@ -179,7 +183,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "homelab"
   },
   {
    "id": "v1-credentials",
@@ -197,7 +202,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "vault"
   },
   {
    "id": "f1-launch-money",
@@ -215,7 +221,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "finance"
   },
   {
    "id": "hi1-thank-you",
@@ -229,7 +236,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "history"
   },
   {
    "id": "w1-mail-outside",
@@ -243,7 +251,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "e1-role-addresses",
@@ -257,7 +266,8 @@
     }
    ],
    "status": "waiting",
-   "section": "raven"
+   "section": "raven",
+   "pm": "email"
   },
   {
    "id": "h5b-admin-login",
@@ -411,7 +421,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w3-firewalls",
@@ -425,7 +436,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w4-dental-imaging",
@@ -439,7 +451,8 @@
     }
    ],
    "status": "waiting",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w5-unifi",
@@ -453,7 +466,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w6-ssd-firmware",
@@ -471,7 +485,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w7-client-disk",
@@ -485,7 +500,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w8-remote-firewall",
@@ -499,7 +515,8 @@
     }
    ],
    "status": "ready",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w9-herd-mail",
@@ -513,7 +530,8 @@
     }
    ],
    "status": "waiting",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "w10-lower",
@@ -527,7 +545,8 @@
     }
    ],
    "status": "waiting",
-   "section": "raven"
+   "section": "raven",
+   "pm": "9to5"
   },
   {
    "id": "h4-tester-group",
@@ -568,7 +587,8 @@
      "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT24pixtPE5533QkwgG9YVqjS"
     }
    ],
-   "section": "raven"
+   "section": "raven",
+   "pm": "vault"
   },
   {
    "id": "t5-money",
@@ -588,7 +608,8 @@
      "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
     }
    ],
-   "section": "raven"
+   "section": "raven",
+   "pm": "finance"
   },
   {
    "id": "t6-story",
@@ -608,7 +629,8 @@
      "link": "https://claude.ai/code/project/chan_013E6p9jmWZWSUWtGuzSYgT2?thread=cmsg_013E6p9jmWZWSUWtGuzSYgT25es9zTyYiWu7eHiA9VouF7"
     }
    ],
-   "section": "raven"
+   "section": "raven",
+   "pm": "history"
   },
   {
    "id": "t7-other-teams",
