@@ -236,12 +236,27 @@ class VaultActivity : Activity() {
         slider("Key height", 34, 72, prefs.keyHeightDp, "dp") { prefs.keyHeightDp = it }
         slider("Space between rows", 0, 16, prefs.rowGapDp, "dp") { prefs.rowGapDp = it }
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
+        toggle("Buzz on every key press", prefs.keyBuzz) { prefs.keyBuzz = it }
+        toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
         toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }
         slider("Recent emoji to show", com.herdofhelpers.helperboard.core.EmojiBook.MIN_RECENT,
             com.herdofhelpers.helperboard.core.EmojiBook.MAX_RECENT, prefs.recentEmojiCount, "") { prefs.recentEmojiCount = it }
         text("Tips: double-tap ⇧ for caps lock. Hold ⌫ to keep deleting (it speeds up to whole words). " +
             "Tap ⚙ on the keyboard, or hold 123, to come straight here. Hold the space bar to switch keyboards.")
+        crashBox()
+    }
+
+    /** If the keyboard stopped, show why, with a Copy button for the tester. Nothing is sent anywhere. */
+    private fun crashBox() {
+        val log = CrashLog.read(this) ?: return
+        section("⚠ The keyboard stopped last time")
+        text("Tap Copy and paste this to Claude, so the real cause gets fixed. It holds no typed text.")
+        text(log.lineSequence().take(8).joinToString("\n"))
+        button("📋 Copy the details") {
+            (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("crash", log))
+        }
+        button("Clear it") { CrashLog.clear(this); build() }
     }
 
     private fun themeSection() {

@@ -39,6 +39,16 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("allowPrivateSaving", false)
         set(v) = sp.edit().putBoolean("allowPrivateSaving", v).apply()
 
+    /** A short buzz on every key press, so you feel each contact (raven575 video, 11-20). */
+    var keyBuzz: Boolean
+        get() = sp.getBoolean("keyBuzz", true)
+        set(v) = sp.edit().putBoolean("keyBuzz", v).apply()
+
+    /** The letter pops up above your thumb so you can see which key you pressed. */
+    var keyPreview: Boolean
+        get() = sp.getBoolean("keyPreview", true)
+        set(v) = sp.edit().putBoolean("keyPreview", v).apply()
+
     /** Which microphone voice typing uses: phone or Bluetooth (tester T5). */
     var useBluetoothMic: Boolean
         get() = sp.getBoolean("useBluetoothMic", false)

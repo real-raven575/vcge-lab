@@ -10,11 +10,13 @@ import android.os.Looper
 import android.os.SystemClock
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -44,6 +46,7 @@ class HelperBoardIme : InputMethodService() {
     private var mode = Mode.ABC
     private var policy = FieldPolicy(learnWords = true, saveTakes = true, isPrivate = false, isWebOrEmail = false)
     private var root: LinearLayout? = null
+    private var preview: TextView? = null
     private var suggestionRow: LinearLayout? = null
     private var micLabel: TextView? = null
     private val main = Handler(Looper.getMainLooper())
@@ -57,13 +60,24 @@ class HelperBoardIme : InputMethodService() {
         prefs = Prefs(this)
         takes = TakeStore(this)
         dict = prefs.loadDictionary()
+        CrashLog.install(this)
     }
 
     override fun onCreateInputView(): View {
         val r = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root = r
+        // The key preview floats over the keys, so the keyboard sits in a frame with the bubble on top.
+        val bubble = TextView(this).apply {
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+            elevation = KeyLook.dp(this@HelperBoardIme, 8).toFloat()
+        }
+        preview = bubble
+        val frame = FrameLayout(this)
+        frame.addView(r, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        frame.addView(bubble, FrameLayout.LayoutParams(0, 0))
         render()
-        return r
+        return frame
     }
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
@@ -78,6 +92,8 @@ class HelperBoardIme : InputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         if (recorder != null) stopRecording(insert = false)
+        main.removeCallbacksAndMessages(repeatToken)
+        hidePreview()
         super.onFinishInputView(finishingInput)
     }
 
@@ -85,6 +101,7 @@ class HelperBoardIme : InputMethodService() {
 
     private fun render() {
         val r = root ?: return
+        hidePreview()
         r.removeAllViews()
         r.background = KeyLook.background(this, prefs)
         // The phone's bar under the keyboard takes the keyboard's own colour, so it doesn't read as a black gap.
@@ -309,13 +326,16 @@ class HelperBoardIme : InputMethodService() {
         }
         val repeats = k.kind == KeyKind.BACKSPACE || k.kind == KeyKind.LEFT || k.kind == KeyKind.RIGHT
         tv.setOnTouchListener { v, e ->
-            when (e.action) {
+            when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     v.background = KeyLook.keyBackground(this, color, prefs.bubble, pressed = true, edge = p.border)
+                    if (prefs.keyBuzz) v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    if (k.kind == KeyKind.CHAR && prefs.keyPreview) showPreview(v, tv.text, p)
                     if (repeats) startRepeat(k)
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.background = KeyLook.keyBackground(this, color, prefs.bubble, edge = p.border)
+                    hidePreview()
                     if (repeats) stopRepeat()
                 }
             }
@@ -443,8 +463,32 @@ class HelperBoardIme : InputMethodService() {
     }
     private fun stopRepeat() {
         main.removeCallbacksAndMessages(repeatToken)
-        updateAutoCap(); render()
+        // Redraw after the touch is finished, never inside it. Rebuilding the keys while Android is still
+        // handing out this touch is what crashed the keyboard after fast or held ⌫ presses (video 11-20, 0:38).
+        main.post { updateAutoCap(); render() }
     }
+
+    // ---------- Key preview: the letter pops up above your thumb ----------
+
+    private fun showPreview(key: View, text: CharSequence, p: com.herdofhelpers.helperboard.core.HerdPalette) {
+        val b = preview ?: return
+        val frame = b.parent as? View ?: return
+        val k = IntArray(2); key.getLocationInWindow(k)
+        val f = IntArray(2); frame.getLocationInWindow(f)
+        val w = (key.width * 1.5f).toInt().coerceAtLeast(KeyLook.dp(this, 44))
+        val h = (key.height * 1.6f).toInt()
+        val x = (k[0] - f[0] + key.width / 2 - w / 2).coerceIn(0, (frame.width - w).coerceAtLeast(0))
+        // Sit above the key; on the top rows it may cover the tabs, which is fine for a moment.
+        val y = (k[1] - f[1] - h + key.height / 4).coerceAtLeast(0)
+        b.text = text
+        b.textSize = 30f
+        b.setTextColor(p.text)
+        b.background = KeyLook.keyBackground(this, p.surface, prefs.bubble, edge = p.accent, edgeDp = 2)
+        b.layoutParams = FrameLayout.LayoutParams(w, h).apply { leftMargin = x; topMargin = y }
+        b.visibility = View.VISIBLE
+    }
+
+    private fun hidePreview() { preview?.visibility = View.GONE }
 
     private var lastShiftDrawn = Shift.OFF
     private fun rerenderKeysIfShiftChanged() {
