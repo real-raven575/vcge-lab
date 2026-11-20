@@ -37,13 +37,25 @@ adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity"
 sleep 3
 shot 1-vault
 
-step "4 of 6: focus the try-it box so the keyboard draws itself"
+step "4 of 6: tap the try-it box, like a person would, so the keyboard draws itself"
 adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --ez focusTry true
+sleep 2
+# Find the box on screen and tap its middle.
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null
+BOX=$(adb shell cat /sdcard/ui.xml | tr -d '\r' | tr '>' '\n' | grep 'class="android.widget.EditText"' | head -1 \
+  | grep -o 'bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' | tr -c '0-9\n' ' ')
+echo "Try-it box bounds: $BOX"
+read -r X1 Y1 X2 Y2 <<<"$BOX"
+[[ -n "${Y2:-}" ]]
+adb shell input tap $(((X1+X2)/2)) $(((Y1+Y2)/2))
 sleep 4
 shot 2-keyboard
 SHOWN=$(adb shell dumpsys input_method | tr -d '\r' | grep -o "mInputShown=[a-z]*" | head -1)
 echo "Keyboard on screen: $SHOWN"
-[[ "$SHOWN" == "mInputShown=true" ]]
+if [[ "$SHOWN" != "mInputShown=true" ]]; then
+  adb shell dumpsys input_method | head -60
+  exit 1
+fi
 
 step "5 of 6: switch keyboard modes by tapping the screen"
 # Tap across the lower part of the screen, where the keyboard sits, to press real keys.
