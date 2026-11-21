@@ -3,6 +3,7 @@ package com.herdofhelpers.helperboard.core
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertNull
 
 /** Loudness per 30 ms frame: [quiet] frames at 50, talking at 3000. */
 private fun take(vararg parts: Pair<Boolean, Int>): IntArray =
@@ -204,5 +205,45 @@ class Build15Test {
             assertTrue(HerdTheme.contrast(p.onAccent, p.accent) >= 4.5, "mic, $where")
             assertTrue(HerdTheme.contrast(p.softInk, p.soft) >= 4.5, "suggestions, $where")
         }
+    }
+}
+
+class WordsTest {
+    private val en = WordList(java.io.File("../app/src/main/assets/words-en.txt").readLines())
+
+    @Test fun autocorrectFixesClearSlipsOnly() {
+        assertEquals("the", Autocorrect.fix("teh", en))
+        assertEquals("The", Autocorrect.fix("Teh", en))
+        assertEquals("hello", Autocorrect.fix("hrllo", en)) // r sits next to e
+        assertEquals("don't", Autocorrect.fix("dont", en))
+        assertEquals("I'm", Autocorrect.fix("im", en))
+        assertEquals("I", Autocorrect.fix("i", en))
+        assertNull(Autocorrect.fix("hello", en), "known words are left alone")
+        assertNull(Autocorrect.fix("vcge", en, known = { it == "vcge" }), "the user's own words are left alone")
+        assertNull(Autocorrect.fix("x7", en), "codes with numbers are left alone")
+    }
+
+    @Test fun swipeFindsTheWordAlongItsKeys() {
+        // A simple key grid: letter rows 100 px apart, keys 100 px wide, offsets like a phone keyboard.
+        val keys = HashMap<Char, Pt>()
+        listOf("qwertyuiop" to 0f, "asdfghjkl" to 25f, "zxcvbnm" to 75f).forEachIndexed { r, (row, off) ->
+            row.forEachIndexed { c, ch -> keys[ch] = Pt(off + c * 100f + 50f, r * 100f + 50f) }
+        }
+        val d = SwipeDecoder(keys, 100f, en)
+        fun swipe(word: String): List<Pt> {
+            // Wobble the finger a little around each key.
+            val pts = ArrayList<Pt>()
+            word.forEachIndexed { i, ch -> val k = keys[ch]!!; pts.add(Pt(k.x + (if (i % 2 == 0) 18f else -15f), k.y + 12f)) }
+            return pts
+        }
+        for (w in listOf("hello", "keyboard", "the", "world", "thanks")) {
+            val got = d.decode(swipe(w))
+            assertTrue(w in got.take(2), "$w -> $got")
+        }
+    }
+
+    @Test fun wordListSuggestsCommonWordsFirst() {
+        assertEquals("the", en.words.first())
+        assertTrue(en.complete("hel").contains("help"))
     }
 }

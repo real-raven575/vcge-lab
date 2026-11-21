@@ -239,6 +239,9 @@ class VaultActivity : Activity() {
         slider("Space between rows", 0, 16, prefs.rowGapDp, "dp") { prefs.rowGapDp = it }
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
         slider("Key buzz strength (0 = off)", 0, 100, prefs.keyBuzzStrength, "%") { prefs.keyBuzzStrength = it; testBuzz(it) }
+        toggle("Swipe typing (slide across the letters)", prefs.swipeTyping) { prefs.swipeTyping = it }
+        toggle("Autocorrect: fix clear slips when I press space (⌫ undoes it)", prefs.autocorrect) { prefs.autocorrect = it }
+        text("Autocorrect never touches dictation, passwords, or web and email addresses. Word lists: wordfreq by Robyn Speer, CC BY-SA 4.0.")
         toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
         toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }

@@ -21,6 +21,10 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.herdofhelpers.helperboard.core.Alternates
+import com.herdofhelpers.helperboard.core.Autocorrect
+import com.herdofhelpers.helperboard.core.Pt
+import com.herdofhelpers.helperboard.core.SwipeDecoder
+import com.herdofhelpers.helperboard.core.WordList
 import com.herdofhelpers.helperboard.core.EmojiBook
 import com.herdofhelpers.helperboard.core.EmojiGroup
 import com.herdofhelpers.helperboard.core.FieldPolicy
@@ -51,6 +55,19 @@ class HelperBoardIme : InputMethodService() {
     private var altBar: LinearLayout? = null
     private var altOptions: List<String> = emptyList()
     private var altPicked = 0
+
+    // Words: the common-word list for the voice language (loaded off the main thread), what was typed by keys since
+    // the last space (only that is ever autocorrected, never dictation), and the last fix so ⌫ can undo it.
+    @Volatile private var words: WordList? = null
+    private var wordsLang = ""
+    private val typed = StringBuilder()
+    private var lastFix: Pair<String, String>? = null
+    // Swipe typing: the finger's path over the letter keys, and the other words the last swipe could have been.
+    private val letterViews = HashMap<Char, View>()
+    private val swipePath = ArrayList<Pt>()
+    private var swiping = false
+    private var swipeAlternatives: List<String> = emptyList()
+    private var lastSwiped: String? = null
     private var suggestionRow: LinearLayout? = null
     private var micLabel: TextView? = null
     private val main = Handler(Looper.getMainLooper())
@@ -96,6 +113,8 @@ class HelperBoardIme : InputMethodService() {
         policy = FieldPolicy.from(info.inputType, info.imeOptions, prefs.allowPrivateSaving)
         shift.doubleTapMs = 350
         if (!restarting) mode = Mode.ABC
+        typed.clear(); lastFix = null; swipeAlternatives = emptyList(); lastSwiped = null
+        loadWords()
         updateAutoCap()
         render()
     }
@@ -112,6 +131,7 @@ class HelperBoardIme : InputMethodService() {
     private fun render() {
         val r = root ?: return
         hidePreview(); hideAlternates()
+        letterViews.clear()
         r.removeAllViews()
         r.background = KeyLook.background(this, prefs)
         // The phone's bar under the keyboard takes the keyboard's own colour, so it doesn't read as a black gap.
@@ -178,10 +198,28 @@ class HelperBoardIme : InputMethodService() {
         if (policy.isPrivate && !prefs.allowPrivateSaving) {
             row.addView(chip("🔒 Private box: nothing here is learned or saved", false) {}); return
         }
+        lastFix?.let { (original, fixed) ->
+            row.addView(chip("↶ $original", true) { undoFix() })
+            row.addView(chip("✓ $fixed", false) { lastFix = null; refreshSuggestions() })
+            return
+        }
+        lastSwiped?.let { swiped ->
+            for (alt in swipeAlternatives) row.addView(chip(alt, false) { replaceSwiped(swiped, alt) })
+            if (swipeAlternatives.isNotEmpty()) return
+        }
         val word = PersonalDictionary.currentWord(currentInputConnection?.getTextBeforeCursor(40, 0) ?: "")
         if (word.isEmpty()) return
-        for (s in dict.complete(word)) row.addView(chip(s, false) { replaceCurrentWord(word, s) })
-        if (!dict.isKnown(word) && word.length > 1) {
+        val list = words
+        // With autocorrect on, show the fix that space would make, so it's never a surprise.
+        if (prefs.autocorrect && autocorrectAllowed() && typed.toString() == word) {
+            list?.let { Autocorrect.fix(word, it, known = { w -> dict.isKnown(w) }, english = wordsLang == "en") }
+                ?.takeIf { it != word }?.let { fix -> row.addView(chip("→ $fix", true) { replaceCurrentWord(word, fix) }) }
+        }
+        val shown = HashSet<String>()
+        for (s in dict.complete(word) + (list?.complete(word) ?: emptyList()).map { WordList.matchCase(word, it) }) {
+            if (shown.add(s.lowercase()) && shown.size <= 4) row.addView(chip(s, false) { replaceCurrentWord(word, s) })
+        }
+        if (!dict.isKnown(word) && list?.isKnown(word) != true && word.length > 1) {
             row.addView(chip("＋ save \"$word\"", false) {
                 dict.approve(word); prefs.saveDictionary(dict); refreshSuggestions()
             })
@@ -335,6 +373,9 @@ class HelperBoardIme : InputMethodService() {
             KeyKind.LEFT -> "cursor left"; KeyKind.RIGHT -> "cursor right"; else -> k.label
         }
         val repeats = k.kind == KeyKind.BACKSPACE || k.kind == KeyKind.LEFT || k.kind == KeyKind.RIGHT
+        if (k.kind == KeyKind.CHAR && k.label.length == 1 && k.label[0].isLetter()) letterViews[k.label[0].lowercaseChar()] = tv
+        val canSwipe = k.kind == KeyKind.CHAR && prefs.swipeTyping && emojiQuery == null && mode == Mode.ABC &&
+            !(policy.isPrivate && !prefs.allowPrivateSaving)
         tv.setOnTouchListener { v, e ->
             // After a hold, the choices bar is open: slide along it, lift to type the one under your finger.
             if (altOptions.isNotEmpty()) {
@@ -344,6 +385,23 @@ class HelperBoardIme : InputMethodService() {
                     MotionEvent.ACTION_CANCEL -> { v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); hideAlternates() }
                 }
                 return@setOnTouchListener true
+            }
+            // Swipe typing: once the finger travels more than half a key, this press is a swipe, not a tap.
+            if (canSwipe) when (e.actionMasked) {
+                MotionEvent.ACTION_DOWN -> { swipePath.clear(); swipePath.add(Pt(e.rawX, e.rawY)); swiping = false }
+                MotionEvent.ACTION_MOVE -> {
+                    swipePath.add(Pt(e.rawX, e.rawY))
+                    if (!swiping) {
+                        val dx = e.rawX - swipePath[0].x; val dy = e.rawY - swipePath[0].y
+                        if (Math.hypot(dx.toDouble(), dy.toDouble()) > v.width * 0.6) {
+                            swiping = true; v.cancelLongPress(); v.isPressed = false; hidePreview()
+                            v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
+                        }
+                    }
+                    if (swiping) return@setOnTouchListener true
+                }
+                MotionEvent.ACTION_UP -> if (swiping) { swiping = false; finishSwipe(); return@setOnTouchListener true }
+                MotionEvent.ACTION_CANCEL -> swiping = false
             }
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -415,15 +473,21 @@ class HelperBoardIme : InputMethodService() {
             }
         }
         when (k.kind) {
-            KeyKind.MULTI -> { ic.commitText(k.output, 1); rerenderKeysIfShiftChanged() }
+            KeyKind.MULTI -> { forgetWord(); ic.commitText(k.output, 1); rerenderKeysIfShiftChanged() }
             KeyKind.CHAR -> {
-                ic.commitText(shift.apply(k.output), 1)
+                val out = shift.apply(k.output)
+                lastFix = null; swipeAlternatives = emptyList(); lastSwiped = null
+                if (out.length == 1 && (out[0].isLetter() || out[0] == '\'')) typed.append(out) else typed.clear()
+                ic.commitText(out, 1)
                 if (k.output.length == 1 && k.output[0].isLetter()) shift.afterLetter()
                 rerenderKeysIfShiftChanged()
             }
             KeyKind.SPACE -> {
-                // A space is only ever a space. Nothing is swapped in.
+                // A space is only a space, unless the user turned autocorrect on; then a clear slip is fixed and
+                // one tap of ⌫ (or the ↶ chip) puts back exactly what was typed.
                 offerWordBeforeCursor()
+                autocorrectBeforeSpace(ic)
+                swipeAlternatives = emptyList(); lastSwiped = null
                 ic.commitText(" ", 1); updateAutoCap(); render()
             }
             KeyKind.BACKSPACE -> { sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL); updateAutoCap(); render() }
@@ -481,8 +545,12 @@ class HelperBoardIme : InputMethodService() {
     private fun repeatOnce(k: Key) {
         // No redraw while the key is held: redrawing would replace the key under the finger and end the hold.
         when (k.kind) {
-            KeyKind.BACKSPACE -> if (repeatCount > 22) deleteWord(redraw = false) else sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
-            KeyKind.LEFT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_LEFT)
+            KeyKind.BACKSPACE -> when {
+                repeatCount == 0 && undoFix() -> {}
+                repeatCount > 22 -> { forgetWord(); deleteWord(redraw = false) }
+                else -> { if (typed.isNotEmpty()) typed.setLength(typed.length - 1); lastFix = null; sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL) }
+            }
+            KeyKind.LEFT -> { forgetWord(); sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_LEFT) }
             KeyKind.RIGHT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_RIGHT)
             else -> {}
         }
@@ -606,6 +674,90 @@ class HelperBoardIme : InputMethodService() {
         if (redraw) { updateAutoCap(); render() }
     }
 
+    // ---------- Word list, autocorrect, swipe ----------
+
+    private fun loadWords() {
+        val lang = if (prefs.language.startsWith("es")) "es" else "en"
+        if (lang == wordsLang && words != null) return
+        wordsLang = lang
+        Thread {
+            val list = runCatching { WordList(assets.open("words-$lang.txt").bufferedReader().readLines()) }.getOrNull()
+            main.post { if (wordsLang == lang) { words = list; refreshSuggestions() } }
+        }.start()
+    }
+
+    private fun forgetWord() { typed.clear(); lastFix = null; swipeAlternatives = emptyList(); lastSwiped = null }
+
+    /** Never in password or private boxes, or web and email addresses (T2, T7). */
+    private fun autocorrectAllowed() = !policy.isPrivate && !policy.isWebOrEmail
+
+    private fun autocorrectBeforeSpace(ic: android.view.inputmethod.InputConnection) {
+        val word = typed.toString(); typed.clear(); lastFix = null
+        if (!prefs.autocorrect || !autocorrectAllowed() || word.isEmpty()) return
+        val before = PersonalDictionary.currentWord(ic.getTextBeforeCursor(40, 0) ?: "")
+        if (before != word) return // the word wasn't all typed by keys just now (dictation, paste, cursor moved)
+        val list = words ?: return
+        val fix = Autocorrect.fix(word, list, known = { dict.isKnown(it) }, english = wordsLang == "en") ?: return
+        if (fix == word) return
+        ic.deleteSurroundingText(word.length, 0)
+        ic.commitText(fix, 1)
+        lastFix = word to fix
+    }
+
+    /** ⌫ right after a fix puts back exactly what was typed (and drops the space the fix came with). */
+    private fun undoFix(): Boolean {
+        val (original, fixed) = lastFix ?: return false
+        val ic = currentInputConnection ?: return false
+        val before = ic.getTextBeforeCursor(fixed.length + 1, 0)?.toString() ?: return false
+        lastFix = null
+        if (before != "$fixed " && before != fixed) return false
+        ic.deleteSurroundingText(before.length, 0)
+        ic.commitText(original, 1)
+        typed.clear()
+        main.post { updateAutoCap(); render() }
+        return true
+    }
+
+    private fun finishSwipe() {
+        val list = words ?: return
+        val path = ArrayList(swipePath)
+        val centres = HashMap<Char, Pt>()
+        var widths = 0f
+        val loc = IntArray(2)
+        for ((c, v) in letterViews) {
+            v.getLocationOnScreen(loc)
+            centres[c] = Pt(loc[0] + v.width / 2f, loc[1] + v.height / 2f); widths += v.width
+        }
+        if (centres.isEmpty()) return
+        val keyWidth = widths / centres.size
+        val caps = shift.state != com.herdofhelpers.helperboard.core.Shift.OFF
+        Thread {
+            val found = runCatching { SwipeDecoder(centres, keyWidth, list).decode(path) }.getOrDefault(emptyList())
+            main.post {
+                val ic = currentInputConnection ?: return@post
+                if (found.isEmpty()) { notice = "Swipe not recognised. Try again, or tap the letters."; refreshSuggestions(); return@post }
+                fun style(w: String) = if (caps) w.replaceFirstChar { it.uppercase() } else w
+                val word = style(found[0])
+                val before = ic.getTextBeforeCursor(1, 0)
+                val gap = if (!before.isNullOrEmpty() && !before.last().isWhitespace()) " " else ""
+                ic.commitText(gap + word, 1)
+                typed.clear(); lastFix = null
+                lastSwiped = word
+                swipeAlternatives = found.drop(1).map { style(it) }
+                if (shift.state == com.herdofhelpers.helperboard.core.Shift.ONCE) shift.afterLetter()
+                updateAutoCap(); render()
+            }
+        }.start()
+    }
+
+    private fun replaceSwiped(swiped: String, with: String) {
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(swiped.length, 0)?.toString()
+        if (before == swiped) { ic.deleteSurroundingText(swiped.length, 0); ic.commitText(with, 1) }
+        lastSwiped = null; swipeAlternatives = emptyList()
+        updateAutoCap(); render()
+    }
+
     private fun replaceCurrentWord(word: String, with: String) {
         val ic = currentInputConnection ?: return
         ic.deleteSurroundingText(word.length, 0)
@@ -677,6 +829,7 @@ class HelperBoardIme : InputMethodService() {
                 text != null -> "✅ Text ready in the Take Vault"
                 else -> "💾 $reason"
             }
+            forgetWord()
             if (text != null && insert) {
                 // Dictated text starts a new word: add a space if it would run into the word before it.
                 val before = currentInputConnection?.getTextBeforeCursor(1, 0)

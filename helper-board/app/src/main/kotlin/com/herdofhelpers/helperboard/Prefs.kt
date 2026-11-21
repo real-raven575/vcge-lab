@@ -55,6 +55,15 @@ class Prefs(context: Context) {
             ?: com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI
         set(v) = sp.edit().putString("multiKeyItems", v.joinToString(" ")).apply()
 
+    /** Autocorrect: off until the user turns it on (testers T2, T7). Never on dictation, passwords or addresses. */
+    var autocorrect: Boolean
+        get() = sp.getBoolean("autocorrect", false)
+        set(v) = sp.edit().putBoolean("autocorrect", v).apply()
+
+    var swipeTyping: Boolean
+        get() = sp.getBoolean("swipeTyping", true)
+        set(v) = sp.edit().putBoolean("swipeTyping", v).apply()
+
     /** "My colours": the three sliders, and keys shaded top to bottom. */
     var customColours: com.herdofhelpers.helperboard.core.CustomColours
         get() = com.herdofhelpers.helperboard.core.CustomColours(

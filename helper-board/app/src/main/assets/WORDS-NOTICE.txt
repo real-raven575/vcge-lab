@@ -1,0 +1,14 @@
+Helper Board word lists (words-en.txt, words-es.txt)
+
+These lists are the most common English and Spanish words, in order, taken from
+wordfreq 3.1.1 by Robyn Speer (https://github.com/rspeer/wordfreq).
+The word lists are shared under the Creative Commons Attribution-ShareAlike 4.0
+licence (https://creativecommons.org/licenses/by-sa/4.0/). If you share or change
+these two files, keep this notice and the same licence.
+
+wordfreq credits its sources: Google Books Ngrams (http://books.google.com/ngrams),
+the Leeds Internet Corpus, Wikipedia, ParaCrawl, OPUS OpenSubtitles 2018
+(OpenSubtitles.org), SUBTLEX word lists by Marc Brysbaert et al. (SUBTLEX is
+freely available data), and others listed in wordfreq's README.
+
+Helper Board only filtered them (letters only, at most 25,000 words each).
