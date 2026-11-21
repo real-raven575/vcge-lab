@@ -2,10 +2,13 @@ package com.herdofhelpers.helperboard.core
 
 enum class NumberStyle { ROW, GRID, OFF }
 
+/** The number pad: a phone's 1-2-3 on top, or a calculator / 10-key's 7-8-9 on top (raven575, 11-21). */
+enum class PadLayout(val label: String) { PHONE("Phone (1 2 3 on top)"), TEN_KEY("10-key (7 8 9 on top)") }
+
 enum class Mode { ABC, NUMBERS, SYMBOLS, TAKES, EMOJI }
 
 enum class KeyKind {
-    CHAR, SHIFT, BACKSPACE, ENTER, SPACE, MIC, LEFT, RIGHT, UNDO, CAPS_LOCK,
+    CHAR, MULTI, SHIFT, BACKSPACE, ENTER, SPACE, MIC, LEFT, RIGHT, UNDO, CAPS_LOCK,
     MODE_ABC, MODE_NUMBERS, MODE_SYMBOLS, MODE_TAKES, MODE_EMOJI, SETTINGS, SWITCH_KEYBOARD, HIDE,
 }
 
@@ -62,22 +65,39 @@ object Layouts {
     /** The big ⏎: two rows tall at the right edge, where ' and ⌫ used to be, so it's hard to miss (raven575, 11-20). */
     private val bigEnter get() = Key("⏎", kind = KeyKind.ENTER, weight = 1.6f, rows = 2)
 
-    fun abc(numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW): List<List<Key>> = buildList {
+    /**
+     * The programmable multi-key ✦ (raven575, 11-21): tap types its first item, hold shows all of them.
+     * The user sets the items in Settings.
+     */
+    const val MULTI_WEIGHT = 1.6f
+    fun multiKey(items: List<String>): Key {
+        val first = items.firstOrNull() ?: "✦"
+        return Key("✦$first", first, MULTI_WEIGHT, KeyKind.MULTI)
+    }
+    val DEFAULT_MULTI = listOf(":)", "/", "#", "&", "*", "(", ")", ";", ":", "…")
+
+    /** Every letter row adds up to the same width, so letters are the same size in every row (raven575, 11-21). */
+    const val LETTER_ROW_UNITS = 12.9f
+
+    fun abc(numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW, multi: List<String> = DEFAULT_MULTI): List<List<Key>> = buildList {
         if (myRow.isNotEmpty()) add(myRow)
         // ⌫ sits right after 0; with no number row it ends the top letter row instead.
-        if (numbers == NumberStyle.ROW) { add(chars("1234567890") + backspace); add(chars("qwertyuiop")) }
-        else add(chars("qwertyuiop") + backspace)
+        // The q row's spare room (it has only 10 letters) holds "!" and the ✦ multi-key, which sits above ⏎.
+        if (numbers == NumberStyle.ROW) {
+            add(chars("1234567890") + backspace)
+            add(chars("qwertyuiop") + Key("!", weight = 1.3f) + multiKey(multi))
+        } else add(chars("qwertyuiop") + Key("⌫", kind = KeyKind.BACKSPACE, weight = 1.3f) + multiKey(multi))
         // , . - ? ' live among the letters now, not in a row of their own.
-        add(chars("asdfghjkl") + listOf(Key("'"), Key("-"), bigEnter))
+        add(chars("asdfghjkl") + listOf(Key("'", weight = 1.15f), Key("-", weight = 1.15f), bigEnter))
         add(listOf(Key("⇧", kind = KeyKind.SHIFT, weight = 1.3f)) + chars("zxcvbnm") + listOf(Key(","), Key("."), Key("?")))
         add(bottomRow(Key("123", kind = KeyKind.MODE_NUMBERS, weight = 1.2f)))
     }
 
     /** Phone-style keypad grid with the common number symbols beside it. */
-    fun numbers(): List<List<Key>> = listOf(
-        chars("123") + listOf(Key("+"), Key("%")),
+    fun numbers(pad: PadLayout = PadLayout.PHONE): List<List<Key>> = listOf(
+        chars(if (pad == PadLayout.PHONE) "123" else "789") + listOf(Key("+"), Key("%")),
         chars("456") + listOf(Key("-"), Key("$")),
-        chars("789") + listOf(Key("*"), Key("/")),
+        chars(if (pad == PadLayout.PHONE) "789" else "123") + listOf(Key("*"), Key("/")),
         listOf(Key(","), Key("0"), Key("."), Key("="), backspace, Key("⏎", kind = KeyKind.ENTER, weight = 1.4f)),
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
@@ -106,9 +126,12 @@ object Layouts {
     fun rememberEmoji(recent: List<String>, used: String, max: Int = EmojiBook.DEFAULT_RECENT): List<String> =
         (listOf(used) + recent.filter { it != used }).take(max)
 
-    fun forMode(mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW): List<List<Key>> = when (mode) {
-        Mode.ABC, Mode.TAKES -> abc(numbers, myRow)
-        Mode.NUMBERS -> numbers()
+    fun forMode(
+        mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW,
+        pad: PadLayout = PadLayout.PHONE, multi: List<String> = DEFAULT_MULTI,
+    ): List<List<Key>> = when (mode) {
+        Mode.ABC, Mode.TAKES -> abc(numbers, myRow, multi)
+        Mode.NUMBERS -> numbers(pad)
         Mode.SYMBOLS -> symbols()
         Mode.EMOJI -> emoji()
     }

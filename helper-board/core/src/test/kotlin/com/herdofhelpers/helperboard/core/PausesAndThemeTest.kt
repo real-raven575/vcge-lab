@@ -152,13 +152,57 @@ class KeyPlacesTest {
         for (p in listOf(",", ".", "-", "?")) {
             val row = layout.first { r -> r.any { it.output == p } }
             assertTrue(row.count { it.output.length == 1 && it.output[0].isLetter() } >= 7, "$p sits with letters")
-            assertEquals(1f, row.first { it.output == p }.weight)
+            assertTrue(row.first { it.output == p }.weight in 1f..1.15f, "$p is letter-sized")
         }
     }
 
     @Test fun everyModeHasAnEnter() {
         for (n in NumberStyle.entries) for (m in Mode.entries) {
             assertTrue(Layouts.forMode(m, n).flatten().any { it.kind == KeyKind.ENTER }, "$m")
+        }
+    }
+}
+
+class Build15Test {
+    private fun units(row: List<Key>) = row.sumOf { it.weight.toDouble() }
+
+    @Test fun letterRowsAreTheSameWidthSoLettersMatch() {
+        for (style in listOf(NumberStyle.ROW, NumberStyle.OFF)) {
+            val rows = Layouts.abc(style)
+            val q = rows.first { it.any { k -> k.label == "q" } }
+            val a = rows.first { it.any { k -> k.label == "a" } }
+            val z = rows.first { it.any { k -> k.label == "z" } }
+            val enter = a.last().weight // the tall ⏎ also covers the z row
+            assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(q), 0.01, "q row, $style")
+            assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(a), 0.01, "a row, $style")
+            assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(z) + enter, 0.01, "z row, $style")
+            assertTrue(q.any { it.kind == KeyKind.MULTI }, "multi-key on the q row, $style")
+        }
+    }
+
+    @Test fun holdingAKeyOffersCapitalsAccentsAndPunctuation() {
+        val e = Alternates.forKey("e")
+        assertEquals("E", e.first()); assertTrue("é" in e && "3" in e)
+        assertEquals("e", Alternates.forKey("E", upper = true).first())
+        assertTrue("É" in Alternates.forKey("E", upper = true))
+        assertTrue("!" in Alternates.forKey("?") && "¿" in Alternates.forKey("?"))
+        assertTrue("ñ" in Alternates.forKey("n"))
+        assertTrue(Alternates.forKey("space").isEmpty())
+    }
+
+    @Test fun numberPadCanBePhoneOrTenKey() {
+        assertEquals(listOf("1", "2", "3"), Layouts.numbers(PadLayout.PHONE)[0].take(3).map { it.label })
+        assertEquals(listOf("7", "8", "9"), Layouts.numbers(PadLayout.TEN_KEY)[0].take(3).map { it.label })
+    }
+
+    @Test fun myColoursStayReadableAtEverySliderPosition() {
+        for (h in 0 until 360 step 30) for (s in 0..100 step 25) for (b in 0..100 step 10) {
+            val p = HerdTheme.custom(CustomColours(h, s, b))
+            val where = "hue $h strength $s brightness $b"
+            assertTrue(HerdTheme.contrast(p.text, p.surface) >= 4.5, "key text, $where")
+            assertTrue(HerdTheme.contrast(p.text, p.sunk) >= 4.5, "function key text, $where")
+            assertTrue(HerdTheme.contrast(p.onAccent, p.accent) >= 4.5, "mic, $where")
+            assertTrue(HerdTheme.contrast(p.softInk, p.soft) >= 4.5, "suggestions, $where")
         }
     }
 }

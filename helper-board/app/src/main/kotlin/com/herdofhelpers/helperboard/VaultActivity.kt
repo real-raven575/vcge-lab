@@ -233,10 +233,12 @@ class VaultActivity : Activity() {
         section("3. Keys")
         choice("Numbers", listOf("Row on top" to NumberStyle.ROW, "Keypad grid" to NumberStyle.GRID, "Off" to NumberStyle.OFF),
             prefs.numberStyle) { prefs.numberStyle = it }
+        choice("Number pad", com.herdofhelpers.helperboard.core.PadLayout.values().map { it.label to it }, prefs.padLayout) { prefs.padLayout = it }
+        multiKeyEditor()
         slider("Key height", 34, 72, prefs.keyHeightDp, "dp") { prefs.keyHeightDp = it }
         slider("Space between rows", 0, 16, prefs.rowGapDp, "dp") { prefs.rowGapDp = it }
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
-        toggle("Buzz on every key press", prefs.keyBuzz) { prefs.keyBuzz = it }
+        slider("Key buzz strength (0 = off)", 0, 100, prefs.keyBuzzStrength, "%") { prefs.keyBuzzStrength = it; testBuzz(it) }
         toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
         toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }
@@ -245,6 +247,61 @@ class VaultActivity : Activity() {
         text("Tips: double-tap ⇧ for caps lock. Hold ⌫ to keep deleting (it speeds up to whole words). " +
             "Tap ⚙ on the keyboard, or hold 123, to come straight here. Hold the space bar to switch keyboards.")
         crashBox()
+    }
+
+    /** A short buzz while the strength slider moves, so you feel the setting. */
+    private fun testBuzz(strength: Int) {
+        if (strength <= 0) return
+        val vib = getSystemService(android.os.Vibrator::class.java) ?: return
+        val effect = if (vib.hasAmplitudeControl())
+            android.os.VibrationEffect.createOneShot(18, (strength * 255 / 100).coerceIn(1, 255))
+        else android.os.VibrationEffect.createOneShot((5 + strength * 25 / 100).toLong(), android.os.VibrationEffect.DEFAULT_AMPLITUDE)
+        runCatching { vib.vibrate(effect) }
+    }
+
+    /** The ✦ multi-key: tap types the first item, hold shows them all. Items are separated by spaces. */
+    private fun multiKeyEditor() {
+        page.addView(TextView(this).apply {
+            text = "✦ multi-key (top letter row). Tap types the first item; hold shows them all. Separate items with spaces."
+            textSize = 15f; setTextColor(pal.text); setPadding(0, dp(8), 0, 0)
+        })
+        val box = android.widget.EditText(this).apply {
+            setText(prefs.multiKeyItems.joinToString(" ")); setTextColor(pal.text); textSize = 16f
+            setSingleLine(true)
+        }
+        page.addView(box)
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        row.addView(smallButton("Save ✦ items") {
+            prefs.multiKeyItems = box.text.toString().split(' ').filter { it.isNotEmpty() }; toast("Saved"); build()
+        })
+        row.addView(smallButton("Reset") {
+            prefs.multiKeyItems = com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI; build()
+        })
+        page.addView(row)
+    }
+
+    /** "My colours": hue, strength and brightness sliders with a live sample. Text colours stay readable by design. */
+    private fun customColoursEditor() {
+        val sample = TextView(this).apply {
+            text = "  Sample  a b c  ⏎  "; textSize = 18f; gravity = android.view.Gravity.CENTER
+            setPadding(dp(8), dp(14), dp(8), dp(14))
+        }
+        fun paint() {
+            val p = com.herdofhelpers.helperboard.core.HerdTheme.custom(prefs.customColours)
+            sample.setTextColor(p.text)
+            sample.background = android.graphics.drawable.LayerDrawable(arrayOf(
+                android.graphics.drawable.ColorDrawable(p.bg),
+                KeyLook.keyBackground(this, p.surface, prefs.bubble, edge = p.border, gradient = prefs.keyGradient)))
+        }
+        paint()
+        val c = prefs.customColours
+        slider("Colour (hue)", 0, 359, c.hue, "°") { prefs.customColours = prefs.customColours.copy(hue = it); paint() }
+        slider("Colour strength", 0, 100, c.strength, "%") { prefs.customColours = prefs.customColours.copy(strength = it); paint() }
+        slider("Brightness", 0, 100, c.brightness, "%") { prefs.customColours = prefs.customColours.copy(brightness = it); paint() }
+        page.addView(sample, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(0, dp(6), 0, dp(6))
+        })
+        button("Use these colours on this page too") { build() }
     }
 
     /** If the keyboard stopped, show why, with a Copy button for the tester. Nothing is sent anywhere. */
@@ -262,6 +319,8 @@ class VaultActivity : Activity() {
     private fun themeSection() {
         section("4. Look (all free)")
         choice("Colours", HerdLook.values().map { it.label to it }, prefs.herdLook) { prefs.herdLook = it }
+        if (prefs.herdLook == HerdLook.CUSTOM) customColoursEditor()
+        toggle("Shaded keys (gradient)", prefs.keyGradient) { prefs.keyGradient = it }
         choice("Colour vision", ColourVision.values().map { it.label to it }, prefs.colourVision) { prefs.colourVision = it }
         text(prefs.colourVision.hint)
         button(if (prefs.themePhoto.exists()) "🖼 Change photo" else "🖼 Pick a photo for the keyboard") {

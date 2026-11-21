@@ -20,6 +20,7 @@ import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.herdofhelpers.helperboard.core.Alternates
 import com.herdofhelpers.helperboard.core.EmojiBook
 import com.herdofhelpers.helperboard.core.EmojiGroup
 import com.herdofhelpers.helperboard.core.FieldPolicy
@@ -47,6 +48,9 @@ class HelperBoardIme : InputMethodService() {
     private var policy = FieldPolicy(learnWords = true, saveTakes = true, isPrivate = false, isWebOrEmail = false)
     private var root: LinearLayout? = null
     private var preview: TextView? = null
+    private var altBar: LinearLayout? = null
+    private var altOptions: List<String> = emptyList()
+    private var altPicked = 0
     private var suggestionRow: LinearLayout? = null
     private var micLabel: TextView? = null
     private val main = Handler(Looper.getMainLooper())
@@ -76,6 +80,12 @@ class HelperBoardIme : InputMethodService() {
         val frame = FrameLayout(this)
         frame.addView(r, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         frame.addView(bubble, FrameLayout.LayoutParams(0, 0))
+        val bar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; visibility = View.GONE
+            elevation = KeyLook.dp(this@HelperBoardIme, 10).toFloat()
+        }
+        altBar = bar
+        frame.addView(bar, FrameLayout.LayoutParams(0, 0))
         render()
         return frame
     }
@@ -93,7 +103,7 @@ class HelperBoardIme : InputMethodService() {
     override fun onFinishInputView(finishingInput: Boolean) {
         if (recorder != null) stopRecording(insert = false)
         main.removeCallbacksAndMessages(repeatToken)
-        hidePreview()
+        hidePreview(); hideAlternates()
         super.onFinishInputView(finishingInput)
     }
 
@@ -101,7 +111,7 @@ class HelperBoardIme : InputMethodService() {
 
     private fun render() {
         val r = root ?: return
-        hidePreview()
+        hidePreview(); hideAlternates()
         r.removeAllViews()
         r.background = KeyLook.background(this, prefs)
         // The phone's bar under the keyboard takes the keyboard's own colour, so it doesn't read as a black gap.
@@ -115,7 +125,7 @@ class HelperBoardIme : InputMethodService() {
         if (mode == Mode.TAKES) r.addView(takesDrawer())
         // While searching emoji, the letter keys type into the search line instead of the text box.
         val rows = if (emojiQuery != null) Layouts.abc(NumberStyle.OFF, myRow = emptyList())
-        else Layouts.forMode(mode, prefs.numberStyle)
+        else Layouts.forMode(mode, prefs.numberStyle, pad = prefs.padLayout, multi = prefs.multiKeyItems)
         var i = 0
         while (i < rows.size) {
             val tall = rows[i].lastOrNull()?.takeIf { it.rows == 2 && i + 1 < rows.size }
@@ -318,7 +328,7 @@ class HelperBoardIme : InputMethodService() {
             else -> p.sunk to p.text
         }
         tv.setTextColor(ink)
-        tv.background = KeyLook.keyBackground(this, color, prefs.bubble, edge = p.border)
+        tv.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
         tv.contentDescription = when (k.kind) {
             KeyKind.SPACE -> "space"; KeyKind.BACKSPACE -> "delete"; KeyKind.ENTER -> "enter"
             KeyKind.MIC -> "voice typing"; KeyKind.SHIFT -> "shift"; KeyKind.UNDO -> "undo"
@@ -326,15 +336,24 @@ class HelperBoardIme : InputMethodService() {
         }
         val repeats = k.kind == KeyKind.BACKSPACE || k.kind == KeyKind.LEFT || k.kind == KeyKind.RIGHT
         tv.setOnTouchListener { v, e ->
+            // After a hold, the choices bar is open: slide along it, lift to type the one under your finger.
+            if (altOptions.isNotEmpty()) {
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_MOVE -> pickAlternate(e.rawX)
+                    MotionEvent.ACTION_UP -> { v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); commitAlternate() }
+                    MotionEvent.ACTION_CANCEL -> { v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); hideAlternates() }
+                }
+                return@setOnTouchListener true
+            }
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, pressed = true, edge = p.border)
-                    if (prefs.keyBuzz) v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    if (k.kind == KeyKind.CHAR && prefs.keyPreview) showPreview(v, tv.text, p)
+                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, pressed = true, edge = p.border)
+                    buzz(v)
+                    if ((k.kind == KeyKind.CHAR || k.kind == KeyKind.MULTI) && prefs.keyPreview) showPreview(v, labelFor(k), p)
                     if (repeats) startRepeat(k)
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, edge = p.border)
+                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
                     hidePreview()
                     if (repeats) stopRepeat()
                 }
@@ -346,6 +365,12 @@ class HelperBoardIme : InputMethodService() {
             when (k.kind) {
                 KeyKind.SHIFT -> { shift.lock(); render(); true }
                 KeyKind.MODE_NUMBERS, KeyKind.SETTINGS -> { openSettings(); true }
+                KeyKind.CHAR, KeyKind.MULTI -> {
+                    val upper = shift.state != Shift.OFF
+                    val options = if (k.kind == KeyKind.MULTI) prefs.multiKeyItems else Alternates.forKey(k.label, upper)
+                    if (options.isEmpty() || emojiQuery != null) false
+                    else { hidePreview(); showAlternates(tv, options, p); buzz(tv); true }
+                }
                 KeyKind.SPACE -> {
                     (getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
                         .showInputMethodPicker(); true
@@ -390,6 +415,7 @@ class HelperBoardIme : InputMethodService() {
             }
         }
         when (k.kind) {
+            KeyKind.MULTI -> { ic.commitText(k.output, 1); rerenderKeysIfShiftChanged() }
             KeyKind.CHAR -> {
                 ic.commitText(shift.apply(k.output), 1)
                 if (k.output.length == 1 && k.output[0].isLetter()) shift.afterLetter()
@@ -489,6 +515,74 @@ class HelperBoardIme : InputMethodService() {
     }
 
     private fun hidePreview() { preview?.visibility = View.GONE }
+
+    // ---------- Hold a key for more: capitals, accents, symbols, punctuation ----------
+
+    private fun showAlternates(key: View, options: List<String>, p: com.herdofhelpers.helperboard.core.HerdPalette) {
+        val bar = altBar ?: return
+        val frame = bar.parent as? View ?: return
+        bar.removeAllViews()
+        val cellW = maxOf(key.width, KeyLook.dp(this, 40))
+        // Long lists wrap to fit the keyboard's width.
+        val perRow = maxOf(1, frame.width / cellW)
+        val shown = options.take(perRow)
+        for (o in shown) bar.addView(TextView(this).apply {
+            text = o; gravity = Gravity.CENTER; textSize = 22f; setTextColor(p.text)
+        }, LinearLayout.LayoutParams(cellW, ViewGroup.LayoutParams.MATCH_PARENT))
+        val w = cellW * shown.size
+        val h = (key.height * 1.25f).toInt()
+        val k = IntArray(2); key.getLocationInWindow(k)
+        val f = IntArray(2); frame.getLocationInWindow(f)
+        val x = (k[0] - f[0]).coerceIn(0, (frame.width - w).coerceAtLeast(0))
+        val y = (k[1] - f[1] - h).coerceAtLeast(0)
+        bar.background = KeyLook.keyBackground(this, p.surface, 0, edge = p.accent, edgeDp = 2)
+        bar.layoutParams = FrameLayout.LayoutParams(w, h).apply { leftMargin = x; topMargin = y }
+        bar.visibility = View.VISIBLE
+        altOptions = shown
+        altPicked = 0
+        highlightAlternate(p)
+    }
+
+    private fun pickAlternate(rawX: Float) {
+        val bar = altBar ?: return
+        val loc = IntArray(2); bar.getLocationOnScreen(loc)
+        val cell = if (altOptions.isEmpty()) return else bar.width / altOptions.size
+        val i = ((rawX - loc[0]) / cell).toInt().coerceIn(0, altOptions.size - 1)
+        if (i != altPicked) { altPicked = i; highlightAlternate(KeyLook.palette(this, prefs)) }
+    }
+
+    private fun highlightAlternate(p: com.herdofhelpers.helperboard.core.HerdPalette) {
+        val bar = altBar ?: return
+        for (i in 0 until bar.childCount) (bar.getChildAt(i) as TextView).apply {
+            val on = i == altPicked
+            setTextColor(if (on) p.onAccent else p.text)
+            background = if (on) KeyLook.keyBackground(this@HelperBoardIme, p.accent, 0, edge = p.accent) else null
+        }
+    }
+
+    private fun commitAlternate() {
+        val pick = altOptions.getOrNull(altPicked)
+        hideAlternates()
+        if (pick == null) return
+        currentInputConnection?.commitText(pick, 1)
+        if (pick.length == 1 && pick[0].isLetter()) shift.afterLetter()
+        main.post { rerenderKeysIfShiftChanged() }
+    }
+
+    private fun hideAlternates() { altOptions = emptyList(); altBar?.visibility = View.GONE }
+
+    // ---------- Key buzz, strength set by the user ----------
+
+    private fun buzz(v: View) {
+        val strength = prefs.keyBuzzStrength
+        if (strength <= 0) return
+        val vib = getSystemService(android.os.Vibrator::class.java)
+        if (vib == null || !vib.hasVibrator()) { v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP); return }
+        val effect = if (vib.hasAmplitudeControl())
+            android.os.VibrationEffect.createOneShot(18, (strength * 255 / 100).coerceIn(1, 255))
+        else android.os.VibrationEffect.createOneShot((5 + strength * 25 / 100).toLong(), android.os.VibrationEffect.DEFAULT_AMPLITUDE)
+        runCatching { vib.vibrate(effect) }
+    }
 
     private var lastShiftDrawn = Shift.OFF
     private fun rerenderKeysIfShiftChanged() {

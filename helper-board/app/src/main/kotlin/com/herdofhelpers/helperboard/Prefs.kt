@@ -39,10 +39,31 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("allowPrivateSaving", false)
         set(v) = sp.edit().putBoolean("allowPrivateSaving", v).apply()
 
-    /** A short buzz on every key press, so you feel each contact (raven575 video, 11-20). */
-    var keyBuzz: Boolean
-        get() = sp.getBoolean("keyBuzz", true)
-        set(v) = sp.edit().putBoolean("keyBuzz", v).apply()
+    /** A short buzz on every key press, so you feel each contact (raven575 video, 11-20). 0 = off, 100 = strongest. */
+    var keyBuzzStrength: Int
+        get() = sp.getInt("keyBuzzStrength", 50)
+        set(v) = sp.edit().putInt("keyBuzzStrength", v).apply()
+
+    var padLayout: com.herdofhelpers.helperboard.core.PadLayout
+        get() = runCatching { com.herdofhelpers.helperboard.core.PadLayout.valueOf(sp.getString("padLayout", "PHONE")!!) }
+            .getOrDefault(com.herdofhelpers.helperboard.core.PadLayout.PHONE)
+        set(v) = sp.edit().putString("padLayout", v.name).apply()
+
+    /** What the ✦ multi-key types: tap = the first item, hold = all of them. Stored space-separated. */
+    var multiKeyItems: List<String>
+        get() = sp.getString("multiKeyItems", null)?.split(' ')?.filter { it.isNotEmpty() }?.takeIf { it.isNotEmpty() }
+            ?: com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI
+        set(v) = sp.edit().putString("multiKeyItems", v.joinToString(" ")).apply()
+
+    /** "My colours": the three sliders, and keys shaded top to bottom. */
+    var customColours: com.herdofhelpers.helperboard.core.CustomColours
+        get() = com.herdofhelpers.helperboard.core.CustomColours(
+            sp.getInt("customHue", 175), sp.getInt("customStrength", 45), sp.getInt("customBrightness", 10))
+        set(v) = sp.edit().putInt("customHue", v.hue).putInt("customStrength", v.strength)
+            .putInt("customBrightness", v.brightness).apply()
+    var keyGradient: Boolean
+        get() = sp.getBoolean("keyGradient", false)
+        set(v) = sp.edit().putBoolean("keyGradient", v).apply()
 
     /** The letter pops up above your thumb so you can see which key you pressed. */
     var keyPreview: Boolean

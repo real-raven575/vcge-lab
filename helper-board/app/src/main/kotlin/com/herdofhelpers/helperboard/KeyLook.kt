@@ -24,7 +24,7 @@ object KeyLook {
     /** The Herd palette for the user's look and colour vision. "Match my phone" follows the phone's dark mode. */
     fun palette(context: Context, prefs: Prefs): HerdPalette {
         val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        return HerdTheme.palette(prefs.herdLook, prefs.colourVision, phoneIsDark = night)
+        return HerdTheme.palette(prefs.herdLook, prefs.colourVision, phoneIsDark = night, custom = prefs.customColours)
     }
 
     /** The colour a photo tint name stands for, or 0 for none. */
@@ -42,12 +42,17 @@ object KeyLook {
     }
 
     /** A rounded key with a soft top-light bevel ("bubble"); strength 0 = flat. */
-    fun keyBackground(context: Context, color: Int, bubble: Int, pressed: Boolean = false, edge: Int? = null, edgeDp: Int = 1): Drawable {
+    fun keyBackground(
+        context: Context, color: Int, bubble: Int, pressed: Boolean = false, edge: Int? = null, edgeDp: Int = 1,
+        gradient: Boolean = false,
+    ): Drawable {
         val base = if (pressed) blend(color, Color.BLACK, 0.25f) else color
         val radius = dp(context, 9).toFloat()
         val body = GradientDrawable().apply {
             cornerRadius = radius
-            setColor(base)
+            // Shaded keys: lighter at the top, darker at the bottom.
+            if (gradient) { orientation = GradientDrawable.Orientation.TOP_BOTTOM; colors = intArrayOf(blend(base, Color.WHITE, 0.12f), blend(base, Color.BLACK, 0.22f)) }
+            else setColor(base)
             setStroke(dp(context, edgeDp), edge ?: blend(base, Color.BLACK, 0.35f))
         }
         if (bubble <= 0) return body
@@ -62,7 +67,9 @@ object KeyLook {
     /** The keyboard background: the user's photo (positioned or tiled, faded, tinted), or a plain color. */
     fun background(context: Context, prefs: Prefs): Drawable {
         val p = palette(context, prefs)
-        val plain = ColorDrawable(p.bg)
+        val plain: Drawable = if (prefs.keyGradient)
+            GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(blend(p.bg, p.accent, 0.18f), p.bg))
+        else ColorDrawable(p.bg)
         val file = prefs.themePhoto
         if (!file.exists()) return plain
         val bmp: Bitmap = runCatching { decodeScaled(file.path, 1080) }.getOrNull() ?: return plain
