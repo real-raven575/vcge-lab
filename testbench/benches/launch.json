@@ -270,6 +270,20 @@
    "pm": "email"
   },
   {
+   "id": "nf1-poke-path",
+   "title": "🦒 Never Forget #1: one working cross-team poke path",
+   "area": "🦒 Team Never Forget · #1",
+   "why": "Cross-project fire_trigger returns 'not found', so teams can't poke each other. (AIDE-0019)",
+   "steps": [
+    {
+     "text": "Find and test one cross-team poke path that works.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
    "id": "h5b-admin-login",
    "title": "🛡 Set up admin@herdofhelpers.com as the Herd admin login",
    "area": "🙋 You · one login for the Herd",
@@ -549,6 +563,76 @@
    "pm": "9to5"
   },
   {
+   "id": "nf2-reminders",
+   "title": "🦒 Never Forget #2: Reminders dashboard phase 1 (Nextcloud Calendar + Tasks)",
+   "area": "🦒 Team Never Forget · #2",
+   "why": "Not built yet: blocked on where its Flight Deck page goes (HQ-0336 reply 2) and a VM build card. (AIDE-0019)",
+   "steps": [
+    {
+     "text": "Answer the Flight Deck page location and the VM build card when they reach you.",
+     "who": "human"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "nf3-homework",
+   "title": "🦒 Never Forget #3: homework check-in app, phase 1 (AIDE-0018)",
+   "area": "🦒 Team Never Forget · #3",
+   "why": "HomeLab sent the plan (AIDE-0018 reply 2) on 11-21. (AIDE-0019)",
+   "steps": [
+    {
+     "text": "Never Forget reviews HomeLab's plan.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
+   "id": "nf4-maybug",
+   "title": "🦒 Never Forget #4: Maybug: PowerSchool Assignments tab",
+   "area": "🦒 Team Never Forget · #4",
+   "why": "Waits on your answer about the PowerSchool Assignments tab. (AIDE-0019)",
+   "steps": [
+    {
+     "text": "Answer Never Forget's question about the PowerSchool Assignments tab.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "nf5-hmlb0048",
+   "title": "🦒 Never Forget #5: HMLB-0048 step 2 check block",
+   "area": "🦒 Team Never Forget · #5",
+   "why": "A check block waits to be pasted. (AIDE-0019)",
+   "steps": [
+    {
+     "text": "Paste the HMLB-0048 step 2 check block in Never Forget's thread.",
+     "who": "human"
+    }
+   ],
+   "status": "ready",
+   "section": "raven"
+  },
+  {
+   "id": "nf6-storage",
+   "title": "🦒 Never Forget #6: HQ-0232 storage check",
+   "area": "🦒 Team Never Forget · #6",
+   "why": "The storage check is still open. (AIDE-0019)",
+   "steps": [
+    {
+     "text": "Never Forget finishes the HQ-0232 storage check.",
+     "who": "robot"
+    }
+   ],
+   "status": "waiting",
+   "section": "raven"
+  },
+  {
    "id": "h4-tester-group",
    "title": "👥 Google Group for Play testers: done",
    "area": "🙋 You · vCGE critical path",
@@ -676,7 +760,7 @@
    "id": "hq0347-biggest-wins",
    "title": "📬 HQ-0347 biggest wins: waiting on team replies",
    "area": "🤖 Herd Mailbox",
-   "why": "Sent to all 10 teams at 01:31 UTC 11-20; 1 of 10 replied by 02:35 UTC (History). Never Forget has not sent its top items yet; they join this list when they do.",
+   "why": "Sent to all 10 teams at 01:31 UTC 11-20; 1 of 10 replied by 02:35 UTC (History).",
    "steps": [
     {
      "text": "Collect the replies and fold each new #1 into this bench.",
