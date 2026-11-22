@@ -8,6 +8,10 @@
 #   3. adds "reverse_proxy /testbench/api/* 127.0.0.1:<TESTBENCH_PORT>" to Team vCGE's Caddy file (backup kept;
 #      validated first)
 #   4. copies the page to <LAB_ROOT>/www/testbench/
+# Voice notes: when a Python with faster-whisper is found (TRANSCRIBE_PY in lab.conf, or the lab's tester-audio venv
+# ~/vcge-tools/transcribe/venv) and <LAB_USER> can run it, voice notes are written out on this machine; the speech
+# model (small.en, about 480 MB) is fetched once into <TESTBENCH_ROOT>/models. Otherwise voice notes are kept, not
+# written out, and the page says so.
 # Nothing in the app repo or any published build is touched. Undo lines at the end.
 #   Run, from the folder that holds this script:  sudo bash vcge-lab-testbench-install.sh
 #   Settings (LAB_ROOT, LAB_USER, TESTBENCH_ROOT, TESTBENCH_PORT, VCGE_CADDY): lab.conf, see lab.conf.example.
@@ -23,7 +27,7 @@ PORT=${TESTBENCH_PORT:-8771}
 C=${VCGE_CADDY:-/etc/caddy/teams/vcge.caddy}
 UNIT=/etc/systemd/system/testbench-api.service
 [ "$(id -u)" = 0 ] || { echo "Run with sudo: sudo bash $0" >&2; exit 1; }
-for f in testbench-api.py benches/vcge.json www/index.html www/testbench.js www/testbench.css; do [ -f "$HERE/$f" ] || { echo "  STOP missing $HERE/$f" >&2; exit 1; }; done
+for f in testbench-api.py testbench-transcribe.py benches/vcge.json www/index.html www/testbench.js www/testbench.css; do [ -f "$HERE/$f" ] || { echo "  STOP missing $HERE/$f" >&2; exit 1; }; done
 for f in "$HERE"/benches/*.json; do
     python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["items"] and d["title"]' "$f" 2>/dev/null || { echo "  STOP $f is not a valid bench. Nothing changed." >&2; exit 1; }
 done
@@ -41,6 +45,28 @@ echo "  OK   $TB"
 echo "2. Test Bench service"
 install -d "$P/bin"
 install -o root -g root -m 755 "$HERE/testbench-api.py" "$P/bin/testbench-api"
+install -o root -g root -m 755 "$HERE/testbench-transcribe.py" "$P/bin/testbench-transcribe"
+TX=""
+PY=${TRANSCRIBE_PY:-}
+if [ -z "$PY" ]; then
+    for h in $(getent passwd | cut -d: -f6 | sort -u); do [ -x "$h/vcge-tools/transcribe/venv/bin/python" ] && { PY="$h/vcge-tools/transcribe/venv/bin/python"; break; }; done
+fi
+if [ -z "$PY" ]; then
+    echo "  WARN no Python with faster-whisper found (set TRANSCRIBE_PY in lab.conf): voice notes are kept but not written out"
+elif ! command -v ffmpeg >/dev/null; then
+    echo "  WARN ffmpeg is not installed: voice notes are kept but not written out"
+elif ! sudo -u "$U" "$PY" -c 'import faster_whisper' >/dev/null 2>&1; then
+    echo "  WARN $U cannot run $PY with faster-whisper (folder permissions?): voice notes are kept but not written out"
+else
+    install -d -o "$U" -g "$U" -m 750 "$TB/models"
+    echo "  ..   speech model small.en: fetched once into $TB/models (about 480 MB; progress below)"
+    if sudo -u "$U" env HF_HOME="$TB/models" "$PY" -c "from faster_whisper import WhisperModel; WhisperModel('small.en', device='cpu', compute_type='int8')"; then
+        TX="--transcribe-python $PY"
+        echo "  OK   voice notes are written out on this machine ($PY)"
+    else
+        echo "  WARN the speech model did not load: voice notes are kept but not written out"
+    fi
+fi
 install -d -o root -g root -m 755 "$P/bin/testbench-benches"
 install -o root -g root -m 644 "$HERE"/benches/*.json "$P/bin/testbench-benches/"
 cat > "$UNIT" <<UNITFILE
@@ -52,7 +78,8 @@ Wants=network-online.target
 [Service]
 User=$U
 Group=$U
-ExecStart=/usr/bin/python3 $P/bin/testbench-api --root $TB --seeds $P/bin/testbench-benches --port $PORT
+Environment=HF_HOME=$TB/models HF_HUB_OFFLINE=1
+ExecStart=/usr/bin/python3 $P/bin/testbench-api --root $TB --seeds $P/bin/testbench-benches --port $PORT $TX
 Restart=on-failure
 NoNewPrivileges=true
 ProtectSystem=strict
@@ -96,6 +123,6 @@ echo "  OK   $WWW/testbench/"
 
 echo
 echo "  Done. Open https://<lab>/vcge/testbench/ (vCGE) and https://<lab>/vcge/testbench/?bench=auto-fixer (Auto-Fixer)."
-echo "  To undo: systemctl disable --now testbench-api; rm -r $UNIT $P/bin/testbench-api $P/bin/testbench-benches;"
+echo "  To undo: systemctl disable --now testbench-api; rm -r $UNIT $P/bin/testbench-api $P/bin/testbench-transcribe $P/bin/testbench-benches;"
 echo "           rm -r $WWW/testbench; cp $C.before-testbench $C && systemctl reload caddy"
 echo "  What raven575 recorded (notes, results, pictures) in $TB is left in place on undo."

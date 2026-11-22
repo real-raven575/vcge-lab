@@ -3,6 +3,7 @@
  "title": "The Test Bench",
  "emoji": "🧪",
  "team": "Team vCGE",
+ "pm": "vcge",
  "theme": "vcge",
  "intro": "Every open vCGE test in one list. Work down Needs raven575; Automatic reads the real CI runs by itself.",
  "sections": {

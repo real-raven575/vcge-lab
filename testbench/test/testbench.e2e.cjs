@@ -56,16 +56,20 @@ function standIn() {
 (async () => {
     fs.cpSync(path.join(REPO, 'testbench/www'), path.join(W, 'testbench'), { recursive: true });
     fs.copyFileSync(path.join(REPO, 'flight-deck/www/deckbar.css'), path.join(W, 'deckbar.css'));
+    for (const f of ['pm-links.js', 'pm-links.css']) fs.copyFileSync(path.join(REPO, 'flight-deck/www', f), path.join(W, f));
     const gh = fakeGitHub().listen(PORTS.gh), web = standIn().listen(PORTS.web);
+    // A stand-in speech reader: the real one (faster-whisper) only runs on the lab. It answers in place of the Python.
+    const reader = path.join(T, 'fake-reader.sh');
+    fs.writeFileSync(reader, '#!/bin/sh\necho "the save button did nothing"\n', { mode: 0o755 });
     const api = spawn('python3', ['-I', path.join(REPO, 'testbench/testbench-api.py'), '--root', path.join(T, 'root'), '--port', String(PORTS.api),
-        '--seeds', path.join(REPO, 'testbench/benches'), '--github', `http://127.0.0.1:${PORTS.gh}`, '--no-ci'], { stdio: ['ignore', 'ignore', 'inherit'] });
+        '--seeds', path.join(REPO, 'testbench/benches'), '--github', `http://127.0.0.1:${PORTS.gh}`, '--no-ci', '--transcribe-python', reader], { stdio: ['ignore', 'ignore', 'inherit'] });
     let browser;
     try {
         for (let i = 0; i < 50; i++) { try { await fetch(`http://127.0.0.1:${PORTS.api}/testbench/api/health`); break; } catch { await new Promise(r => setTimeout(r, 100)); } }
-        browser = await chromium.launch();
+        browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] });
         const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 } });
         await ctx.route(/^https:\/\//, r => r.abort());   // decision links open new tabs; never leave the machine
-        await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: `http://127.0.0.1:${PORTS.web}` });
+        await ctx.grantPermissions(['clipboard-read', 'clipboard-write', 'microphone'], { origin: `http://127.0.0.1:${PORTS.web}` });
         const page = await ctx.newPage();
         const errors = []; page.on('pageerror', e => errors.push(e.message));
         const url = `http://127.0.0.1:${PORTS.web}/testbench/`;
@@ -77,6 +81,12 @@ function standIn() {
         ok(await auto.count() === seedAuto.length, `every automatic line is listed (${seedAuto.length})`);
         ok((await raven.first().locator('.ttl').textContent()).startsWith(seedRaven[0].title), 'in the seed\'s order');
         ok(await page.locator('#tally').textContent().then(t => t.includes(`${seedRaven.filter(i => i.status === 'ready').length} ready`)), 'tally counts ready tests');
+
+        // Every hands-on card taps through to the owning PM's chat (the vCGE bench: 🐘 Cornerstone)
+        const pmHref = require(path.join(REPO, 'flight-deck/www/pm-links.js')).pmFor('vcge').href;
+        ok(await page.locator('#ravenList > li.item summary a.pm-link').count() === seedRaven.length
+            && (await page.locator('#ravenList a.pm-link').evaluateAll(a => a.map(x => x.href))).every(h => h === pmHref), 'every hands-on card has the PM chat button');
+        ok(await page.locator('#autoList .pm-link').count() === 0, 'automatic lines have no PM button');
 
         // Tapping a count goes to the next card it counted
         const waits = seedRaven.filter(i => i.status === 'waiting');
@@ -149,7 +159,7 @@ function standIn() {
         await step(3).locator('.saved').filter({ hasText: '✓ saved' }).waitFor();
         await item.locator('.notes textarea').fill('');
         await item.locator('.drop input[type=file]').setInputFiles({ name: 'fake.png', mimeType: 'image/png', buffer: Buffer.from('<svg/>') });
-        await item.locator('.drop + .note').filter({ hasText: 'photos and screenshots only' }).waitFor();
+        await item.locator('.drop + .note').filter({ hasText: 'voice notes only' }).waitFor();
         ok(true, 'a file that is not a picture is refused with a reason');
 
         await page.reload();
@@ -163,6 +173,46 @@ function standIn() {
         await item.getByRole('button', { name: '📋 Copy my results' }).click();
         const copied = await page.evaluate(() => navigator.clipboard.readText());
         ok(copied.includes(`Test Bench: ${first.title}`) && copied.includes('❌ Fail: The tabs showed') && copied.includes('Pictures on the lab Test Bench: 3'), 'Copy my results gives the steps, results, notes and picture count');
+
+        // Voice notes: speak instead of typing; the take is kept, sent, written out on the lab and lands in the step's box
+        await step(4).getByRole('button', { name: 'Speak a note instead of typing' }).click();
+        await step(4).getByRole('button', { name: 'Stop recording' }).waitFor();
+        ok(await step(0).locator('button.voice').isDisabled(), 'one recording at a time: the other 🎙 buttons wait');
+        await page.waitForTimeout(2200);
+        ok(await page.evaluate(() => new Promise(ok => { const r = indexedDB.open('testbench-takes', 1); r.onsuccess = () => {
+            const g = r.result.transaction('takes').objectStore('takes').getAll(); g.onsuccess = () => ok(g.result.length === 1 && g.result[0].blob.size > 0); }; })),
+            'while you talk, the take is already kept in this browser');
+        await step(4).getByRole('button', { name: 'Stop recording' }).click();
+        await page.waitForFunction(id => document.querySelectorAll(`li.item[data-id="${id}"] .voices audio`).length === 1, first.id);
+        await page.waitForFunction(() => [...document.querySelectorAll('textarea')].some(t => t.value === 'the save button did nothing'));
+        ok(await step(4).locator('textarea').inputValue() === 'the save button did nothing', 'the words land in the box of the step they were spoken for');
+        await step(4).locator('.saved').filter({ hasText: '✓ saved' }).waitFor();
+        ok(await item.locator('.voices .said').textContent() === 'the save button did nothing' && await item.locator('.voices').textContent().then(t => t.includes('step 5')), 'the recording is kept with its words and its step');
+        ok(await page.evaluate(() => new Promise(ok => { const r = indexedDB.open('testbench-takes', 1); r.onsuccess = () => {
+            const g = r.result.transaction('takes').objectStore('takes').getAll(); g.onsuccess = () => ok(g.result.length === 0); }; })) && await page.locator('#takes').isHidden(),
+            'once the lab has it, the browser copy is gone');
+        await item.getByRole('button', { name: '📋 Copy my results' }).click();
+        ok(await page.evaluate(() => navigator.clipboard.readText()).then(t => t.includes('Voice note') && t.includes('(step 5): the save button did nothing') && t.includes('Pictures on the lab Test Bench: 3')), 'Copy my results includes what was said');
+
+        // The lab can't be reached when you stop: the take stays in the browser, with a Send button, and survives a reload
+        const offline = r => (r.request().method() === 'PUT' ? r.abort() : r.continue());
+        await page.route('**/testbench/api/evidence*', offline);
+        await item.locator('.notes').getByRole('button', { name: 'Speak a note instead of typing' }).click();
+        await page.waitForTimeout(1500);
+        await item.locator('.notes').getByRole('button', { name: 'Stop recording' }).click();
+        await page.locator('#takes button').waitFor();
+        ok(await item.locator('.notes .vmsg').textContent().then(t => t.includes('kept in this browser')), 'a take the lab did not get says it is kept in this browser');
+        await page.unroute('**/testbench/api/evidence*', offline);
+        await page.reload();
+        await page.locator('#takes button').waitFor();
+        ok(true, 'an unsent take is still offered after a reload');
+        await page.locator('#takes button').first().click();
+        await item.locator('summary').click();
+        await page.waitForFunction(id => document.querySelectorAll(`li.item[data-id="${id}"] .voices audio`).length === 2, first.id);
+        await page.waitForFunction(() => document.getElementById('takes').hidden);
+        await page.waitForFunction(id => document.querySelector(`li.item[data-id="${id}"] .notes textarea`).value === 'the save button did nothing', first.id);
+        ok(true, 'Send puts it on the lab, writes it out into the card note box, and the banner goes');
+        await item.locator('.notes textarea').fill('');
 
         // Status: Passed leaves "Still to do"
         await item.locator('select').selectOption('pass');
@@ -202,6 +252,10 @@ function standIn() {
 
         // Auto-Fixer's bench on the same engine: its own list, theme and 👤/🤖 steps
         await page.setViewportSize({ width: 1200, height: 900 });
+        // The launch bench has no yes/no steps: its tally shows no count for them, and no stray "null" either
+        await page.goto(`${url}?bench=launch`);
+        await raven.first().waitFor();
+        ok(await page.locator('#tally').textContent().then(t => !t.includes('null') && !t.includes('yes or no')), 'a bench with no yes/no steps shows no stray "null" in its tally');
         await page.goto(`${url}?bench=auto-fixer`);
         await raven.first().waitFor();
         ok(await page.locator('#benchTitle').textContent() === `${SHOP.emoji} ${SHOP.title}`, 'Auto-Fixer bench shows its own title');

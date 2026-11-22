@@ -158,3 +158,20 @@ test('no page uses an emoji newer than Emoji 12.0 (Windows 10 shows a box)', () 
     }
   }
 });
+
+test('every team hangar taps through to its PM chat from the one link list', () => {
+  const pm = require(path.join(www, 'pm-links.js'));
+  const keys = [...page.matchAll(/<li class="hangar (?:live|reserved)" data-pm="([^"]+)"/g)].map((m) => m[1]);
+  assert.equal(keys.length, hangars.filter((x) => !x.startsWith(' open')).length, 'a hangar has no data-pm');
+  assert.deepEqual([...keys].sort(), Object.keys(pm.TEAMS).sort());
+  assert.ok(page.includes('<script src="pm-links.js"></script>') && page.includes('href="pm-links.css"'));
+  for (const [key, t] of Object.entries(pm.TEAMS)) {
+    // Only real project links; never a thread or session id (those open archived threads).
+    assert.ok(t.link === '' || pm.SHAPE.test(t.link), `${key}: ${t.link}`);
+    assert.ok(!/thread=|cmsg_|session_/.test(t.link), key);
+  }
+  assert.equal(pm.pmFor('creative').href, 'https://claude.ai/code/project/chan_01FmXJmy8KCy4hAMGkMvgrFp');
+  assert.ok(Object.keys(pm.TEAMS).every((k) => pm.pmFor(k).href), 'all 11 teams have a link (raven575 pasted them 12:57 UTC 11-20)');
+  assert.match(pm.label({ ...pm.pmFor('marketing'), href: null }), /not pasted yet/);
+  assert.equal(pm.pmFor('nobody'), null);
+});

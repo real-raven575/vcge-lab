@@ -19,7 +19,7 @@ page keeps saving while you edit, so another device opens the same work. A repla
 Runs as the lab user on 127.0.0.1 (default 8771); Caddy forwards /vcge/testbench/api/* to it. Logs carry the method
 and path only. The only outside call is a read of public GitHub Actions results (api.github.com), every 15 minutes.
 """
-import argparse, hashlib, json, os, re, threading, time, urllib.parse, urllib.request
+import argparse, hashlib, json, os, re, subprocess, threading, time, urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 SECTIONS = ('raven', 'auto')
@@ -28,6 +28,9 @@ STEP_RESULTS = ('', 'pass', 'fail', 'skip')
 IMAGE_TYPES = {b'\x89PNG\r\n\x1a\n': ('png', 'image/png'), b'\xff\xd8\xff': ('jpg', 'image/jpeg'),
                b'GIF87a': ('gif', 'image/gif'), b'GIF89a': ('gif', 'image/gif')}
 MAX_IMAGE = 15 * 1024 * 1024
+MAX_AUDIO = 25 * 1024 * 1024   # about 25 minutes of a phone's Opus recording
+MAX_TRANSCRIPT = 8000
+TRANSCRIBE_TIMEOUT = 600       # the first run downloads the speech model
 MAX_JSON = 64 * 1024
 MAX_NOTE = 4000
 MAX_STEPS = 60
@@ -39,6 +42,8 @@ GITHUB = 'https://api.github.com'
 FETCH_EVERY = 15 * 60
 
 ROOT = '/srv/vcge-lab/testbench'
+TRANSCRIBE = None   # [python, helper] when --transcribe-python is set: voice notes written out on this machine
+TRANSCRIBING = threading.Lock()   # one at a time: speech-to-text takes every CPU core
 SEEDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'benches')
 LOCK = threading.Lock()
 
@@ -131,6 +136,35 @@ def bin_layout(i):
     return True
 
 
+def audio_kind(data):
+    """A voice note's ('webm', 'audio/webm') etc. from its first bytes: WebM (Chrome, Firefox, Android), MP4 (Safari,
+    iPhone), Ogg, WAV; or None."""
+    if data[:4] == b'\x1a\x45\xdf\xa3':
+        return 'webm', 'audio/webm'
+    if data[4:8] == b'ftyp':
+        return 'm4a', 'audio/mp4'
+    if data[:4] == b'OggS':
+        return 'ogg', 'audio/ogg'
+    if data[:4] == b'RIFF' and data[8:12] == b'WAVE':
+        return 'wav', 'audio/wav'
+    return None
+
+
+def transcribe(path):
+    """(text, None) or (None, why) for one saved voice note, written out on this machine (never sent anywhere)."""
+    if not TRANSCRIBE:
+        return None, 'writing voice notes out is not set up on this lab yet (your recording is saved)'
+    with TRANSCRIBING:
+        try:
+            r = subprocess.run(TRANSCRIBE + [path], capture_output=True, text=True, timeout=TRANSCRIBE_TIMEOUT)
+        except (OSError, subprocess.TimeoutExpired) as e:
+            return None, 'the speech reader did not finish (%s); your recording is saved, try again' % type(e).__name__
+    if r.returncode != 0:
+        last = (r.stderr.strip().splitlines() or ['no message'])[-1][:200]
+        return None, 'the speech reader stopped: %s; your recording is saved, try again' % last
+    return r.stdout.strip()[:MAX_TRANSCRIPT], None
+
+
 def benches():
     return sorted(f[:-5] for f in os.listdir(SEEDS) if f.endswith('.json') and BENCH_RE.match(f[:-5]))
 
@@ -197,7 +231,7 @@ def view(b, s):
         if item['section'] == 'auto':
             v['ci'] = s['auto'].get(item['id'])
         out.append(v)
-    meta = {k: v for k, v in seed_file(b).items() if k in ('title', 'emoji', 'intro', 'theme', 'team', 'sections')}
+    meta = {k: v for k, v in seed_file(b).items() if k in ('title', 'emoji', 'intro', 'theme', 'team', 'pm', 'sections')}
     return {'bench': {'id': b, **meta}, 'benches': benches(), 'items': out, 'autoFetch': s['autoFetch'], 'now': now()}
 
 
@@ -397,7 +431,7 @@ class Handler(BaseHTTPRequestHandler):
             rec = s['items'].get(q.get('id', '')) or {}
             ev = next((e for e in rec.get('evidence', []) if e['hash'] == q.get('hash')), None)
             if not ev or not ID_RE.match(q['id']) or not SHA_RE.match(ev['hash']):
-                return self.send_json(404, {'error': 'no such picture'})
+                return self.send_json(404, {'error': 'no such picture or recording'})
             p = os.path.join(bench_dir(b), 'evidence', q['id'], ev['hash'])
             if not os.path.isfile(p):
                 return self.send_json(404, {'error': 'the picture file is missing'})
@@ -418,6 +452,24 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(404, {'error': 'no such bench'})
         if path == '/testbench/api/refresh':
             return self.send_json(200, fetch_ci(b))
+        if path == '/testbench/api/transcribe':
+            with LOCK:
+                s = load_state(b)
+                item = find(b, s, q.get('id', ''))
+                rec = s['items'].get(item['id']) if item else None
+                ev = next((e for e in (rec or {}).get('evidence', []) if e['hash'] == q.get('hash')), None)
+            if not ev or not ev['type'].startswith('audio/') or not SHA_RE.match(ev['hash']):
+                return self.send_json(404, {'error': 'no such recording'})
+            text, why = transcribe(os.path.join(bench_dir(b), 'evidence', item['id'], ev['hash']))
+            if why:
+                return self.send_json(501 if not TRANSCRIBE else 502, {'error': why})
+            with LOCK:
+                s = load_state(b)
+                for e in s['items'][item['id']]['evidence']:
+                    if e['hash'] == ev['hash']:
+                        e['text'], e['textAt'] = text, now()
+                save_state(b, s)
+            return self.send_json(200, {'ok': True, 'text': text})
         req = self.read_json()
         if req is None:
             return self.send_json(400, {'error': 'send JSON'})
@@ -454,12 +506,14 @@ class Handler(BaseHTTPRequestHandler):
         if not item:
             return self.send_json(404, {'error': 'no such test'})
         if path == '/testbench/api/evidence':
-            body = self.read_body(MAX_IMAGE)
+            body = self.read_body(MAX_AUDIO)
             if body is None:
-                return self.send_json(413, {'error': 'empty, or over %d MB' % (MAX_IMAGE // 1048576)})
-            kind = image_kind(body)
+                return self.send_json(413, {'error': 'empty, or over %d MB' % (MAX_AUDIO // 1048576)})
+            kind = image_kind(body) or audio_kind(body)
             if not kind:
-                return self.send_json(400, {'error': 'photos and screenshots only (PNG, JPEG, WebP, GIF)'})
+                return self.send_json(400, {'error': 'photos, screenshots and voice notes only (PNG, JPEG, WebP, GIF; WebM, MP4, Ogg, WAV)'})
+            if kind[1].startswith('image/') and len(body) > MAX_IMAGE:
+                return self.send_json(413, {'error': 'pictures up to %d MB' % (MAX_IMAGE // 1048576)})
             digest = hashlib.sha256(body).hexdigest()
             step = q.get('step', '')
             with LOCK:
@@ -470,7 +524,8 @@ class Handler(BaseHTTPRequestHandler):
                     os.makedirs(d, exist_ok=True)
                     with open(os.path.join(d, digest), 'wb') as f:
                         f.write(body)
-                    name = re.sub(r'[^A-Za-z0-9 ._()-]', '_', os.path.basename(q.get('name', '')))[:80] or 'picture.' + kind[0]
+                    name = re.sub(r'[^A-Za-z0-9 ._()-]', '_', os.path.basename(q.get('name', '')))[:80] or \
+                        ('picture.' if kind[1].startswith('image/') else 'voice-note.') + kind[0]
                     rec['evidence'].append({'hash': digest, 'name': name, 'type': kind[1], 'bytes': len(body), 'at': now(),
                                             'step': int(step) if step.isdigit() and int(step) < len(item.get('steps', [])) else None})
                 save_state(b, s)
@@ -504,15 +559,24 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    global ROOT, SEEDS, GITHUB
+    global ROOT, SEEDS, GITHUB, TRANSCRIBE
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--root', default=ROOT)
     ap.add_argument('--seeds', default=SEEDS, help='folder of <bench>.json seed files')
     ap.add_argument('--port', type=int, default=8771)
     ap.add_argument('--no-ci', action='store_true', help='do not read GitHub Actions results')
+    ap.add_argument('--transcribe-python', help='a Python with faster-whisper: voice notes are written out on this machine '
+                    'by testbench-transcribe.py (next to this file); without it voice notes are kept but not written out')
     ap.add_argument('--github', default=GITHUB, help=argparse.SUPPRESS)   # tests point this at a stand-in
     a = ap.parse_args()
     ROOT, SEEDS, GITHUB = a.root, a.seeds, a.github.rstrip('/')
+    if a.transcribe_python:
+        here = os.path.dirname(os.path.abspath(__file__))
+        helper = next((p for p in (os.path.join(here, 'testbench-transcribe.py'), os.path.join(here, 'testbench-transcribe'))
+                       if os.path.isfile(p)), None)
+        if not helper:
+            raise SystemExit('--transcribe-python given but testbench-transcribe.py is not next to %s' % __file__)
+        TRANSCRIBE = [a.transcribe_python, helper]
     if not benches():
         raise SystemExit('no <bench>.json seed in %s' % SEEDS)
     for b in benches():

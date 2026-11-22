@@ -205,6 +205,42 @@ function loadImage(url) {
     return new Promise((res, rej) => { const img = new Image(); img.onload = () => res(img); img.onerror = () => rej(new Error('photo failed to load')); img.src = url; });
 }
 
+/**
+ * Colour experiment (lab only, ?variants=1 on the page): the same cropped card drawn five other ways, for cards whose
+ * lettering the reader can't make out (light on colour, coloured ink). Each variant is a plain canvas the build reads
+ * like any photo.
+ */
+export const VARIANTS = ['invert', 'red', 'green', 'blue', 'stretch'];
+export function variantPixels(px, kind) {
+    const out = new Uint8ClampedArray(px.length);
+    let lo = 255, hi = 0;
+    if (kind === 'stretch') for (let i = 0; i < px.length; i += 4) { const g = (px[i] * 299 + px[i + 1] * 587 + px[i + 2] * 114) / 1000; if (g < lo) lo = g; if (g > hi) hi = g; }
+    const span = Math.max(1, hi - lo);
+    for (let i = 0; i < px.length; i += 4) {
+        const g = (px[i] * 299 + px[i + 1] * 587 + px[i + 2] * 114) / 1000;
+        const v = kind === 'invert' ? 255 - g : kind === 'red' ? px[i] : kind === 'green' ? px[i + 1] : kind === 'blue' ? px[i + 2] : ((g - lo) * 255) / span;
+        out[i] = out[i + 1] = out[i + 2] = v; out[i + 3] = 255;
+    }
+    return out;
+}
+const TRY_VARIANTS = typeof location !== 'undefined' && new URLSearchParams(location.search).get('variants') === '1';
+
+async function readVariants(shown, ocr, mapper) {
+    const px = shown.getContext('2d').getImageData(0, 0, shown.width, shown.height).data, out = [];
+    for (const kind of VARIANTS) {
+        const c = document.createElement('canvas'); c.width = shown.width; c.height = shown.height;
+        c.getContext('2d').putImageData(new ImageData(variantPixels(px, kind), shown.width, shown.height), 0, 0);
+        try {
+            const read = await ocr.executeOCRScan(c.toDataURL('image/png'), { onStatus: () => {}, gate: false });
+            const lines = mapper.classifyLines(read.lines && read.lines.length ? read.lines : read.text);
+            mapper.buildFields(lines);
+            out.push({ kind, confidence: read.confidence, passed: !read.failedGate, readableWords: read.failedGate ? read.failedGate.readableWords : null,
+                lines: lines.map(l => ({ text: l.text, role: l.role, check: l.check || null })) });
+        } catch (e) { out.push({ kind, error: (e && e.code) || 'error' }); }
+    }
+    return out;
+}
+
 /** Edges, crop, read, map, logo: one angle through the build's code. Never throws; returns a result record. */
 async function runAngle(photo) {
     const { finder, persp, ocr, mapper, logo } = state.modules;
@@ -244,6 +280,7 @@ async function runAngle(photo) {
         const lines = mapper.classifyLines(read.lines && read.lines.length ? read.lines : read.text);
         mapper.buildFields(lines);
         r.lines = lines.map(l => ({ text: l.text, role: l.role, check: l.check || null }));
+        if (TRY_VARIANTS && read.failedGate) r.variants = await readVariants(shown, ocr, mapper);
         if (logo) {
             const px = shown.getContext('2d').getImageData(0, 0, shown.width, shown.height).data;
             const found = logo.findLogoCandidates(px, shown.width, shown.height, { textBoxes: logo.contactTextBoxes(read.lines || []), max: 1 });
