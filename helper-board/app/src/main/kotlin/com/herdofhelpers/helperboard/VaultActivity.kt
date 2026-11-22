@@ -235,6 +235,7 @@ class VaultActivity : Activity() {
             prefs.numberStyle) { prefs.numberStyle = it }
         choice("Number pad", com.herdofhelpers.helperboard.core.PadLayout.values().map { it.label to it }, prefs.padLayout) { prefs.padLayout = it }
         multiKeyEditor()
+        labLayoutEditor()
         slider("Key height", 34, 72, prefs.keyHeightDp, "dp") { prefs.keyHeightDp = it }
         slider("Space between rows", 0, 16, prefs.rowGapDp, "dp") { prefs.rowGapDp = it }
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
@@ -285,6 +286,29 @@ class VaultActivity : Activity() {
         row.addView(smallButton("Reset") {
             prefs.multiKeyItems = com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI; build()
         })
+        page.addView(row)
+    }
+
+    /** "Use my own key layout": paste code from the Layout Lab page. Bad code is refused with the reason. */
+    private fun labLayoutEditor() {
+        val now = prefs.labLayout.takeIf { it.isNotBlank() }?.let { com.herdofhelpers.helperboard.core.LabLayout.parse(it).getOrNull() }
+        page.addView(TextView(this).apply {
+            text = "Use my own key layout. Make one in the Layout Lab page, tap Copy code there, then paste it here. " +
+                "It changes the letters page only. Now using: " + (now?.name ?: "Helper Board standard")
+            textSize = 15f; setTextColor(pal.text); setPadding(0, dp(8), 0, 0)
+        })
+        val box = android.widget.EditText(this).apply {
+            hint = "Paste Layout Lab code"; setTextColor(pal.text); textSize = 13f; minLines = 2; maxLines = 5
+        }
+        page.addView(box)
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        row.addView(smallButton("Use this layout") {
+            val code = box.text.toString()
+            com.herdofhelpers.helperboard.core.LabLayout.parse(code)
+                .onSuccess { prefs.labLayout = code; toast("Using " + it.name); build() }
+                .onFailure { toast(it.message ?: "That code can't be used.") }
+        })
+        if (now != null) row.addView(smallButton("Back to standard") { prefs.labLayout = ""; toast("Standard keys"); build() })
         page.addView(row)
     }
 

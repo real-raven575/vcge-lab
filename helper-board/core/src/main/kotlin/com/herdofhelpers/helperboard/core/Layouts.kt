@@ -15,6 +15,8 @@ enum class KeyKind {
 /** [rows] = 2 makes a tall key: it ends its row and also covers the end of the row below (the big ⏎). */
 data class Key(
     val label: String, val output: String = label, val weight: Float = 1f, val kind: KeyKind = KeyKind.CHAR, val rows: Int = 1,
+    /** Empty space before the key, in letter widths (Layout Lab). */
+    val gap: Float = 0f,
 )
 
 /**

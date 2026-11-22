@@ -153,6 +153,12 @@ class HelperBoardIme : InputMethodService() {
         // While searching emoji, the letter keys type into the search line instead of the text box.
         val rows = if (emojiQuery != null) Layouts.abc(NumberStyle.OFF, myRow = emptyList())
         else Layouts.forMode(mode, prefs.numberStyle, pad = prefs.padLayout, multi = prefs.multiKeyItems, coder = prefs.coderKeys)
+        val lab = if (emojiQuery == null && mode == Mode.ABC && prefs.labLayout.isNotBlank())
+            com.herdofhelpers.helperboard.core.LabLayout.parse(prefs.labLayout).getOrNull() else null
+        if (lab != null) {
+            lab.rows.forEachIndexed { n, keys -> r.addView(keyRow(keys, lab.heightsDp[n], lab.widest)) }
+            refreshSuggestions(); return
+        }
         var i = 0
         while (i < rows.size) {
             val tall = rows[i].lastOrNull()?.takeIf { it.rows == 2 && i + 1 < rows.size }
@@ -339,15 +345,21 @@ class HelperBoardIme : InputMethodService() {
         }
     }
 
-    private fun keyRow(keys: List<Key>): View {
+    /** [rowDp] and [fullUnits] come from a Layout Lab layout: its row height, and the widest row so short rows end in space. */
+    private fun keyRow(keys: List<Key>, rowDp: Int? = null, fullUnits: Float? = null): View {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val gap = KeyLook.dp(this, prefs.rowGapDp)
+        val h = rowDp?.let { KeyLook.dp(this, it) - gap } ?: KeyLook.dp(this, prefs.keyHeightDp)
+        fun space(w: Float) = row.addView(View(this), LinearLayout.LayoutParams(0, h, w))
         for (k in keys) {
+            if (k.gap > 0f) space(k.gap)
             val v = keyView(k)
-            row.addView(v, LinearLayout.LayoutParams(0, KeyLook.dp(this, prefs.keyHeightDp), k.weight).apply {
+            row.addView(v, LinearLayout.LayoutParams(0, h, k.weight).apply {
                 setMargins(KeyLook.dp(this@HelperBoardIme, 2), gap / 2, KeyLook.dp(this@HelperBoardIme, 2), gap / 2)
             })
         }
+        val left = (fullUnits ?: 0f) - com.herdofhelpers.helperboard.core.LabLayout.units(keys)
+        if (left > 0.01f) space(left)
         return row
     }
 

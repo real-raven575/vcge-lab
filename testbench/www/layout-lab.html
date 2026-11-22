@@ -1,0 +1,359 @@
+<title>Helper Board Layout Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: a workbench. The keyboard sits at true phone size at the top; the selected key's tools sit under it. */
+:root {
+  /* Herd Light (vCGE themes.js), the same palette Helper Board uses */
+  --bg: #f5f2fa; --surface: #ffffff; --sunk: #ece7f5; --text: #2a2440; --muted: #5e5776;
+  --accent: #17736e; --on-accent: #ffffff; --border: #dcd5ea; --warn: #8a5800; --stop: #b3261e;
+  --kb: #e6e0f0; --key: #ffffff; --key-fn: #d9d2e8; --hit: rgba(23,115,110,.85);
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  /* Herd Dark */
+  --bg: #18151f; --surface: #231f2e; --sunk: #141119; --text: #eeeaf7; --muted: #b4acc9;
+  --accent: #72d3ca; --on-accent: #0e2b29; --border: #3a3449; --warn: #f2c060; --stop: #ff8a80;
+  --kb: #18151f; --key: #2c2739; --key-fn: #1c1824; --hit: rgba(114,211,202,.9); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #18151f; --surface: #231f2e; --sunk: #141119; --text: #eeeaf7; --muted: #b4acc9;
+  --accent: #72d3ca; --on-accent: #0e2b29; --border: #3a3449; --warn: #f2c060; --stop: #ff8a80;
+  --kb: #18151f; --key: #2c2739; --key-fn: #1c1824; --hit: rgba(114,211,202,.9); color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 15px/1.45 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 40px; }
+h1 { font: 700 1.5rem/1.2 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 700 1.05rem/1.2 var(--display); margin: 0 0 .5rem; }
+.sub { color: var(--muted); margin: .2rem 0 0; max-width: 65ch; }
+header { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: end; justify-content: space-between; margin-bottom: 1rem; }
+.bar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+button, select, input[type="text"], textarea {
+  font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+button { padding: .45rem .8rem; cursor: pointer; min-height: 40px; }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
+button.danger { color: var(--stop); }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, .key:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+select, input[type="text"] { padding: .4rem .6rem; min-height: 40px; width: 100%; min-width: 0; }
+input[type="range"] { width: 100%; }
+label { display: grid; gap: .2rem; font-size: .9rem; color: var(--muted); }
+label > span.v { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* The keyboard, drawn in CSS pixels, which phones treat as the same size as Android's dp. */
+.stage { overflow-x: auto; margin: 0 -4px 1rem; padding: 4px; }
+.kb { background: var(--kb); border-radius: 14px; padding: 4px; margin: 0 auto; border: 1px solid var(--border); touch-action: manipulation; }
+.row { display: flex; position: relative; }
+.row.sel { box-shadow: inset 3px 0 0 var(--accent); }
+.gap { flex: 0 0 auto; }
+.key { position: relative; min-width: 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; justify-content: center; margin: 3px 2px;
+  border-radius: 9px; background: var(--key); border: 1px solid var(--border); font-size: 19px; user-select: none;
+  min-width: 0; overflow: hidden; white-space: nowrap; cursor: pointer; box-shadow: 0 1px 0 rgba(0,0,0,.18); }
+.key.fn { background: var(--key-fn); font-size: 14px; }
+.key.accent { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.key.sel { outline: 3px solid var(--warn); outline-offset: -3px; }
+.key .hint { position: absolute; top: 2px; right: 5px; font-size: 10px; color: var(--muted); }
+.dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--hit); pointer-events: none; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1rem; min-width: 0; display: grid; gap: .75rem; }
+.panel .two { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+.warn { color: var(--warn); }
+.units { font: 12px var(--mono); color: var(--muted); padding: 0 6px; font-variant-numeric: tabular-nums; }
+textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--mono); }
+.try { width: 100%; min-height: 3rem; padding: .6rem; background: var(--sunk); border-radius: 10px; font-size: 17px; white-space: pre-wrap; word-break: break-word; }
+.pill { display: inline-block; padding: .1rem .5rem; border-radius: 99px; background: var(--sunk); font-size: .8rem; }
+.saved li { display: flex; gap: .5rem; align-items: center; justify-content: space-between; padding: .25rem 0; border-bottom: 1px solid var(--border); }
+.saved { list-style: none; margin: 0; padding: 0; }
+@media (prefers-reduced-motion: no-preference) { .key { transition: transform .05s; } .key:active { transform: translateY(1px); } }
+</style>
+
+<header>
+  <div>
+    <h1>Helper Board Layout Lab</h1>
+    <p class="sub">Tap a key to pick it, then change its size, gap and place. Turn on <b>Try typing</b> to feel it at real size; dots show where your thumb landed. Save it, then paste it into Helper Board.</p>
+  </div>
+  <div class="bar">
+    <label for="width">Screen width
+      <select id="width">
+        <option value="fit">This screen</option>
+        <option value="360">360 dp (small phone)</option>
+        <option value="393">393 dp (most phones)</option>
+        <option value="412">412 dp (large phone)</option>
+        <option value="600">600 dp (fold, open)</option>
+        <option value="800">800 dp (tablet)</option>
+      </select>
+    </label>
+    <button id="tryBtn" type="button" aria-pressed="false">Try typing: off</button>
+  </div>
+</header>
+
+<div class="stage"><div class="kb" id="kb" role="group" aria-label="Keyboard preview"></div></div>
+
+<div class="grid">
+  <section class="panel" aria-labelledby="keyH">
+    <h2 id="keyH">Key <span class="pill" id="keyName">none picked</span></h2>
+    <div class="two">
+      <label for="kLabel">Shows<input id="kLabel" type="text" maxlength="12"></label>
+      <label for="kOut">Types<input id="kOut" type="text" maxlength="24"></label>
+    </div>
+    <label for="kKind">What it does
+      <select id="kKind"></select>
+    </label>
+    <label for="kW">Width <span class="v" id="kWv"></span><input id="kW" type="range" min="0.5" max="6" step="0.1"></label>
+    <label for="kG">Space before it <span class="v" id="kGv"></span><input id="kG" type="range" min="0" max="3" step="0.1"></label>
+    <div class="bar">
+      <button type="button" id="kLeft">◀ Move</button><button type="button" id="kRight">Move ▶</button>
+      <button type="button" id="kAdd">+ Key after</button><button type="button" id="kDel" class="danger">Remove key</button>
+    </div>
+    <p class="note" id="kHits">Taps on this key while trying: none yet.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="rowH">
+    <h2 id="rowH">Row <span class="pill" id="rowName">none picked</span></h2>
+    <label for="rH">Height <span class="v" id="rHv"></span><input id="rH" type="range" min="28" max="80" step="1"></label>
+    <div class="bar">
+      <button type="button" id="rUp">▲ Up</button><button type="button" id="rDown">▼ Down</button>
+      <button type="button" id="rAdd">+ Row below</button><button type="button" id="rDel" class="danger">Remove row</button>
+    </div>
+    <p class="note" id="rowUnits"></p>
+    <h2>Try it</h2>
+    <div class="try" id="tryText" aria-live="polite">Tap “Try typing”, then type here with the keys above.</div>
+    <div class="bar"><button type="button" id="clearHits">Clear dots and text</button></div>
+  </section>
+
+  <section class="panel" aria-labelledby="saveH">
+    <h2 id="saveH">Save and share</h2>
+    <label for="name">Layout name<input id="name" type="text" maxlength="40"></label>
+    <div class="bar">
+      <button type="button" class="primary" id="save">Save</button>
+      <button type="button" id="baseline">Start from Helper Board standard</button>
+    </div>
+    <ul class="saved" id="savedList"></ul>
+    <p class="note" id="saveNote">Saved layouts stay in this browser on this device.</p>
+    <label for="json">Layout code (paste this into Helper Board: Settings → Keys → “Use my own key layout”)
+      <textarea id="json" spellcheck="false"></textarea></label>
+    <div class="bar">
+      <button type="button" id="copy">Copy code</button>
+      <button type="button" id="load">Load code from the box</button>
+    </div>
+    <p class="note" id="jsonNote"></p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const KINDS = {
+    CHAR: "Types a letter or mark", MULTI: "✦ multi-key (tap = first item, hold = all)", SHIFT: "⇧ Shift",
+    BACKSPACE: "⌫ Delete", ENTER: "⏎ Enter", SPACE: "Space bar", MIC: "🎙 Voice", LEFT: "◀ Cursor left",
+    RIGHT: "▶ Cursor right", UNDO: "↶ Undo", CAPS_LOCK: "⇪ Caps lock", MODE_NUMBERS: "123 page",
+    MODE_SYMBOLS: "#+= page", MODE_EMOJI: "😀 Emoji page", MODE_TAKES: "🎙 Takes page", SETTINGS: "⚙ Settings",
+  };
+  // What holding a key types first (same as the app), shown as the small corner hint.
+  const HINT = { "1":"!", "2":"@", "3":"#", "4":"$", "5":"%", "6":"^", "7":"&", "8":"*", "9":"(", "0":")",
+    "-":"_", "/":"\\", "'":"\"", ",":";", ".":"…", "?":"!" };
+  const FN = new Set(["SHIFT","BACKSPACE","ENTER","LEFT","RIGHT","UNDO","CAPS_LOCK","MODE_NUMBERS","MODE_SYMBOLS","MODE_EMOJI","MODE_TAKES","SETTINGS"]);
+  const k = (l, kind = "CHAR", w = 1, o) => ({ l, o: o ?? (kind === "CHAR" ? l : ""), k: kind, w, g: 0 });
+  const chars = s => [...s].map(c => k(c));
+
+  /** Helper Board standard layout (build 17): ⌫ top right, ⏎ middle right with ⇧ under it. */
+  function standard() {
+    return { format: "helper-board-layout", version: 1, name: "Helper Board standard", rows: [
+      { h: 44, keys: [k("@", "CHAR", 3.2), k(".com", "CHAR", 3.2), k("⇪ caps", "CAPS_LOCK", 3.2), k("🔢 pad", "MODE_NUMBERS", 3.3)] },
+      { h: 48, keys: [...chars("1234567890"), k("-", "CHAR", 1.3), k("⌫", "BACKSPACE", 1.6)] },
+      { h: 48, keys: [...chars("qwertyuiop"), k("/", "CHAR", 1.3), k("✦(", "MULTI", 1.6, "(")] },
+      { h: 48, keys: [...chars("asdfghjkl"), k("'", "CHAR", 1.3), k("⏎", "ENTER", 2.6)] },
+      { h: 48, keys: [k("⇧", "SHIFT", 1.5), ...chars("zxcvbnm"), k(","), k("."), k("?"), k("⇧", "SHIFT", 1.4)] },
+      { h: 48, keys: [k("123", "MODE_NUMBERS", 1.2), k("↶", "UNDO"), k("◀", "LEFT"), k("space", "SPACE", 4, " "), k("▶", "RIGHT"), k("🎙", "MIC", 1.5)] },
+    ] };
+  }
+
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+    set(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); return true; } catch { return false; } },
+  };
+
+  let layout = store.get("hb-lab-current", null) || standard();
+  let sel = { r: 2, i: 0 };
+  let trying = false, shift = false;
+  let hits = {};             // "r:i" -> [{dx, dy}] in fractions of the key size
+  let typed = "";
+
+  for (const [v, t] of Object.entries(KINDS)) $("kKind").add(new Option(t, v));
+
+  const units = row => row.keys.reduce((s, x) => s + x.w + (x.g || 0), 0);
+  const widest = () => Math.max(...layout.rows.map(units));
+
+  function kbWidth() {
+    const v = $("width").value;
+    if (v === "fit") return Math.min(document.querySelector(".stage").clientWidth - 8, 900);
+    return +v;
+  }
+
+  function render() {
+    const kb = $("kb");
+    kb.style.width = kbWidth() + "px";
+    kb.textContent = "";
+    const full = widest();
+    layout.rows.forEach((row, r) => {
+      const el = document.createElement("div");
+      el.className = "row" + (r === sel.r ? " sel" : "");
+      // A row shorter than the widest gets the leftover as space at its end, so keys keep one size per unit.
+      row.keys.forEach((key, i) => {
+        if (key.g) { const g = document.createElement("div"); g.className = "gap"; g.style.flex = key.g + " 0 0"; el.appendChild(g); }
+        const b = document.createElement("div");
+        b.className = "key" + (FN.has(key.k) ? " fn" : "") + (key.k === "MIC" ? " accent" : "") + (r === sel.r && i === sel.i ? " sel" : "");
+        b.style.flex = key.w + " 0 0";
+        b.style.height = (row.h - 6) + "px";
+        b.tabIndex = 0;
+        b.setAttribute("role", "button");
+        b.setAttribute("aria-label", (KINDS[key.k] || "") + " " + key.l);
+        b.textContent = key.k === "CHAR" && shift && trying ? key.l.toUpperCase() : key.l;
+        if (HINT[key.l]) { const h = document.createElement("span"); h.className = "hint"; h.textContent = HINT[key.l]; b.appendChild(h); }
+        (hits[r + ":" + i] || []).slice(-12).forEach(p => {
+          const d = document.createElement("span"); d.className = "dot";
+          d.style.left = (50 + p.dx * 100) + "%"; d.style.top = (50 + p.dy * 100) + "%"; b.appendChild(d);
+        });
+        b.addEventListener("pointerdown", e => press(e, r, i, b));
+        b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(r, i); } });
+        el.appendChild(b);
+      });
+      const left = full - units(row);
+      if (left > 0.01) { const g = document.createElement("div"); g.className = "gap"; g.style.flex = left + " 0 0"; el.appendChild(g); }
+      kb.appendChild(el);
+    });
+    panels();
+    $("json").value = JSON.stringify(layout, null, 1);
+    store.set("hb-lab-current", layout);
+  }
+
+  function press(e, r, i, el) {
+    if (!trying) { pick(r, i); return; }
+    e.preventDefault();
+    const box = el.getBoundingClientRect();
+    const dx = (e.clientX - box.left) / box.width - .5, dy = (e.clientY - box.top) / box.height - .5;
+    (hits[r + ":" + i] ||= []).push({ dx, dy });
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch {} }
+    const key = layout.rows[r].keys[i];
+    if (key.k === "CHAR" || key.k === "MULTI") { typed += shift ? key.o.toUpperCase() : key.o; shift = false; }
+    else if (key.k === "SPACE") typed += " ";
+    else if (key.k === "BACKSPACE") typed = typed.slice(0, -1);
+    else if (key.k === "ENTER") typed += "\n";
+    else if (key.k === "SHIFT" || key.k === "CAPS_LOCK") shift = !shift;
+    $("tryText").textContent = typed || " ";
+    sel = { r, i };
+    render();
+  }
+
+  function pick(r, i) { sel = { r, i }; render(); }
+
+  function panels() {
+    const row = layout.rows[sel.r], key = row && row.keys[sel.i];
+    const on = !!key;
+    ["kLabel","kOut","kKind","kW","kG","kLeft","kRight","kAdd","kDel"].forEach(id => $(id).disabled = !on);
+    if (on) {
+      $("keyName").textContent = `"${key.l}" in row ${sel.r + 1}`;
+      $("kLabel").value = key.l; $("kOut").value = key.o; $("kKind").value = key.k;
+      $("kW").value = key.w; $("kWv").textContent = key.w.toFixed(1) + " letters wide";
+      $("kG").value = key.g || 0; $("kGv").textContent = (key.g || 0).toFixed(1) + " letters";
+      const h = hits[sel.r + ":" + sel.i] || [];
+      if (h.length) {
+        const ax = h.reduce((s, p) => s + p.dx, 0) / h.length, ay = h.reduce((s, p) => s + p.dy, 0) / h.length;
+        const side = Math.abs(ax) < .08 ? "centred side to side" : ax < 0 ? `${Math.round(-ax * 100)}% left of centre` : `${Math.round(ax * 100)}% right of centre`;
+        const up = Math.abs(ay) < .08 ? "centred up and down" : ay < 0 ? `${Math.round(-ay * 100)}% high` : `${Math.round(ay * 100)}% low`;
+        $("kHits").textContent = `${h.length} taps on this key: on average ${side}, ${up}.`;
+      } else $("kHits").textContent = "Taps on this key while trying: none yet.";
+    }
+    if (row) {
+      $("rowName").textContent = "row " + (sel.r + 1);
+      $("rH").value = row.h; $("rHv").textContent = row.h + " dp";
+      const u = units(row), full = widest();
+      $("rowUnits").innerHTML = Math.abs(u - full) < 0.05
+        ? `This row is ${u.toFixed(1)} letters wide, the same as the widest row.`
+        : `<span class="warn">This row is ${u.toFixed(1)} letters wide; the widest is ${full.toFixed(1)}.</span> The rest shows as empty space at the end.`;
+    }
+  }
+
+  const cur = () => layout.rows[sel.r]?.keys[sel.i];
+  $("kLabel").oninput = e => { const x = cur(); if (x) { x.l = e.target.value; render(); } };
+  $("kOut").oninput = e => { const x = cur(); if (x) { x.o = e.target.value; render(); } };
+  $("kKind").onchange = e => { const x = cur(); if (x) { x.k = e.target.value; render(); } };
+  $("kW").oninput = e => { const x = cur(); if (x) { x.w = +e.target.value; render(); } };
+  $("kG").oninput = e => { const x = cur(); if (x) { x.g = +e.target.value; render(); } };
+  $("kLeft").onclick = () => move(-1);
+  $("kRight").onclick = () => move(1);
+  function move(d) {
+    const keys = layout.rows[sel.r].keys, j = sel.i + d;
+    if (j < 0 || j >= keys.length) return;
+    [keys[sel.i], keys[j]] = [keys[j], keys[sel.i]]; sel.i = j; render();
+  }
+  $("kAdd").onclick = () => { layout.rows[sel.r].keys.splice(sel.i + 1, 0, k("x")); sel.i++; render(); };
+  $("kDel").onclick = () => { const keys = layout.rows[sel.r].keys; if (keys.length > 1) { keys.splice(sel.i, 1); sel.i = Math.max(0, sel.i - 1); render(); } };
+  $("rH").oninput = e => { layout.rows[sel.r].h = +e.target.value; render(); };
+  $("rUp").onclick = () => { if (sel.r > 0) { const R = layout.rows; [R[sel.r - 1], R[sel.r]] = [R[sel.r], R[sel.r - 1]]; sel.r--; render(); } };
+  $("rDown").onclick = () => { const R = layout.rows; if (sel.r < R.length - 1) { [R[sel.r + 1], R[sel.r]] = [R[sel.r], R[sel.r + 1]]; sel.r++; render(); } };
+  $("rAdd").onclick = () => { layout.rows.splice(sel.r + 1, 0, { h: 48, keys: [k("x")] }); sel = { r: sel.r + 1, i: 0 }; render(); };
+  $("rDel").onclick = () => { if (layout.rows.length > 1) { layout.rows.splice(sel.r, 1); sel = { r: Math.max(0, sel.r - 1), i: 0 }; render(); } };
+  $("width").onchange = render;
+  window.addEventListener("resize", () => { if ($("width").value === "fit") render(); });
+  $("tryBtn").onclick = () => {
+    trying = !trying;
+    $("tryBtn").textContent = "Try typing: " + (trying ? "on" : "off");
+    $("tryBtn").setAttribute("aria-pressed", trying);
+    $("tryBtn").classList.toggle("primary", trying);
+    render();
+  };
+  $("clearHits").onclick = () => { hits = {}; typed = ""; $("tryText").textContent = " "; render(); };
+
+  // Saving
+  function saved() { return store.get("hb-lab-saved", {}); }
+  function listSaved() {
+    const ul = $("savedList"); ul.textContent = "";
+    for (const [name, l] of Object.entries(saved())) {
+      const li = document.createElement("li");
+      const s = document.createElement("span"); s.textContent = name;
+      const open = document.createElement("button"); open.type = "button"; open.textContent = "Open";
+      open.onclick = () => { layout = structuredClone(l); $("name").value = name; sel = { r: 0, i: 0 }; render(); $("saveNote").textContent = `Opened “${name}”.`; };
+      const del = document.createElement("button"); del.type = "button"; del.className = "danger"; del.textContent = "Delete";
+      del.onclick = () => {
+        if (del.dataset.sure) { const all = saved(); delete all[name]; store.set("hb-lab-saved", all); listSaved(); $("saveNote").textContent = `Deleted “${name}”.`; }
+        else { del.dataset.sure = "1"; del.textContent = "Are you sure?"; }
+      };
+      const b = document.createElement("span"); b.className = "bar"; b.append(open, del);
+      li.append(s, b); ul.appendChild(li);
+    }
+  }
+  $("save").onclick = () => {
+    const name = $("name").value.trim() || layout.name || "My layout";
+    layout.name = name;
+    const all = saved(); all[name] = structuredClone(layout);
+    $("saveNote").textContent = store.set("hb-lab-saved", all) ? `Saved “${name}” in this browser.` : "This browser won't save here. Use Copy code instead.";
+    listSaved(); render();
+  };
+  $("baseline").onclick = () => { layout = standard(); $("name").value = ""; sel = { r: 2, i: 0 }; hits = {}; render(); $("saveNote").textContent = "Started from Helper Board standard."; };
+  $("copy").onclick = async () => {
+    const t = $("json");
+    try { await navigator.clipboard.writeText(t.value); $("jsonNote").textContent = "Copied. Paste it into Helper Board."; }
+    catch { t.focus(); t.select(); $("jsonNote").textContent = "Copy didn't work here. The code is selected: copy it from the box."; }
+  };
+  $("load").onclick = () => {
+    try {
+      const l = JSON.parse($("json").value);
+      if (l.format !== "helper-board-layout" || !Array.isArray(l.rows) || !l.rows.length) throw new Error("This isn't Helper Board layout code.");
+      const all = l.rows.flatMap(r => r.keys || []);
+      for (const need of ["BACKSPACE", "ENTER", "SPACE"]) if (!all.some(x => x.k === need)) throw new Error(`It needs a ${KINDS[need]} key.`);
+      layout = l; sel = { r: 0, i: 0 }; render(); $("jsonNote").textContent = "Loaded.";
+    } catch (e) { $("jsonNote").textContent = "Couldn't load: " + e.message; }
+  };
+
+  $("name").value = layout.name || "";
+  listSaved();
+  render();
+})();
+</script>

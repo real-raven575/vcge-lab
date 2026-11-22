@@ -167,6 +167,11 @@ class Prefs(context: Context) {
         get() = sp.getInt("recentEmojiCount", com.herdofhelpers.helperboard.core.EmojiBook.DEFAULT_RECENT)
         set(v) = sp.edit().putInt("recentEmojiCount", v).apply()
 
+    /** Layout Lab code the user pasted in; empty = the standard keys. Used on the ABC page only. */
+    var labLayout: String
+        get() = sp.getString("labLayout", "")!!
+        set(v) = sp.edit().putString("labLayout", v).apply()
+
     val themePhoto: File get() = File(app.filesDir, "theme-photo")
 
     // Personal dictionary, kept as a small text file in private storage.
