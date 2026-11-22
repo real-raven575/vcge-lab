@@ -12,7 +12,7 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_buddy"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
@@ -20,12 +20,75 @@
         <activity
             android:name=".VaultActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- App icon menu (Settings > Look): one alias per icon by Team Creative, exactly one enabled. See AppIcons.kt. -->
+        <activity-alias
+            android:name=".IconBuddy"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_buddy"
+            android:targetActivity=".VaultActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconIris"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_iris"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconPeek"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_peek"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconOwl"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_owl"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconTap"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tap"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconPaw"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_paw"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <service
             android:name=".HelperBoardIme"

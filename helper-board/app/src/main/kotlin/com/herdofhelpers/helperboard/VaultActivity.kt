@@ -380,6 +380,10 @@ class VaultActivity : Activity() {
         choice("Key font", listOf("Standard" to "DEFAULT", "Serif" to "SERIF", "Mono" to "MONO", "Bold" to "BOLD"),
             prefs.keyFont) { prefs.keyFont = it }
         text("A dyslexia-friendly key font comes next.")
+        choice("App icon (by Team Creative)", AppIcons.ALL.map { it.second to it.first }, AppIcons.current(this)) {
+            AppIcons.use(this, it)
+        }
+        text("Your home screen can take a few seconds to show the new icon.")
     }
 
     @Deprecated("Activity result API needs AndroidX; this prototype stays framework-only.")

@@ -12,7 +12,7 @@ Every claim here can be checked in this repository's git history, which dates ea
 | Speech to text | The phone's own on-device `SpeechRecognizer` (Android 13+), called through the public API. No speech model ships in the app. | Part of the phone |
 | Word lists `assets/words-en.txt`, `words-es.txt` | wordfreq 3.1.1 top 25,000 words, by Robyn Speer | CC BY-SA 4.0; SUBTLEX authors (Brysbaert et al.) and OpenSubtitles credited as wordfreq requires (see `assets/WORDS-NOTICE.txt` and the Settings credit) |
 | Fonts, in-app icons | Android system fonts and Unicode emoji only | Part of the phone |
-| Launcher icon (`res/drawable/ic_launcher_*.xml`, Iris the Lynx on a keycap) | Drawn for Helper Board by Team Creative (CRTV-0076, 2026-11-22); source zip sha256 48a4fd60cb738ef952577f46a85d942e6d5b407d16bd38391e8bea2dff2db474; SVG layers converted to Android vectors by us | Ours |
+| App icons (`res/drawable/ic_*_{foreground,background,monochrome}.xml`, six choices in Settings > Look: Keycap Buddy (default), Iris the Lynx, Cornerstone peeks, Glyph the Owl, Cornerstone taps, Plush paw) | Drawn for Helper Board by Team Creative (icon menu pack, 2026-11-22); source zip sha256 c9da617dc9306a4756b6e414a99634c6a55303b54f0341e500ae260a86d926ae; SVG layers converted to Android vectors by us | Ours |
 
 The app has **no third-party code libraries**: `app/build.gradle.kts` depends only on our own `:core` module.
 It uses no Google closed keyboard library, no Gboard code, no Swype, Nuance or Cerence code, and no code from

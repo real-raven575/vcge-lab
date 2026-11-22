@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Team Creative's 01-keycap-buddy/ic_launcher_background.svg (icon menu pack, 11-22). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M0.0,0.0 h108.0 a0.0,0.0 0 0 1 0.0,0.0 v108.0 a0.0,0.0 0 0 1 -0.0,0.0 h-108.0 a0.0,0.0 0 0 1 -0.0,-0.0 v-108.0 a0.0,0.0 0 0 1 0.0,-0.0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="54" android:centerY="43.2" android:gradientRadius="81"
+                android:startColor="#2A3446" android:endColor="#171922" />
+        </aapt:attr>
+    </path>
+</vector>
