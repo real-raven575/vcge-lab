@@ -59,66 +59,81 @@ object Layouts {
         Key("🎙", kind = KeyKind.MIC, weight = 1.5f),
     )
 
-    /** ⌫ is always a bit wider than a letter (raven575: 120 to 150 %), so it is easy to find and hit. */
-    const val BACKSPACE_WEIGHT = 1.4f
+    /** ⌫ sits at the top right of every page, wider than a letter so it's easy to find (raven575, 11-20 and 11-21). */
+    const val BACKSPACE_WEIGHT = 1.6f
     private val backspace get() = Key("⌫", kind = KeyKind.BACKSPACE, weight = BACKSPACE_WEIGHT)
-    /** The big ⏎: two rows tall at the right edge, where ' and ⌫ used to be, so it's hard to miss (raven575, 11-20). */
-    private val bigEnter get() = Key("⏎", kind = KeyKind.ENTER, weight = 1.6f, rows = 2)
+    /** ⏎ sits in the middle of the right side, like a computer keyboard, with a ⇧ under it (raven575, 11-21). */
+    const val ENTER_WEIGHT = 2.6f
+    private val enter get() = Key("⏎", kind = KeyKind.ENTER, weight = ENTER_WEIGHT)
 
-    /**
-     * The programmable multi-key ✦ (raven575, 11-21): tap types its first item, hold shows all of them.
-     * The user sets the items in Settings.
-     */
+    /** The programmable multi-key ✦ (raven575, 11-21): tap types its first item, hold shows all of them. */
     const val MULTI_WEIGHT = 1.6f
     fun multiKey(items: List<String>): Key {
         val first = items.firstOrNull() ?: "✦"
         return Key("✦$first", first, MULTI_WEIGHT, KeyKind.MULTI)
     }
-    val DEFAULT_MULTI = listOf(":)", "/", "#", "&", "*", "(", ")", ";", ":", "…")
+    val DEFAULT_MULTI = listOf("(", ")", ":", ";", ":)", "#", "&", "*", "…")
 
     /** Every letter row adds up to the same width, so letters are the same size in every row (raven575, 11-21). */
     const val LETTER_ROW_UNITS = 12.9f
 
-    fun abc(numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW, multi: List<String> = DEFAULT_MULTI): List<List<Key>> = buildList {
+    /** Coder keys, off unless turned on: the ones people need for SSH and PowerShell (raven575, 11-21). */
+    val CODER_ROW = "`~\\|{}[]<>_=".map { Key(it.toString()) }
+
+    /**
+     * Laid out like a computer keyboard (raven575, 11-21): numbers with - and ⌫ at the top right; / beside p;
+     * ' then a wide ⏎ in the middle of the right side; ⇧ on both ends of the bottom letter row.
+     * , . ? are the most used marks, so they get their own keys; ( ) ! and the rest are a hold away on the numbers,
+     * as on a computer (hold 9 for "(").
+     */
+    fun abc(
+        numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW, multi: List<String> = DEFAULT_MULTI, coder: Boolean = false,
+    ): List<List<Key>> = buildList {
         if (myRow.isNotEmpty()) add(myRow)
-        // ⌫ sits right after 0; with no number row it ends the top letter row instead.
-        // The q row's spare room (it has only 10 letters) holds "!" and the ✦ multi-key, which sits above ⏎.
+        if (coder) add(CODER_ROW)
         if (numbers == NumberStyle.ROW) {
-            add(chars("1234567890") + backspace)
-            add(chars("qwertyuiop") + Key("!", weight = 1.3f) + multiKey(multi))
-        } else add(chars("qwertyuiop") + Key("⌫", kind = KeyKind.BACKSPACE, weight = 1.3f) + multiKey(multi))
-        // , . - ? ' live among the letters now, not in a row of their own.
-        add(chars("asdfghjkl") + listOf(Key("'", weight = 1.15f), Key("-", weight = 1.15f), bigEnter))
-        add(listOf(Key("⇧", kind = KeyKind.SHIFT, weight = 1.3f)) + chars("zxcvbnm") + listOf(Key(","), Key("."), Key("?")))
+            add(chars("1234567890") + Key("-", weight = 1.3f) + backspace)
+            add(chars("qwertyuiop") + Key("/", weight = 1.3f) + multiKey(multi))
+        } else add(chars("qwertyuiop") + Key("/", weight = 1.3f) + backspace)
+        add(chars("asdfghjkl") + Key("'", weight = 1.3f) + enter)
+        add(listOf(Key("⇧", kind = KeyKind.SHIFT, weight = 1.5f)) + chars("zxcvbnm") + listOf(Key(","), Key("."), Key("?")) +
+            Key("⇧", kind = KeyKind.SHIFT, weight = 1.4f))
         add(bottomRow(Key("123", kind = KeyKind.MODE_NUMBERS, weight = 1.2f)))
     }
 
     /** Phone-style keypad grid with the common number symbols beside it. */
     fun numbers(pad: PadLayout = PadLayout.PHONE): List<List<Key>> = listOf(
-        chars(if (pad == PadLayout.PHONE) "123" else "789") + listOf(Key("+"), Key("%")),
-        chars("456") + listOf(Key("-"), Key("$")),
-        chars(if (pad == PadLayout.PHONE) "789" else "123") + listOf(Key("*"), Key("/")),
-        listOf(Key(","), Key("0"), Key("."), Key("="), backspace, Key("⏎", kind = KeyKind.ENTER, weight = 1.4f)),
+        chars(if (pad == PadLayout.PHONE) "123" else "789") + listOf(Key("+"), Key("%"), backspace),
+        chars("456") + listOf(Key("-"), Key("$"), Key("⏎", kind = KeyKind.ENTER, weight = BACKSPACE_WEIGHT)),
+        chars(if (pad == PadLayout.PHONE) "789" else "123") + listOf(Key("*"), Key("/"), Key("(", weight = BACKSPACE_WEIGHT)),
+        listOf(Key(","), Key("0"), Key("."), Key("="), Key(":"), Key(")", weight = BACKSPACE_WEIGHT)),
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
 
     fun symbols(): List<List<Key>> = listOf(
-        chars("!@#&*()_"),
-        chars("\"':;/\\|~"),
-        chars("<>[]{}^`") ,
-        listOf(Key("¿"), Key("€"), Key("ñ"), Key("£"), Key("¡"), backspace, Key("⏎", kind = KeyKind.ENTER, weight = 1.4f)),
+        chars("!@#$%^&*()") + backspace,
+        chars("\"':;/\\|~_") + Key("⏎", kind = KeyKind.ENTER, weight = BACKSPACE_WEIGHT),
+        chars("<>[]{}`+=") + Key("€", weight = BACKSPACE_WEIGHT),
+        listOf(Key("¿"), Key("ñ"), Key("¡"), Key("£"), Key("¥"), Key("°"), Key("•"), Key("…"), Key("§"), Key("¶", weight = BACKSPACE_WEIGHT)),
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
 
     /** The mode strip, with or without the emoji tab. */
-    fun modeStrip(showEmoji: Boolean): List<Key> = MODE_STRIP.filter { showEmoji || it.kind != KeyKind.MODE_EMOJI }
+    /**
+     * The mode strip. The 🌐 switch and ⌄ hide keys are off by default because most phones already show them under
+     * the keyboard (raven575, 11-21); phones without them can turn them on.
+     */
+    fun modeStrip(showEmoji: Boolean, showSystemKeys: Boolean = false): List<Key> = MODE_STRIP.filter {
+        (showEmoji || it.kind != KeyKind.MODE_EMOJI) &&
+            (showSystemKeys || (it.kind != KeyKind.SWITCH_KEYBOARD && it.kind != KeyKind.HIDE))
+    }
 
     /**
      * Emoji page keys: only ⌫ and ⏎ under the emoji window, then the usual bottom row. The emoji themselves are a big
      * scrolling window with groups, recents and search (EmojiBook), drawn by the keyboard.
      */
     fun emoji(): List<List<Key>> = listOf(
-        listOf(Key("⌫", kind = KeyKind.BACKSPACE, weight = BACKSPACE_WEIGHT), Key("⏎", kind = KeyKind.ENTER, weight = BACKSPACE_WEIGHT)),
+        listOf(Key("⏎", kind = KeyKind.ENTER, weight = BACKSPACE_WEIGHT), Key("⌫", kind = KeyKind.BACKSPACE, weight = BACKSPACE_WEIGHT)),
         bottomRow(Key("ABC", kind = KeyKind.MODE_ABC, weight = 1.2f)),
     )
 
@@ -128,9 +143,9 @@ object Layouts {
 
     fun forMode(
         mode: Mode, numbers: NumberStyle, myRow: List<Key> = DEFAULT_MY_ROW,
-        pad: PadLayout = PadLayout.PHONE, multi: List<String> = DEFAULT_MULTI,
+        pad: PadLayout = PadLayout.PHONE, multi: List<String> = DEFAULT_MULTI, coder: Boolean = false,
     ): List<List<Key>> = when (mode) {
-        Mode.ABC, Mode.TAKES -> abc(numbers, myRow, multi)
+        Mode.ABC, Mode.TAKES -> abc(numbers, myRow, multi, coder)
         Mode.NUMBERS -> numbers(pad)
         Mode.SYMBOLS -> symbols()
         Mode.EMOJI -> emoji()

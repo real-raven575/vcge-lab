@@ -95,7 +95,7 @@ class EmojiTest {
         val rows = Layouts.emoji()
         fun shape(r: List<Key>) = r.map { (if (it.kind == KeyKind.MODE_ABC) KeyKind.MODE_NUMBERS else it.kind) to it.weight }
         assertEquals(shape(Layouts.abc(NumberStyle.ROW).last()), shape(rows.last()))
-        assertEquals(listOf(KeyKind.BACKSPACE, KeyKind.ENTER), rows.first().map { it.kind })
+        assertEquals(listOf(KeyKind.ENTER, KeyKind.BACKSPACE), rows.first().map { it.kind })
     }
 
     @Test fun searchFindsEmojiByNameOrFeeling() {
@@ -128,32 +128,51 @@ class EmojiTest {
 }
 
 class KeyPlacesTest {
-    @Test fun backspaceIsNextToZeroAndAQuarterToAHalfWider() {
-        val row = Layouts.abc(NumberStyle.ROW).first { r -> r.any { it.output == "0" } }
-        assertEquals(KeyKind.BACKSPACE, row.last().kind); assertEquals("0", row[row.size - 2].output)
-        assertTrue(row.last().weight in 1.2f..1.5f)
+    @Test fun backspaceIsTopRightOnEveryPageAndWiderThanALetter() {
         for (n in NumberStyle.entries) for (m in Mode.entries) {
-            assertTrue(Layouts.forMode(m, n).flatten().filter { it.kind == KeyKind.BACKSPACE }.all { it.weight in 1.2f..1.5f })
+            val rows = Layouts.forMode(m, n, myRow = emptyList())
+            val bs = rows.flatten().filter { it.kind == KeyKind.BACKSPACE }
+            assertEquals(1, bs.size, "$m/$n")
+            assertTrue(bs.single().weight in 1.2f..1.7f)
+            if (m != Mode.EMOJI) assertEquals(KeyKind.BACKSPACE, rows.first().last().kind, "top right, $m/$n")
         }
     }
 
-    @Test fun enterIsBigAndTwoRowsTallWhereApostropheAndBackspaceWere() {
+    @Test fun enterIsMiddleRightWithShiftUnderIt() {
         for (n in NumberStyle.entries) {
-            val layout = Layouts.abc(n)
+            val layout = Layouts.abc(n, myRow = emptyList())
             val i = layout.indexOfFirst { r -> r.any { it.kind == KeyKind.ENTER } }
-            val enter = layout[i].last()
-            assertEquals(KeyKind.ENTER, enter.kind); assertEquals(2, enter.rows)
-            assertTrue(layout[i + 1].first().kind == KeyKind.SHIFT, "the row below is the z row")
+            assertEquals(KeyKind.ENTER, layout[i].last().kind)
+            assertTrue(layout[i].any { it.output == "a" }, "on the a row")
+            assertEquals(KeyKind.SHIFT, layout[i + 1].last().kind, "a ⇧ under ⏎")
+            assertEquals(KeyKind.SHIFT, layout[i + 1].first().kind, "and a ⇧ on the left")
             assertTrue(layout.flatten().count { it.kind == KeyKind.ENTER } == 1)
         }
     }
 
+    @Test fun numbersHoldTheirComputerKeyboardSymbols() {
+        val want = mapOf("1" to "!", "2" to "@", "3" to "#", "4" to "$", "5" to "%", "6" to "^", "7" to "&", "8" to "*", "9" to "(", "0" to ")")
+        for ((k, v) in want) { assertEquals(v, Alternates.forKey(k).first(), k); assertEquals(v, Alternates.hint(k)) }
+        assertTrue(Alternates.hint("a") == null)
+        assertTrue("\\" in Alternates.forKey("/"))
+    }
+
+    @Test fun coderKeysAreAnOption() {
+        assertTrue(Layouts.abc(NumberStyle.ROW).flatten().none { it.output == "\\" })
+        assertTrue(Layouts.abc(NumberStyle.ROW, coder = true).flatten().any { it.output == "\\" })
+    }
+
+    @Test fun switchAndHideKeysAreOffByDefault() {
+        assertTrue(Layouts.modeStrip(true).none { it.kind == KeyKind.HIDE || it.kind == KeyKind.SWITCH_KEYBOARD })
+        assertTrue(Layouts.modeStrip(true, showSystemKeys = true).any { it.kind == KeyKind.HIDE })
+    }
+
     @Test fun punctuationIsAmongTheLettersNotInItsOwnRow() {
         val layout = Layouts.abc(NumberStyle.ROW)
-        for (p in listOf(",", ".", "-", "?")) {
+        for (p in listOf(",", ".", "'", "?")) {
             val row = layout.first { r -> r.any { it.output == p } }
             assertTrue(row.count { it.output.length == 1 && it.output[0].isLetter() } >= 7, "$p sits with letters")
-            assertTrue(row.first { it.output == p }.weight in 1f..1.15f, "$p is letter-sized")
+            assertTrue(row.first { it.output == p }.weight in 1f..1.3f, "$p is about letter-sized")
         }
     }
 
@@ -173,11 +192,9 @@ class Build15Test {
             val q = rows.first { it.any { k -> k.label == "q" } }
             val a = rows.first { it.any { k -> k.label == "a" } }
             val z = rows.first { it.any { k -> k.label == "z" } }
-            val enter = a.last().weight // the tall ⏎ also covers the z row
             assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(q), 0.01, "q row, $style")
             assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(a), 0.01, "a row, $style")
-            assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(z) + enter, 0.01, "z row, $style")
-            assertTrue(q.any { it.kind == KeyKind.MULTI }, "multi-key on the q row, $style")
+            assertEquals(Layouts.LETTER_ROW_UNITS.toDouble(), units(z), 0.01, "z row, $style")
         }
     }
 

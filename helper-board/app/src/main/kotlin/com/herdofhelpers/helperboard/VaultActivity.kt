@@ -240,6 +240,10 @@ class VaultActivity : Activity() {
         choice("Voice language", listOf("English" to "en-US", "Español" to "es-US"), prefs.language) { prefs.language = it }
         slider("Key buzz strength (0 = off)", 0, 100, prefs.keyBuzzStrength, "%") { prefs.keyBuzzStrength = it; testBuzz(it) }
         toggle("Swipe typing (slide across the letters)", prefs.swipeTyping) { prefs.swipeTyping = it }
+        toggle("Show the swipe ink line", prefs.swipeTrail) { prefs.swipeTrail = it }
+        toggle("Show hold hints (! over 1, ( over 9)", prefs.holdHints) { prefs.holdHints = it }
+        toggle("Coder keys row ( ` ~ \\ | { } [ ] < > _ = )", prefs.coderKeys) { prefs.coderKeys = it }
+        toggle("Show 🌐 switch and ⌄ hide keys (for phones without them)", prefs.showSystemKeys) { prefs.showSystemKeys = it }
         toggle("Autocorrect: fix clear slips when I press space (⌫ undoes it)", prefs.autocorrect) { prefs.autocorrect = it }
         text("Autocorrect never touches dictation, passwords, or web and email addresses. Word lists: wordfreq by Robyn Speer, CC BY-SA 4.0.")
         toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }

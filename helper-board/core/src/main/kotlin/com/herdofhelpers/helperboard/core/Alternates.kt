@@ -19,13 +19,21 @@ object Alternates {
         "?" to listOf("!", "¿", "¡", "‽"),
         "!" to listOf("¡", "‼", "?"),
         "'" to listOf("\"", "`", "‘", "’", "“", "”", "«", "»"),
-        "-" to listOf("_", "–", "—", "~", "+", "="),
+        "(" to listOf("[", "{", "<"), ")" to listOf("]", "}", ">"),
+        "-" to listOf("_", "=", "+", "–", "—", "~"),
         "@" to listOf("#", "&", "_"),
         ".com" to listOf(".net", ".org", ".edu", ".gov", ".co.uk", ".mx", ".es"),
-        "1" to listOf("¹", "½", "⅓", "¼"), "2" to listOf("²", "⅔"), "3" to listOf("³", "¾"),
-        "0" to listOf("°", "∅"), "$" to listOf("€", "£", "¥", "¢"), "%" to listOf("‰"),
-        "*" to listOf("×", "•"), "/" to listOf("÷", "\\"), "+" to listOf("±"), "=" to listOf("≠", "≈"),
+        // The number row holds what a computer keyboard's Shift gives (raven575, 11-21): hold 9 for "(".
+        "1" to listOf("!", "¹", "½", "¼"), "2" to listOf("@", "²", "⅔"), "3" to listOf("#", "³", "¾"),
+        "4" to listOf("$", "€", "£", "¢"), "5" to listOf("%", "‰"), "6" to listOf("^"), "7" to listOf("&"),
+        "8" to listOf("*", "•", "×"), "9" to listOf("(", "[", "{", "<"), "0" to listOf(")", "]", "}", ">", "°"),
+        "$" to listOf("€", "£", "¥", "¢"), "%" to listOf("‰"),
+        "*" to listOf("×", "•"), "/" to listOf("\\", "|", "÷"), "+" to listOf("±"), "=" to listOf("≠", "≈"),
     )
+
+    /** The small mark shown in a key's corner: what holding it types first. Only for numbers and marks. */
+    fun hint(label: String): String? =
+        if (label.length == 1 && label[0].isLetter()) null else punctuation[label]?.firstOrNull()
 
     /** The choices for a key whose label is [label]. [upper]: the keyboard is showing capitals right now. */
     fun forKey(label: String, upper: Boolean = false): List<String> {

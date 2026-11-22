@@ -53,6 +53,7 @@ class HelperBoardIme : InputMethodService() {
     private var root: LinearLayout? = null
     private var preview: TextView? = null
     private var altBar: LinearLayout? = null
+    private var trail: InkTrail? = null
     private var altOptions: List<String> = emptyList()
     private var altPicked = 0
 
@@ -103,6 +104,10 @@ class HelperBoardIme : InputMethodService() {
         }
         altBar = bar
         frame.addView(bar, FrameLayout.LayoutParams(0, 0))
+        // The swipe trail sits on top of everything and never takes touches.
+        val inkLine = InkTrail(this)
+        trail = inkLine
+        frame.addView(inkLine, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         render()
         return frame
     }
@@ -145,7 +150,7 @@ class HelperBoardIme : InputMethodService() {
         if (mode == Mode.TAKES) r.addView(takesDrawer())
         // While searching emoji, the letter keys type into the search line instead of the text box.
         val rows = if (emojiQuery != null) Layouts.abc(NumberStyle.OFF, myRow = emptyList())
-        else Layouts.forMode(mode, prefs.numberStyle, pad = prefs.padLayout, multi = prefs.multiKeyItems)
+        else Layouts.forMode(mode, prefs.numberStyle, pad = prefs.padLayout, multi = prefs.multiKeyItems, coder = prefs.coderKeys)
         var i = 0
         while (i < rows.size) {
             val tall = rows[i].lastOrNull()?.takeIf { it.rows == 2 && i + 1 < rows.size }
@@ -157,7 +162,7 @@ class HelperBoardIme : InputMethodService() {
 
     private fun modeStrip(): View {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        for (k in Layouts.modeStrip(prefs.showEmoji)) {
+        for (k in Layouts.modeStrip(prefs.showEmoji, prefs.showSystemKeys)) {
             val active = when (k.kind) {
                 KeyKind.MODE_ABC -> mode == Mode.ABC
                 KeyKind.MODE_NUMBERS -> mode == Mode.NUMBERS
@@ -366,6 +371,14 @@ class HelperBoardIme : InputMethodService() {
             else -> p.sunk to p.text
         }
         tv.setTextColor(ink)
+        // A small mark in the corner shows what holding the key types (! over 1, ( over 9), so people know it's there.
+        if (prefs.holdHints && (k.kind == KeyKind.CHAR) && emojiQuery == null) Alternates.hint(k.label)?.let { h ->
+            val sb = android.text.SpannableStringBuilder(h).append("\n").append(tv.text)
+            sb.setSpan(android.text.style.RelativeSizeSpan(0.5f), 0, h.length, 0)
+            sb.setSpan(android.text.style.ForegroundColorSpan(p.muted), 0, h.length, 0)
+            tv.text = sb
+            tv.setLineSpacing(0f, 0.85f)
+        }
         tv.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
         tv.contentDescription = when (k.kind) {
             KeyKind.SPACE -> "space"; KeyKind.BACKSPACE -> "delete"; KeyKind.ENTER -> "enter"
@@ -390,18 +403,23 @@ class HelperBoardIme : InputMethodService() {
             if (canSwipe) when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> { swipePath.clear(); swipePath.add(Pt(e.rawX, e.rawY)); swiping = false }
                 MotionEvent.ACTION_MOVE -> {
+                    // Every touch point since the last event, so the ink line is smooth even on fast swipes.
+                    val ox = e.rawX - e.x; val oy = e.rawY - e.y
+                    for (h in 0 until e.historySize) swipePath.add(Pt(e.getHistoricalX(h) + ox, e.getHistoricalY(h) + oy))
                     swipePath.add(Pt(e.rawX, e.rawY))
+                    if (swiping && prefs.swipeTrail) trail?.add(e.rawX, e.rawY)
                     if (!swiping) {
                         val dx = e.rawX - swipePath[0].x; val dy = e.rawY - swipePath[0].y
                         if (Math.hypot(dx.toDouble(), dy.toDouble()) > v.width * 0.6) {
                             swiping = true; v.cancelLongPress(); v.isPressed = false; hidePreview()
+                            if (prefs.swipeTrail) trail?.let { t -> t.color = p.accent; t.clear(); swipePath.forEach { pt -> t.add(pt.x, pt.y) } }
                             v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
                         }
                     }
                     if (swiping) return@setOnTouchListener true
                 }
-                MotionEvent.ACTION_UP -> if (swiping) { swiping = false; finishSwipe(); return@setOnTouchListener true }
-                MotionEvent.ACTION_CANCEL -> swiping = false
+                MotionEvent.ACTION_UP -> if (swiping) { swiping = false; trail?.lift(); finishSwipe(); return@setOnTouchListener true }
+                MotionEvent.ACTION_CANCEL -> { swiping = false; trail?.lift() }
             }
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {

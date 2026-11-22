@@ -60,6 +60,22 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("autocorrect", false)
         set(v) = sp.edit().putBoolean("autocorrect", v).apply()
 
+    /** The 🌐 and ⌄ keys: off, since most phones show them under the keyboard already (raven575, 11-21). */
+    var showSystemKeys: Boolean
+        get() = sp.getBoolean("showSystemKeys", false)
+        set(v) = sp.edit().putBoolean("showSystemKeys", v).apply()
+    /** An extra row of ` ~ \ | { } [ ] < > _ = for SSH, PowerShell and code. */
+    var coderKeys: Boolean
+        get() = sp.getBoolean("coderKeys", false)
+        set(v) = sp.edit().putBoolean("coderKeys", v).apply()
+    /** Small marks in key corners showing what a hold types (! over 1, ( over 9...). */
+    var holdHints: Boolean
+        get() = sp.getBoolean("holdHints", true)
+        set(v) = sp.edit().putBoolean("holdHints", v).apply()
+    var swipeTrail: Boolean
+        get() = sp.getBoolean("swipeTrail", true)
+        set(v) = sp.edit().putBoolean("swipeTrail", v).apply()
+
     var swipeTyping: Boolean
         get() = sp.getBoolean("swipeTyping", true)
         set(v) = sp.edit().putBoolean("swipeTyping", v).apply()
