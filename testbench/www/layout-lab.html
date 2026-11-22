@@ -56,7 +56,8 @@ label > span.v { color: var(--text); font-variant-numeric: tabular-nums; }
 .key.fn { background: var(--key-fn); font-size: 14px; }
 .key.accent { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .key.sel { outline: 3px solid var(--warn); outline-offset: -3px; }
-.key .hint { position: absolute; top: 2px; right: 5px; font-size: 10px; color: var(--muted); }
+.key .lbl, .key .hint { position: absolute; transform: translate(-50%, -50%); pointer-events: none; line-height: 1; }
+.key .hint { font-size: .5em; color: var(--muted); }
 .dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--hit); pointer-events: none; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items: start; }
@@ -67,6 +68,11 @@ label > span.v { color: var(--text); font-variant-numeric: tabular-nums; }
 .units { font: 12px var(--mono); color: var(--muted); padding: 0 6px; font-variant-numeric: tabular-nums; }
 textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--mono); }
 .try { width: 100%; min-height: 3rem; padding: .6rem; background: var(--sunk); border-radius: 10px; font-size: 17px; white-space: pre-wrap; word-break: break-word; }
+.sub { font-size: 1rem; margin: .25rem 0 0; }
+.items { margin: 0; padding-left: 1.6rem; display: grid; gap: .35rem; }
+.items li > div { display: flex; gap: .35rem; align-items: center; }
+.items input { flex: 1; }
+.items button { min-width: 40px; padding: .45rem .5rem; }
 .pill { display: inline-block; padding: .1rem .5rem; border-radius: 99px; background: var(--sunk); font-size: .8rem; }
 .saved li { display: flex; gap: .5rem; align-items: center; justify-content: space-between; padding: .25rem 0; border-bottom: 1px solid var(--border); }
 .saved { list-style: none; margin: 0; padding: 0; }
@@ -111,7 +117,23 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
       <button type="button" id="kLeft">◀ Move</button><button type="button" id="kRight">Move ▶</button>
       <button type="button" id="kAdd">+ Key after</button><button type="button" id="kDel" class="danger">Remove key</button>
     </div>
+    <div id="multiBox" hidden>
+      <h3 class="sub">✦ multi-key items</h3>
+      <p class="note">Tap types the first item. Hold shows them all, in this order. Each item can be a mark, a word or a short phrase.</p>
+      <ol class="items" id="multiList"></ol>
+      <div class="bar"><button type="button" id="mAdd">+ Add item</button><button type="button" id="mReset">Use the standard items</button></div>
+    </div>
     <p class="note" id="kHits">Taps on this key while trying: none yet.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="faceH">
+    <h2 id="faceH">Letter and hold mark place <span class="pill">every key</span></h2>
+    <label for="fLx">Letter left / right <span class="v" id="fLxv"></span><input id="fLx" type="range" min="-0.35" max="0.35" step="0.01"></label>
+    <label for="fLy">Letter up / down <span class="v" id="fLyv"></span><input id="fLy" type="range" min="-0.35" max="0.35" step="0.01"></label>
+    <label for="fHx">Hold mark left / right <span class="v" id="fHxv"></span><input id="fHx" type="range" min="0.1" max="0.9" step="0.01"></label>
+    <label for="fHy">Hold mark up / down <span class="v" id="fHyv"></span><input id="fHy" type="range" min="0.1" max="0.9" step="0.01"></label>
+    <div class="bar"><button type="button" id="fReset">Put them back</button></div>
+    <p class="note">The hold mark is the small sign that shows what holding a key types, like ! over 1.</p>
   </section>
 
   <section class="panel" aria-labelledby="rowH">
@@ -162,12 +184,16 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
   const k = (l, kind = "CHAR", w = 1, o) => ({ l, o: o ?? (kind === "CHAR" ? l : ""), k: kind, w, g: 0 });
   const chars = s => [...s].map(c => k(c));
 
+  const MULTI = ["(", ")", ":", ";", ":)", "#", "&", "*", "…"];
+  const FACE = { lx: 0, ly: 0, hx: 0.8, hy: 0.24 };
+  const face = () => ({ ...FACE, ...(layout.face || {}) });
+
   /** Helper Board standard layout (build 17): ⌫ top right, ⏎ middle right with ⇧ under it. */
   function standard() {
-    return { format: "helper-board-layout", version: 1, name: "Helper Board standard", rows: [
+    return { format: "helper-board-layout", version: 1, name: "Helper Board standard", face: { ...FACE }, rows: [
       { h: 44, keys: [k("@", "CHAR", 3.2), k(".com", "CHAR", 3.2), k("⇪ caps", "CAPS_LOCK", 3.2), k("🔢 pad", "MODE_NUMBERS", 3.3)] },
       { h: 48, keys: [...chars("1234567890"), k("-", "CHAR", 1.3), k("⌫", "BACKSPACE", 1.6)] },
-      { h: 48, keys: [...chars("qwertyuiop"), k("/", "CHAR", 1.3), k("✦(", "MULTI", 1.6, "(")] },
+      { h: 48, keys: [...chars("qwertyuiop"), k("/", "CHAR", 1.3), { ...k("✦(", "MULTI", 1.6, "("), m: [...MULTI] }] },
       { h: 48, keys: [...chars("asdfghjkl"), k("'", "CHAR", 1.3), k("⏎", "ENTER", 2.6)] },
       { h: 48, keys: [k("⇧", "SHIFT", 1.5), ...chars("zxcvbnm"), k(","), k("."), k("?"), k("⇧", "SHIFT", 1.4)] },
       { h: 48, keys: [k("123", "MODE_NUMBERS", 1.2), k("↶", "UNDO"), k("◀", "LEFT"), k("space", "SPACE", 4, " "), k("▶", "RIGHT"), k("🎙", "MIC", 1.5)] },
@@ -215,8 +241,12 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
         b.tabIndex = 0;
         b.setAttribute("role", "button");
         b.setAttribute("aria-label", (KINDS[key.k] || "") + " " + key.l);
-        b.textContent = key.k === "CHAR" && shift && trying ? key.l.toUpperCase() : key.l;
-        if (HINT[key.l]) { const h = document.createElement("span"); h.className = "hint"; h.textContent = HINT[key.l]; b.appendChild(h); }
+        const f = face();
+        const lbl = document.createElement("span"); lbl.className = "lbl";
+        lbl.textContent = key.k === "CHAR" && shift && trying ? key.l.toUpperCase() : key.l;
+        lbl.style.left = (50 + f.lx * 100) + "%"; lbl.style.top = (50 + f.ly * 100) + "%"; b.appendChild(lbl);
+        if (HINT[key.l]) { const h = document.createElement("span"); h.className = "hint"; h.textContent = HINT[key.l];
+          h.style.left = f.hx * 100 + "%"; h.style.top = f.hy * 100 + "%"; b.appendChild(h); }
         (hits[r + ":" + i] || []).slice(-12).forEach(p => {
           const d = document.createElement("span"); d.className = "dot";
           d.style.left = (50 + p.dx * 100) + "%"; d.style.top = (50 + p.dy * 100) + "%"; b.appendChild(d);
@@ -230,6 +260,8 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
       kb.appendChild(el);
     });
     panels();
+    facePanel();
+    multiPanel();
     $("json").value = JSON.stringify(layout, null, 1);
     store.set("hb-lab-current", layout);
     if (push !== false) saveWorking();
@@ -312,6 +344,48 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
     render();
   };
   $("clearHits").onclick = () => { hits = {}; typed = ""; $("tryText").textContent = " "; render(); };
+
+  // ✦ multi-key items, one box each. Rebuilt only when another key is picked or the list changes, so typing keeps focus.
+  let multiShown = "";
+  function multiPanel(force) {
+    const key = layout.rows[sel.r] && layout.rows[sel.r].keys[sel.i];
+    const box = $("multiBox");
+    if (!key || key.k !== "MULTI") { box.hidden = true; multiShown = ""; return; }
+    box.hidden = false;
+    if (!key.m || !key.m.length) key.m = [key.o || "("];
+    const tag = sel.r + ":" + sel.i + ":" + key.m.length;
+    if (!force && tag === multiShown) return;
+    multiShown = tag;
+    const ol = $("multiList"); ol.textContent = "";
+    key.m.forEach((item, n) => {
+      const li = document.createElement("li"), d = document.createElement("div");
+      const inp = document.createElement("input"); inp.type = "text"; inp.maxLength = 12; inp.value = item;
+      inp.setAttribute("aria-label", `Item ${n + 1}` + (n === 0 ? " (tap types this)" : ""));
+      inp.oninput = () => { key.m[n] = inp.value; if (n === 0) { key.o = inp.value; key.l = "✦" + inp.value; } render(); };
+      const btn = (t, label, fn, dis) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t;
+        b.setAttribute("aria-label", label); b.disabled = !!dis; b.onclick = fn; return b; };
+      const move = to => { const [x] = key.m.splice(n, 1); key.m.splice(to, 0, x); sync(); };
+      d.append(inp, btn("▲", "Move up", () => move(n - 1), n === 0), btn("▼", "Move down", () => move(n + 1), n === key.m.length - 1),
+        btn("✕", "Remove", () => { key.m.splice(n, 1); sync(); }, key.m.length === 1));
+      if (n === 0) { const t = document.createElement("span"); t.className = "pill"; t.textContent = "tap"; d.append(t); }
+      li.append(d); ol.append(li);
+    });
+    function sync() { key.m = key.m.filter((x, i) => x !== "" || i === 0); key.o = key.m[0]; key.l = "✦" + key.m[0]; render(); multiPanel(true); }
+  }
+  $("mAdd").onclick = () => { const key = layout.rows[sel.r].keys[sel.i]; if (key.m.length < 12) { key.m.push(""); render(); multiPanel(true);
+    const ins = $("multiList").querySelectorAll("input"); ins[ins.length - 1].focus(); } };
+  $("mReset").onclick = () => { const key = layout.rows[sel.r].keys[sel.i]; key.m = [...MULTI]; key.o = MULTI[0]; key.l = "✦" + MULTI[0]; render(); multiPanel(true); };
+
+  // Letter and hold mark place (every key)
+  const FACE_IN = { fLx: "lx", fLy: "ly", fHx: "hx", fHy: "hy" };
+  const pct = v => Math.round(v * 100) + "%";
+  function facePanel() {
+    const f = face();
+    for (const [id, k] of Object.entries(FACE_IN)) { $(id).value = f[k]; $(id + "v").textContent = (k[0] === "l" && f[k] > 0 ? "+" : "") + pct(f[k]); }
+  }
+  for (const [id, k] of Object.entries(FACE_IN))
+    $(id).oninput = e => { layout.face = { ...face(), [k]: +e.target.value }; render(); };
+  $("fReset").onclick = () => { layout.face = { ...FACE }; render(); };
 
   // Saving. On the lab server (Flight Deck) layouts are kept there, so every device sees the same ones, and the
   // layout you are working on is saved there as you go ("working"). Anywhere else they stay in this browser.

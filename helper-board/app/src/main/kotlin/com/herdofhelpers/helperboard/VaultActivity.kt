@@ -269,19 +269,23 @@ class VaultActivity : Activity() {
     }
 
     /** The ✦ multi-key: tap types the first item, hold shows them all. Items are separated by spaces. */
+    /** The ✦ multi-key's items, one per line, so an item can hold spaces (a word or short phrase). */
     private fun multiKeyEditor() {
         page.addView(TextView(this).apply {
-            text = "✦ multi-key (top letter row). Tap types the first item; hold shows them all. Separate items with spaces."
+            text = "✦ multi-key (top letter row). One item per line: tap types the first line, hold shows them all in this order. " +
+                "Up to 12 items, 12 characters each. For more control, use the Layout Lab page."
             textSize = 15f; setTextColor(pal.text); setPadding(0, dp(8), 0, 0)
         })
         val box = android.widget.EditText(this).apply {
-            setText(prefs.multiKeyItems.joinToString(" ")); setTextColor(pal.text); textSize = 16f
-            setSingleLine(true)
+            setText(prefs.multiKeyItems.joinToString("\n")); setTextColor(pal.text); textSize = 16f
+            minLines = 3; maxLines = 12; gravity = android.view.Gravity.TOP or android.view.Gravity.START
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }
         page.addView(box)
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         row.addView(smallButton("Save ✦ items") {
-            prefs.multiKeyItems = box.text.toString().split(' ').filter { it.isNotEmpty() }; toast("Saved"); build()
+            val items = box.text.toString().lines().map { it.trim().take(12) }.filter { it.isNotEmpty() }.take(12)
+            if (items.isEmpty()) toast("Add at least one item") else { prefs.multiKeyItems = items; toast("Saved"); build() }
         })
         row.addView(smallButton("Reset") {
             prefs.multiKeyItems = com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI; build()

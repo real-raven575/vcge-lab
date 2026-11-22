@@ -17,6 +17,8 @@ data class Key(
     val label: String, val output: String = label, val weight: Float = 1f, val kind: KeyKind = KeyKind.CHAR, val rows: Int = 1,
     /** Empty space before the key, in letter widths (Layout Lab). */
     val gap: Float = 0f,
+    /** A ✦ multi-key's own items from the Layout Lab (tap = first, hold = all); null = the list set in Settings. */
+    val items: List<String>? = null,
 )
 
 /**

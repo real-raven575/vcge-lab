@@ -135,6 +135,9 @@ class HelperBoardIme : InputMethodService() {
 
     // ---------- Drawing ----------
 
+    /** Where the letter and the hold mark sit on each key: the Layout Lab layout's, else the standard place. */
+    private var face = com.herdofhelpers.helperboard.core.KeyFace()
+
     private fun render() {
         val r = root ?: return
         hidePreview(); hideAlternates()
@@ -153,9 +156,11 @@ class HelperBoardIme : InputMethodService() {
         // While searching emoji, the letter keys type into the search line instead of the text box.
         val rows = if (emojiQuery != null) Layouts.abc(NumberStyle.OFF, myRow = emptyList())
         else Layouts.forMode(mode, prefs.numberStyle, pad = prefs.padLayout, multi = prefs.multiKeyItems, coder = prefs.coderKeys)
+        face = com.herdofhelpers.helperboard.core.KeyFace()
         val lab = if (emojiQuery == null && mode == Mode.ABC && prefs.labLayout.isNotBlank())
             com.herdofhelpers.helperboard.core.LabLayout.parse(prefs.labLayout).getOrNull() else null
         if (lab != null) {
+            face = lab.face
             lab.rows.forEachIndexed { n, keys -> r.addView(keyRow(keys, lab.heightsDp[n], lab.widest)) }
             refreshSuggestions(); return
         }
@@ -373,7 +378,8 @@ class HelperBoardIme : InputMethodService() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun keyView(k: Key): TextView {
-        val tv = TextView(this)
+        val tv = KeyText(this)
+        tv.face = face
         tv.text = labelFor(k)
         tv.gravity = Gravity.CENTER
         tv.textSize = if (k.label.length > 2) 14f else 20f
@@ -390,12 +396,8 @@ class HelperBoardIme : InputMethodService() {
         }
         tv.setTextColor(ink)
         // A small mark in the corner shows what holding the key types (! over 1, ( over 9), so people know it's there.
-        if (prefs.holdHints && (k.kind == KeyKind.CHAR) && emojiQuery == null) Alternates.hint(k.label)?.let { h ->
-            val sb = android.text.SpannableStringBuilder(h).append("\n").append(tv.text)
-            sb.setSpan(android.text.style.RelativeSizeSpan(0.5f), 0, h.length, 0)
-            sb.setSpan(android.text.style.ForegroundColorSpan(p.muted), 0, h.length, 0)
-            tv.text = sb
-            tv.setLineSpacing(0f, 0.85f)
+        if (prefs.holdHints && (k.kind == KeyKind.CHAR) && emojiQuery == null) {
+            tv.holdMark = Alternates.hint(k.label); tv.hintColor = p.muted
         }
         tv.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
         tv.contentDescription = when (k.kind) {
@@ -461,7 +463,7 @@ class HelperBoardIme : InputMethodService() {
                 KeyKind.MODE_NUMBERS, KeyKind.SETTINGS -> { openSettings(); true }
                 KeyKind.CHAR, KeyKind.MULTI -> {
                     val upper = shift.state != Shift.OFF
-                    val options = if (k.kind == KeyKind.MULTI) prefs.multiKeyItems else Alternates.forKey(k.label, upper)
+                    val options = if (k.kind == KeyKind.MULTI) k.items ?: prefs.multiKeyItems else Alternates.forKey(k.label, upper)
                     if (options.isEmpty() || emojiQuery != null) false
                     else { hidePreview(); showAlternates(tv, options, p); buzz(tv); true }
                 }

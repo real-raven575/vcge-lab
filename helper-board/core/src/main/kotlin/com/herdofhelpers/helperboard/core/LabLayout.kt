@@ -3,10 +3,28 @@ package com.herdofhelpers.helperboard.core
 /**
  * A key layout made in the Layout Lab page (testbench/www/layout-lab.html) and pasted into Settings.
  * Format: {"format":"helper-board-layout","version":1,"name":..,"rows":[{"h":48,"keys":[{"l","o","k","w","g"}]}]}
- * l = what the key shows, o = what it types, k = KeyKind name, w = width in letters, g = space before it.
+ * l = what the key shows, o = what it types, k = KeyKind name, w = width in letters, g = space before it,
+ * m = a ✦ multi-key's items (tap types the first, hold shows all).
+ * Optional "face":{"lx","ly","hx","hy"} places the letter and the hold mark on every key (see [KeyFace]).
  * A row shorter than the widest gets the rest as empty space at its end, the same as the Lab draws it.
  */
-data class LabLayout(val name: String, val rows: List<List<Key>>, val heightsDp: List<Int>) {
+/**
+ * Where the writing sits on every key, as parts of the key's width and height.
+ * [lx], [ly]: the main letter's nudge from the middle (-0.35..0.35). [hx], [hy]: the centre of the small hold mark (0.1..0.9).
+ */
+data class KeyFace(val lx: Float = 0f, val ly: Float = 0f, val hx: Float = 0.8f, val hy: Float = 0.24f) {
+    companion object {
+        fun of(m: Map<*, *>?): KeyFace {
+            fun f(k: String, d: Float, lo: Float, hi: Float) = ((m?.get(k) as? Double)?.toFloat() ?: d).coerceIn(lo, hi)
+            val d = KeyFace()
+            return KeyFace(f("lx", d.lx, -0.35f, 0.35f), f("ly", d.ly, -0.35f, 0.35f), f("hx", d.hx, 0.1f, 0.9f), f("hy", d.hy, 0.1f, 0.9f))
+        }
+    }
+}
+
+data class LabLayout(
+    val name: String, val rows: List<List<Key>>, val heightsDp: List<Int>, val face: KeyFace = KeyFace(),
+) {
     val widest: Float get() = rows.maxOf { units(it) }
 
     companion object {
@@ -38,8 +56,11 @@ data class LabLayout(val name: String, val rows: List<List<Key>>, val heightsDp:
                     val label = (k["l"] as? String)?.take(12) ?: ""
                     val out = (k["o"] as? String)?.take(24) ?: ""
                     if (kind == KeyKind.CHAR && out.isEmpty()) fail("A letter key in row ${r + 1} types nothing.")
+                    val items = (k["m"] as? List<*>)?.filterIsInstance<String>()?.map { it.take(12) }?.filter { it.isNotEmpty() }
+                        ?.take(12)?.takeIf { kind == KeyKind.MULTI && it.isNotEmpty() }
                     Key(
-                        label = label, output = if (kind == KeyKind.CHAR || kind == KeyKind.MULTI) out else label,
+                        label = label, output = items?.first() ?: if (kind == KeyKind.CHAR || kind == KeyKind.MULTI) out else label,
+                        items = items,
                         weight = ((k["w"] as? Double) ?: 1.0).toFloat().coerceIn(0.5f, 6f), kind = kind,
                         gap = ((k["g"] as? Double) ?: 0.0).toFloat().coerceIn(0f, 3f),
                     )
@@ -48,7 +69,7 @@ data class LabLayout(val name: String, val rows: List<List<Key>>, val heightsDp:
             val all = rows.flatten().map { it.kind }.toSet()
             for ((need, words) in listOf(KeyKind.BACKSPACE to "⌫", KeyKind.ENTER to "⏎", KeyKind.SPACE to "space"))
                 if (need !in all) fail("The layout needs a $words key.")
-            LabLayout((top["name"] as? String)?.take(40) ?: "My layout", rows, heights)
+            LabLayout((top["name"] as? String)?.take(40) ?: "My layout", rows, heights, KeyFace.of(top["face"] as? Map<*, *>))
         }
 
         private fun fail(why: String): Nothing = throw IllegalArgumentException(why)

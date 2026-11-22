@@ -34,4 +34,17 @@ class LabLayoutTest {
         assertEquals(1.5f, lab.rows[0][0].gap)
         assertEquals(" ", Key(" ").output)
     }
+
+    @Test fun readsWhereTheLetterAndHoldMarkSit() {
+        assertEquals(KeyFace(), LabLayout.parse(standard).getOrThrow().face)
+        val moved = standard.replaceFirst("\"rows\"", "\"face\": {\"lx\": 0.1, \"ly\": 0.9, \"hx\": 0.2, \"hy\": 0.15},\n \"rows\"")
+        assertEquals(KeyFace(0.1f, 0.35f, 0.2f, 0.15f), LabLayout.parse(moved).getOrThrow().face)
+    }
+
+    @Test fun aMultiKeyCarriesItsOwnItems() {
+        val withItems = standard.replace("\"k\": \"MULTI\",", "\"k\": \"MULTI\", \"m\": [\"lol\", \"\", \"🙂\"],")
+        val multi = LabLayout.parse(withItems).getOrThrow().rows.flatten().first { it.kind == KeyKind.MULTI }
+        assertEquals(listOf("lol", "🙂"), multi.items)
+        assertEquals("lol", multi.output)
+    }
 }

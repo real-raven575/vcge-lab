@@ -49,11 +49,12 @@ class Prefs(context: Context) {
             .getOrDefault(com.herdofhelpers.helperboard.core.PadLayout.PHONE)
         set(v) = sp.edit().putString("padLayout", v.name).apply()
 
-    /** What the ✦ multi-key types: tap = the first item, hold = all of them. Stored space-separated. */
+    /** What the ✦ multi-key types: tap = the first item, hold = all of them. Stored one per line (older builds: spaces). */
     var multiKeyItems: List<String>
-        get() = sp.getString("multiKeyItems", null)?.split(' ')?.filter { it.isNotEmpty() }?.takeIf { it.isNotEmpty() }
+        get() = sp.getString("multiKeyItems", null)
+            ?.let { if ('\n' in it) it.split('\n') else it.split(' ') }?.filter { it.isNotEmpty() }?.takeIf { it.isNotEmpty() }
             ?: com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI
-        set(v) = sp.edit().putString("multiKeyItems", v.joinToString(" ")).apply()
+        set(v) = sp.edit().putString("multiKeyItems", v.joinToString("\n")).apply()
 
     /** Autocorrect: off until the user turns it on (testers T2, T7). Never on dictation, passwords or addresses. */
     var autocorrect: Boolean
