@@ -58,6 +58,8 @@ class VaultActivity : Activity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        // Android can hand a new intent to the page while it is still open and never pause it; draw the test now.
+        if (intent.hasExtra(EXTRA_ROBOT)) build()
     }
 
     override fun onResume() {
