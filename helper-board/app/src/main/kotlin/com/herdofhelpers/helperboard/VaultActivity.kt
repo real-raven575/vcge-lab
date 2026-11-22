@@ -448,6 +448,13 @@ class VaultActivity : Activity() {
             id = View.generateViewId()
         }
         page.addView(box)
+        // The emulator test: put the box on screen and type into it, so the robot can start.
+        if (TypingTest.robotRequest != null) box.post {
+            (page.parent as? ScrollView)?.scrollTo(0, 0)
+            box.requestFocus()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(box, InputMethodManager.SHOW_IMPLICIT); imm.restartInput(box)
+        }
         val results = TextView(this).apply { textSize = 15f; setTextColor(pal.text); setPadding(0, dp(6), 0, dp(6)) }
         fun show(lines: List<String>) { results.text = lines.joinToString("\n") }
         button("Show results") {
