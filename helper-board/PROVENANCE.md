@@ -10,7 +10,7 @@ Every claim here can be checked in this repository's git history, which dates ea
 | All app and keyboard code | Written for Helper Board, first commit bc60d43 (2026-11-20) | Ours |
 | Android keyboard framework (`InputMethodService`), vibration, microphone | Public Android SDK APIs | Android SDK terms |
 | Speech to text | The phone's own on-device `SpeechRecognizer` (Android 13+), called through the public API. No speech model ships in the app. | Part of the phone |
-| Word lists `assets/words-en.txt`, `words-es.txt` | wordfreq 3.1.1 top 25,000 words, by Robyn Speer | CC BY-SA 4.0 (see `assets/WORDS-NOTICE.txt`) |
+| Word lists `assets/words-en.txt`, `words-es.txt` | wordfreq 3.1.1 top 25,000 words, by Robyn Speer | CC BY-SA 4.0; SUBTLEX authors (Brysbaert et al.) and OpenSubtitles credited as wordfreq requires (see `assets/WORDS-NOTICE.txt` and the Settings credit) |
 | Fonts, icons | Android system fonts and Unicode emoji only | Part of the phone |
 
 The app has **no third-party code libraries**: `app/build.gradle.kts` depends only on our own `:core` module.

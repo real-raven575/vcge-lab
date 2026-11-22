@@ -9,6 +9,10 @@ these two files, keep this notice and the same licence.
 wordfreq credits its sources: Google Books Ngrams (http://books.google.com/ngrams),
 the Leeds Internet Corpus, Wikipedia, ParaCrawl, OPUS OpenSubtitles 2018
 (OpenSubtitles.org), SUBTLEX word lists by Marc Brysbaert et al. (SUBTLEX is
-freely available data), and others listed in wordfreq's README.
+freely available data, http://crr.ugent.be/programs-data/subtitle-frequencies),
+and others listed in wordfreq's README. SUBTLEX is credited as its authors ask, for
+example: Brysbaert, M. & New, B. (2009). Moving beyond Kucera and Francis: A Critical
+Evaluation of Current Word Frequency Norms and the Introduction of a New and Improved
+Word Frequency Measure for American English. Behavior Research Methods, 41(4).
 
 Helper Board only filtered them (letters only, at most 25,000 words each).

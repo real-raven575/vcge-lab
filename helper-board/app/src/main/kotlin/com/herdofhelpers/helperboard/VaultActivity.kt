@@ -246,7 +246,9 @@ class VaultActivity : Activity() {
         toggle("Coder keys row ( ` ~ \\ | { } [ ] < > _ = )", prefs.coderKeys) { prefs.coderKeys = it }
         toggle("Show 🌐 switch and ⌄ hide keys (for phones without them)", prefs.showSystemKeys) { prefs.showSystemKeys = it }
         toggle("Autocorrect: fix clear slips when I press space (⌫ undoes it)", prefs.autocorrect) { prefs.autocorrect = it }
-        text("Autocorrect never touches dictation, passwords, or web and email addresses. Word lists: wordfreq by Robyn Speer, CC BY-SA 4.0.")
+        text("Autocorrect never touches dictation, passwords, or web and email addresses. Word lists: wordfreq by Robyn Speer, CC BY-SA 4.0, " +
+            "built from Google Books Ngrams, Wikipedia, ParaCrawl, the Leeds Internet Corpus, OpenSubtitles (opensubtitles.org) " +
+            "and the SUBTLEX word lists by Marc Brysbaert et al. (SUBTLEX is freely available data). Full notice: WORDS-NOTICE.txt in the app.")
         toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }
         toggle("Live voice: words appear as I talk (offline)", prefs.liveVoice) { prefs.liveVoice = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
