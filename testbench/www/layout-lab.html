@@ -136,6 +136,7 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
     </div>
     <ul class="saved" id="savedList"></ul>
     <p class="note" id="saveNote">Saved layouts stay in this browser on this device.</p>
+    <p class="note" id="syncNote" aria-live="polite"></p>
     <label for="json">Layout code (paste this into Helper Board: Settings → Keys → “Use my own key layout”)
       <textarea id="json" spellcheck="false"></textarea></label>
     <div class="bar">
@@ -196,7 +197,7 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
     return +v;
   }
 
-  function render() {
+  function render(push) {
     const kb = $("kb");
     kb.style.width = kbWidth() + "px";
     kb.textContent = "";
@@ -231,6 +232,7 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
     panels();
     $("json").value = JSON.stringify(layout, null, 1);
     store.set("hb-lab-current", layout);
+    if (push !== false) saveWorking();
   }
 
   function press(e, r, i, el) {
@@ -311,29 +313,76 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
   };
   $("clearHits").onclick = () => { hits = {}; typed = ""; $("tryText").textContent = " "; render(); };
 
-  // Saving
-  function saved() { return store.get("hb-lab-saved", {}); }
-  function listSaved() {
-    const ul = $("savedList"); ul.textContent = "";
-    for (const [name, l] of Object.entries(saved())) {
-      const li = document.createElement("li");
-      const s = document.createElement("span"); s.textContent = name;
-      const open = document.createElement("button"); open.type = "button"; open.textContent = "Open";
-      open.onclick = () => { layout = structuredClone(l); $("name").value = name; sel = { r: 0, i: 0 }; render(); $("saveNote").textContent = `Opened “${name}”.`; };
-      const del = document.createElement("button"); del.type = "button"; del.className = "danger"; del.textContent = "Delete";
-      del.onclick = () => {
-        if (del.dataset.sure) { const all = saved(); delete all[name]; store.set("hb-lab-saved", all); listSaved(); $("saveNote").textContent = `Deleted “${name}”.`; }
-        else { del.dataset.sure = "1"; del.textContent = "Are you sure?"; }
-      };
-      const b = document.createElement("span"); b.className = "bar"; b.append(open, del);
-      li.append(s, b); ul.appendChild(li);
-    }
+  // Saving. On the lab server (Flight Deck) layouts are kept there, so every device sees the same ones, and the
+  // layout you are working on is saved there as you go ("working"). Anywhere else they stay in this browser.
+  const API = location.pathname.replace(/testbench\/.*$/, "") + "testbench/api/";
+  let server = false, lastPut = "", putTimer = 0;
+  async function api(method, path, body) {
+    const r = await fetch(API + path, { method, headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
+    const out = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(out.error || "the lab server said " + r.status);
+    return out;
   }
-  $("save").onclick = () => {
+  const slug = n => { const s = n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "my-layout";
+    return s === "working" ? "working-1" : s; };
+  const stamp = t => t ? new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+  function saveWorking() {
+    if (!server) return;
+    clearTimeout(putTimer);
+    putTimer = setTimeout(async () => {
+      try { const out = await api("PUT", "layout?id=working", { name: layout.name || "My layout", layout });
+        lastPut = out.savedAt; $("syncNote").textContent = `Your work is saved on the lab server (${stamp(out.savedAt)}). Open this page on any device to pick it up.`; }
+      catch (e) { $("syncNote").textContent = "Couldn't save to the lab server: " + e.message + ". It is still kept in this browser."; }
+    }, 800);
+  }
+  async function pullWorking() {
+    if (!server) return;
+    try {
+      const rec = await api("GET", "layout?id=working");
+      if (rec.savedAt && rec.savedAt !== lastPut) {
+        lastPut = rec.savedAt; layout = rec.layout; $("name").value = rec.name || ""; sel = { r: 0, i: 0 };
+        render(false); $("syncNote").textContent = `Picked up your work from the lab server (saved ${stamp(rec.savedAt)}).`;
+      }
+    } catch { /* nothing saved there yet */ }
+  }
+  function saved() { return store.get("hb-lab-saved", {}); }
+  function row(name, when, onOpen, onDelete) {
+    const li = document.createElement("li");
+    const s = document.createElement("span"); s.textContent = when ? `${name} · ${stamp(when)}` : name;
+    const open = document.createElement("button"); open.type = "button"; open.textContent = "Open"; open.onclick = onOpen;
+    const del = document.createElement("button"); del.type = "button"; del.className = "danger"; del.textContent = "Delete";
+    del.onclick = () => { if (del.dataset.sure) onDelete(); else { del.dataset.sure = "1"; del.textContent = "Are you sure?"; } };
+    const b = document.createElement("span"); b.className = "bar"; b.append(open, del);
+    li.append(s, b); $("savedList").appendChild(li);
+  }
+  function opened(l, name) { layout = l; $("name").value = name; sel = { r: 0, i: 0 }; render(); $("saveNote").textContent = `Opened “${name}”.`; }
+  async function listSaved() {
+    $("savedList").textContent = "";
+    if (server) {
+      try {
+        for (const x of (await api("GET", "layouts")).layouts.filter(x => x.id !== "working"))
+          row(x.name, x.savedAt, async () => { try { const r = await api("GET", "layout?id=" + x.id); opened(r.layout, r.name); }
+            catch (e) { $("saveNote").textContent = "Couldn't open it: " + e.message; } },
+            async () => { try { await api("DELETE", "layout?id=" + x.id); $("saveNote").textContent = `Deleted “${x.name}” (the lab keeps a copy in its bin).`; }
+            catch (e) { $("saveNote").textContent = "Couldn't delete it: " + e.message; } listSaved(); });
+      } catch (e) { $("saveNote").textContent = "Couldn't read the lab server's layouts: " + e.message; }
+      return;
+    }
+    for (const [name, l] of Object.entries(saved()))
+      row(name, "", () => opened(structuredClone(l), name),
+        () => { const all = saved(); delete all[name]; store.set("hb-lab-saved", all); listSaved(); $("saveNote").textContent = `Deleted “${name}”.`; });
+  }
+  $("save").onclick = async () => {
     const name = $("name").value.trim() || layout.name || "My layout";
     layout.name = name;
-    const all = saved(); all[name] = structuredClone(layout);
-    $("saveNote").textContent = store.set("hb-lab-saved", all) ? `Saved “${name}” in this browser.` : "This browser won't save here. Use Copy code instead.";
+    if (server) {
+      try { await api("PUT", "layout?id=" + slug(name), { name, layout }); $("saveNote").textContent = `Saved “${name}” on the lab server. Every device can open it.`; }
+      catch (e) { $("saveNote").textContent = "Couldn't save to the lab server: " + e.message; }
+    } else {
+      const all = saved(); all[name] = structuredClone(layout);
+      $("saveNote").textContent = store.set("hb-lab-saved", all) ? `Saved “${name}” in this browser.` : "This browser won't save here. Use Copy code instead.";
+    }
     listSaved(); render();
   };
   $("baseline").onclick = () => { layout = standard(); $("name").value = ""; sel = { r: 2, i: 0 }; hits = {}; render(); $("saveNote").textContent = "Started from Helper Board standard."; };
@@ -353,7 +402,15 @@ textarea { width: 100%; min-height: 9rem; padding: .6rem; font: 12px/1.4 var(--m
   };
 
   $("name").value = layout.name || "";
-  listSaved();
-  render();
+  render(false);
+  (async () => {
+    try { server = (await api("GET", "health")).ok === true; } catch { server = false; }
+    if (server) {
+      $("saveNote").textContent = "Layouts are saved on the lab server, so every device sees the same ones.";
+      await pullWorking();
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) pullWorking(); });
+    }
+    listSaved();
+  })();
 })();
 </script>
