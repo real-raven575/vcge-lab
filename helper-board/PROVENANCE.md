@@ -31,6 +31,6 @@ FUTO Keyboard, HeliBoard, AnySoftKeyboard or other keyboards.
 ## How we keep it that way
 
 1. New code is written here, not copied. If we ever use outside code, it goes in this table with its licence first.
-2. Before Helper Board goes on a store, a patent lawyer reviews the swipe feature (see the patent notes in the
-   project files, `notes/helper-board/`).
+2. Before Helper Board goes on a store, a patent lawyer reviews the swipe feature, starting with Cerence's
+   US 7,750,891 (active to 2028-03-20), and the key buzz against Immersion's US 8,619,051 (to 2027).
 3. Git history is the dated record. Do not rewrite history on this folder.
