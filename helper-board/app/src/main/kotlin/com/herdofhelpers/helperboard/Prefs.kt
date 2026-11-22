@@ -11,7 +11,7 @@ import java.io.File
 /**
  * Every setting lives on the phone only, in the app's private storage.
  * Defaults = raven575's own phone settings (screenshots 13:27 UTC 2026-11-22, "set those as the default for now"),
- * including autocorrect, word learning and Bluetooth mic ON; private-box saving stays OFF (11-19 rule). Review before release.
+ * including autocorrect, word learning and Bluetooth mic ON; and private-box saving ON (13:34 UTC 11-22) for testing. Revisit ALL defaults before beta.
  */
 class Prefs(context: Context) {
     private val app = context.applicationContext
@@ -38,9 +38,9 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("learnWords", true)
         set(v) = sp.edit().putBoolean("learnWords", v).apply()
 
-    /** Saving words or takes typed in password and private boxes: off until the user turns it on (raven575 11-19 rule). */
+    /** Saving words or takes typed in password and private boxes. ON for testing (raven575 13:34 UTC 11-22); revisit before beta. */
     var allowPrivateSaving: Boolean
-        get() = sp.getBoolean("allowPrivateSaving", false)
+        get() = sp.getBoolean("allowPrivateSaving", true)
         set(v) = sp.edit().putBoolean("allowPrivateSaving", v).apply()
 
     /** A short buzz on every key press, so you feel each contact (raven575 video, 11-20). 0 = off, 100 = strongest. */
