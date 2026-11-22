@@ -8,7 +8,11 @@ import com.herdofhelpers.helperboard.core.PersonalDictionary
 import com.herdofhelpers.helperboard.core.RetentionSettings
 import java.io.File
 
-/** Every setting lives on the phone only, in the app's private storage. */
+/**
+ * Every setting lives on the phone only, in the app's private storage.
+ * Defaults = raven575's own phone settings (screenshots 13:27 UTC 2026-11-22, "set those as the default for now"),
+ * including autocorrect, word learning and Bluetooth mic ON; private-box saving stays OFF (11-19 rule). Review before release.
+ */
 class Prefs(context: Context) {
     private val app = context.applicationContext
     private val sp = app.getSharedPreferences("helper_board", Context.MODE_PRIVATE)
@@ -18,23 +22,23 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putString("numberStyle", v.name).apply()
 
     var keyHeightDp: Int
-        get() = sp.getInt("keyHeightDp", 46)
+        get() = sp.getInt("keyHeightDp", 42)
         set(v) = sp.edit().putInt("keyHeightDp", v).apply()
 
     var rowGapDp: Int
-        get() = sp.getInt("rowGapDp", 4)
+        get() = sp.getInt("rowGapDp", 2)
         set(v) = sp.edit().putInt("rowGapDp", v).apply()
 
     var language: String
         get() = sp.getString("language", "en-US")!!
         set(v) = sp.edit().putString("language", v).apply()
 
-    /** Word learning: off until the user turns it on. */
+    /** Word learning (asks before saving each word). */
     var learnWords: Boolean
-        get() = sp.getBoolean("learnWords", false)
+        get() = sp.getBoolean("learnWords", true)
         set(v) = sp.edit().putBoolean("learnWords", v).apply()
 
-    /** Saving words or takes typed in password and private boxes: off until the user turns it on. */
+    /** Saving words or takes typed in password and private boxes: off until the user turns it on (raven575 11-19 rule). */
     var allowPrivateSaving: Boolean
         get() = sp.getBoolean("allowPrivateSaving", false)
         set(v) = sp.edit().putBoolean("allowPrivateSaving", v).apply()
@@ -45,8 +49,8 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putInt("keyBuzzStrength", v).apply()
 
     var padLayout: com.herdofhelpers.helperboard.core.PadLayout
-        get() = runCatching { com.herdofhelpers.helperboard.core.PadLayout.valueOf(sp.getString("padLayout", "PHONE")!!) }
-            .getOrDefault(com.herdofhelpers.helperboard.core.PadLayout.PHONE)
+        get() = runCatching { com.herdofhelpers.helperboard.core.PadLayout.valueOf(sp.getString("padLayout", "TEN_KEY")!!) }
+            .getOrDefault(com.herdofhelpers.helperboard.core.PadLayout.TEN_KEY)
         set(v) = sp.edit().putString("padLayout", v.name).apply()
 
     /** What the ✦ multi-key types: tap = the first item, hold = all of them. Stored one per line (older builds: spaces). */
@@ -56,9 +60,9 @@ class Prefs(context: Context) {
             ?: com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI
         set(v) = sp.edit().putString("multiKeyItems", v.joinToString("\n")).apply()
 
-    /** Autocorrect: off until the user turns it on (testers T2, T7). Never on dictation, passwords or addresses. */
+    /** Autocorrect (testers T2, T7 wanted it off; on for now by raven575). Never on dictation, passwords or addresses. */
     var autocorrect: Boolean
-        get() = sp.getBoolean("autocorrect", false)
+        get() = sp.getBoolean("autocorrect", true)
         set(v) = sp.edit().putBoolean("autocorrect", v).apply()
 
     /** The 🌐 and ⌄ keys: off, since most phones show them under the keyboard already (raven575, 11-21). */
@@ -103,7 +107,7 @@ class Prefs(context: Context) {
 
     /** Which microphone voice typing uses: phone or Bluetooth (tester T5). */
     var useBluetoothMic: Boolean
-        get() = sp.getBoolean("useBluetoothMic", false)
+        get() = sp.getBoolean("useBluetoothMic", true)
         set(v) = sp.edit().putBoolean("useBluetoothMic", v).apply()
 
     var keepDays: Int
@@ -116,7 +120,7 @@ class Prefs(context: Context) {
 
     /** Storage limit for takes in MB; 0 = no limit. */
     var storageCapMb: Int
-        get() = sp.getInt("storageCapMb", 0)
+        get() = sp.getInt("storageCapMb", 331)
         set(v) = sp.edit().putInt("storageCapMb", v).apply()
 
     val retention: RetentionSettings
@@ -151,7 +155,7 @@ class Prefs(context: Context) {
         get() = sp.getInt("bubble", 60)
         set(v) = sp.edit().putInt("bubble", v).apply()
     var keyFont: String  // DEFAULT, SERIF, MONO, BOLD
-        get() = sp.getString("keyFont", "DEFAULT")!!
+        get() = sp.getString("keyFont", "MONO")!!
         set(v) = sp.edit().putString("keyFont", v).apply()
 
     /** The 😀 tab on the mode strip (on by default). */

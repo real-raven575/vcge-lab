@@ -13,6 +13,15 @@ import android.view.View
  * and the whole stroke fades away shortly after the finger lifts. Touches pass straight through it.
  */
 class InkTrail(context: Context) : View(context) {
+    /**
+     * Asks for no room of its own: the keyboard's frame is sized by the keys, then the frame stretches this line over
+     * them. Asking for the full height made the keyboard window fill the screen with the keys at the top (build 21).
+     */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        fun size(spec: Int) = if (MeasureSpec.getMode(spec) == MeasureSpec.EXACTLY) MeasureSpec.getSize(spec) else 0
+        setMeasuredDimension(size(widthMeasureSpec), size(heightMeasureSpec))
+    }
+
     private data class Dot(val x: Float, val y: Float, val t: Long)
     private val dots = ArrayList<Dot>()
     private var liftedAt = 0L
