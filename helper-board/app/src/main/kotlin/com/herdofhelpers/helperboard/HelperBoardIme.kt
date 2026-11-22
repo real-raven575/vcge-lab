@@ -52,6 +52,8 @@ class HelperBoardIme : InputMethodService() {
     private var policy = FieldPolicy(learnWords = true, saveTakes = true, isPrivate = false, isWebOrEmail = false)
     private var root: LinearLayout? = null
     private var preview: TextView? = null
+    private var frameView: FrameLayout? = null
+    private var spaceView: View? = null
     private var altBar: LinearLayout? = null
     private var trail: InkTrail? = null
     private var altOptions: List<String> = emptyList()
@@ -110,6 +112,7 @@ class HelperBoardIme : InputMethodService() {
         val inkLine = InkTrail(this)
         trail = inkLine
         frame.addView(inkLine, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        frameView = frame
         render()
         return frame
     }
@@ -124,6 +127,7 @@ class HelperBoardIme : InputMethodService() {
         loadWords()
         updateAutoCap()
         render()
+        if (testing) startTypingTest()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -141,7 +145,7 @@ class HelperBoardIme : InputMethodService() {
     private fun render() {
         val r = root ?: return
         hidePreview(); hideAlternates()
-        letterViews.clear()
+        letterViews.clear(); spaceView = null
         r.removeAllViews()
         r.background = KeyLook.background(this, prefs)
         // The phone's bar under the keyboard takes the keyboard's own colour, so it doesn't read as a black gap.
@@ -407,6 +411,7 @@ class HelperBoardIme : InputMethodService() {
         }
         val repeats = k.kind == KeyKind.BACKSPACE || k.kind == KeyKind.LEFT || k.kind == KeyKind.RIGHT
         if (k.kind == KeyKind.CHAR && k.label.length == 1 && k.label[0].isLetter()) letterViews[k.label[0].lowercaseChar()] = tv
+        if (k.kind == KeyKind.SPACE) spaceView = tv
         val canSwipe = k.kind == KeyKind.CHAR && prefs.swipeTyping && emojiQuery == null && mode == Mode.ABC &&
             !(policy.isPrivate && !prefs.allowPrivateSaving)
         tv.setOnTouchListener { v, e ->
@@ -432,6 +437,7 @@ class HelperBoardIme : InputMethodService() {
                         val dx = e.rawX - swipePath[0].x; val dy = e.rawY - swipePath[0].y
                         if (Math.hypot(dx.toDouble(), dy.toDouble()) > v.width * 0.6) {
                             swiping = true; v.cancelLongPress(); v.isPressed = false; hidePreview()
+                            if (testing) TypingTest.log.becameSwipe()
                             if (prefs.swipeTrail) trail?.let { t -> t.color = p.accent; t.clear(); swipePath.forEach { pt -> t.add(pt.x, pt.y) } }
                             v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
                         }
@@ -445,6 +451,10 @@ class HelperBoardIme : InputMethodService() {
                 MotionEvent.ACTION_DOWN -> {
                     v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, pressed = true, edge = p.border)
                     buzz(v)
+                    if (testing && (k.kind == KeyKind.CHAR || k.kind == KeyKind.SPACE)) {
+                        val at = inFrame(v)
+                        TypingTest.log.down(if (k.kind == KeyKind.SPACE) "space" else k.output, e.eventTime, at[0] + e.x, at[1] + e.y)
+                    }
                     if ((k.kind == KeyKind.CHAR || k.kind == KeyKind.MULTI) && prefs.keyPreview) showPreview(v, labelFor(k), p)
                     if (repeats) startRepeat(k)
                 }
@@ -517,6 +527,7 @@ class HelperBoardIme : InputMethodService() {
                 lastFix = null; swipeAlternatives = emptyList(); lastSwiped = null
                 if (out.length == 1 && (out[0].isLetter() || out[0] == '\'')) typed.append(out) else typed.clear()
                 ic.commitText(out, 1)
+                if (testing) TypingTest.log.typed(k.output, SystemClock.uptimeMillis())
                 if (k.output.length == 1 && k.output[0].isLetter()) shift.afterLetter()
                 rerenderKeysIfShiftChanged()
             }
@@ -526,7 +537,9 @@ class HelperBoardIme : InputMethodService() {
                 offerWordBeforeCursor()
                 autocorrectBeforeSpace(ic)
                 swipeAlternatives = emptyList(); lastSwiped = null
-                ic.commitText(" ", 1); updateAutoCap(); render()
+                ic.commitText(" ", 1)
+                if (testing) TypingTest.log.typed("space", SystemClock.uptimeMillis())
+                updateAutoCap(); render()
             }
             KeyKind.BACKSPACE -> { sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL); updateAutoCap(); render() }
             KeyKind.ENTER -> {
@@ -772,6 +785,7 @@ class HelperBoardIme : InputMethodService() {
         Thread {
             val found = runCatching { SwipeDecoder(centres, keyWidth, list).decode(path) }.getOrDefault(emptyList())
             main.post {
+                if (testing) TypingTest.log.swiped(found)
                 val ic = currentInputConnection ?: return@post
                 if (found.isEmpty()) { notice = "Swipe not recognised. Try again, or tap the letters."; refreshSuggestions(); return@post }
                 fun style(w: String) = if (caps) w.replaceFirstChar { it.uppercase() } else w
@@ -917,5 +931,101 @@ class HelperBoardIme : InputMethodService() {
             if (text != null) insertDictation(text, insert)
             render()
         }
+    }
+
+    // ---------- The keyboard test (Settings > 8): timing, dropped keys, where fingers land, and the robot ----------
+
+    /** True while typing into the Settings test box. */
+    private val testing get() = currentInputEditorInfo?.privateImeOptions?.contains(TypingTest.FIELD) == true
+
+    private fun inFrame(v: View): IntArray {
+        val a = IntArray(2); val f = IntArray(2)
+        v.getLocationInWindow(a); frameView?.getLocationInWindow(f)
+        return intArrayOf(a[0] - f[0], a[1] - f[1])
+    }
+
+    private fun keyBoxes(): Map<Char, com.herdofhelpers.helperboard.core.TypingLog.KeyBox> {
+        val out = HashMap<Char, com.herdofhelpers.helperboard.core.TypingLog.KeyBox>()
+        fun put(c: Char, v: View) { val at = inFrame(v); out[c] = com.herdofhelpers.helperboard.core.TypingLog.KeyBox(
+            at[0] + v.width / 2f, at[1] + v.height / 2f, v.width.toFloat(), v.height.toFloat()) }
+        letterViews.forEach { (c, v) -> put(c, v) }
+        spaceView?.let { put(' ', it) }
+        return out
+    }
+
+    private var stallWatch: android.view.Choreographer.FrameCallback? = null
+
+    private fun startTypingTest() {
+        main.postDelayed({ if (testing) TypingTest.keys = keyBoxes() }, 300)
+        // A frame should come every 16 ms or so; the longest gap while testing is the longest freeze.
+        if (stallWatch == null) {
+            var last = 0L
+            val cb = object : android.view.Choreographer.FrameCallback {
+                override fun doFrame(nanos: Long) {
+                    if (!testing) { stallWatch = null; return }
+                    val ms = nanos / 1_000_000
+                    if (last > 0) TypingTest.log.longestStallMs = maxOf(TypingTest.log.longestStallMs, ms - last - 16)
+                    last = ms
+                    android.view.Choreographer.getInstance().postFrameCallback(this)
+                }
+            }
+            stallWatch = cb
+            android.view.Choreographer.getInstance().postFrameCallback(cb)
+        }
+        TypingTest.robotRequest?.let { (sentence, gapMs) ->
+            TypingTest.robotRequest = null
+            main.postDelayed({ runRobot(sentence, gapMs) }, 1200)
+        }
+    }
+
+    /**
+     * The robot: types [sentence] with two thumbs taking turns, one key every [gapMs] ms, each held 1.6 gaps so the
+     * next thumb is already down before the last one lifts (that is how fast people type). Its touches go through
+     * the same keys as a person's, so dropped keys and freezes show up exactly as they would on a phone.
+     */
+    private fun runRobot(sentence: String, gapMs: Int) {
+        val frame = frameView ?: return
+        TypingTest.log.clear()
+        val boxes = keyBoxes().also { TypingTest.keys = it }
+        data class Step(val at: Long, val down: Boolean, val id: Int, val x: Float, val y: Float)
+        val start = SystemClock.uptimeMillis() + 300
+        val steps = ArrayList<Step>()
+        sentence.lowercase().forEachIndexed { i, c ->
+            val b = boxes[c] ?: return@forEachIndexed
+            val id = i % 2
+            val t = start + i.toLong() * gapMs
+            steps += Step(t, true, id, b.cx, b.cy); steps += Step(t + gapMs * 16L / 10, false, id, b.cx, b.cy)
+        }
+        steps.sortWith(compareBy<Step> { it.at }.thenBy { if (it.down) 1 else 0 })
+        val active = java.util.TreeMap<Int, Pair<Float, Float>>()
+        var downTime = 0L
+        val token = Any()
+        for (s in steps) main.postAtTime({
+            if (s.down) active[s.id] = s.x to s.y
+            if (active.size == 1 && s.down) downTime = s.at
+            val ids = active.keys.toList()
+            val index = ids.indexOf(s.id)
+            val props = Array(ids.size) { MotionEvent.PointerProperties().apply { id = ids[it]; toolType = MotionEvent.TOOL_TYPE_FINGER } }
+            val coords = Array(ids.size) { MotionEvent.PointerCoords().apply { x = active[ids[it]]!!.first; y = active[ids[it]]!!.second; pressure = 1f; size = 1f } }
+            val action = when {
+                s.down && ids.size == 1 -> MotionEvent.ACTION_DOWN
+                s.down -> MotionEvent.ACTION_POINTER_DOWN or (index shl MotionEvent.ACTION_POINTER_INDEX_SHIFT)
+                ids.size == 1 -> MotionEvent.ACTION_UP
+                else -> MotionEvent.ACTION_POINTER_UP or (index shl MotionEvent.ACTION_POINTER_INDEX_SHIFT)
+            }
+            val ev = MotionEvent.obtain(downTime, s.at, action, ids.size, props, coords, 0, 0, 1f, 1f, 0, 0,
+                android.view.InputDevice.SOURCE_TOUCHSCREEN, 0)
+            frame.dispatchTouchEvent(ev); ev.recycle()
+            if (!s.down) active.remove(s.id)
+        }, token, s.at)
+        val end = (steps.lastOrNull()?.at ?: start) + 1500
+        main.postAtTime({
+            val r = TypingTest.log.report(sentence, boxes)
+            val got = currentInputConnection?.getTextBeforeCursor(500, 0)?.toString().orEmpty()
+            val boxOk = got.trim().equals(sentence, ignoreCase = true)
+            TypingTest.robotResult = listOf("Robot typed \"$got\" (${if (boxOk) "matches" else "does NOT match"}).") + r.lines()
+            android.util.Log.i("HBTEST", "robot gap_ms=$gapMs box_ok=$boxOk ${r.machineLine()}")
+            r.lines().forEach { android.util.Log.i("HBTEST", it) }
+        }, token, end)
     }
 }

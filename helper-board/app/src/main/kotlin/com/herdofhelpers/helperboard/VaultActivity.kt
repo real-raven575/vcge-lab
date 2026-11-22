@@ -104,6 +104,12 @@ class VaultActivity : Activity() {
         page.removeAllViews()
         title("Helper Board")
         text("Types what you meant. Keeps what you said. Never goes online. (Prototype ${versionName()})")
+        // The emulator test opens straight to the keyboard test, so the box is on screen.
+        intent.getStringExtra(EXTRA_ROBOT)?.let { sentence ->
+            intent.removeExtra(EXTRA_ROBOT)
+            TypingTest.robotRequest = sentence to intent.getIntExtra(EXTRA_ROBOT_GAP, 80)
+            testSection(); return
+        }
 
         section("1. Set up")
         val enabled = (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
@@ -143,6 +149,7 @@ class VaultActivity : Activity() {
         dictionarySection()
         privacySection()
         cleanupSection()
+        testSection()
         text("© 2026 raven575, Herd of Helpers (claude) & gemini. No internet permission. Nothing leaves your phone.")
     }
 
@@ -424,6 +431,40 @@ class VaultActivity : Activity() {
         toggle("Also save in private boxes (not recommended)", prefs.allowPrivateSaving) { prefs.allowPrivateSaving = it }
     }
 
+    /** Settings > 8: type a sentence (or let the robot type it fast) and see speed, dropped keys and aim. */
+    private fun testSection() {
+        section("8. Test the keyboard")
+        text("Type this sentence in the box below, as fast as you like:")
+        page.addView(TextView(this).apply {
+            text = TypingTest.SENTENCE; textSize = 18f; setTypeface(typeface, Typeface.BOLD); setTextColor(pal.text)
+        })
+        text("Tap the letters, or swipe each word, then press Show results. Nothing here is saved.")
+        val box = EditText(this).apply {
+            hint = "Type the sentence here"; contentDescription = "Typing test box"
+            privateImeOptions = TypingTest.FIELD
+            setTextColor(pal.text); setHintTextColor(pal.muted)
+            id = View.generateViewId()
+        }
+        page.addView(box)
+        val results = TextView(this).apply { textSize = 15f; setTextColor(pal.text); setPadding(0, dp(6), 0, dp(6)) }
+        fun show(lines: List<String>) { results.text = lines.joinToString("\n") }
+        button("Show results") {
+            val got = box.text.toString().trim()
+            show(listOf("You typed \"$got\" (${if (got.equals(TypingTest.SENTENCE, true)) "matches" else "does not match"}).") +
+                TypingTest.report().lines())
+        }
+        button("Start over") { TypingTest.log.clear(); box.setText(""); results.text = "" }
+        button("🤖 Robot test: two fast thumbs, 12 keys a second") {
+            box.setText(""); TypingTest.log.clear(); TypingTest.robotResult = emptyList()
+            TypingTest.robotRequest = TypingTest.SENTENCE to 80
+            box.requestFocus()
+            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).restartInput(box)
+            results.text = "The robot starts in a moment. Keep your fingers off the keyboard, then press Show robot results."
+        }
+        button("Show robot results") { show(TypingTest.robotResult.ifEmpty { listOf("No robot run yet.") }) }
+        page.addView(results)
+    }
+
     private fun cleanupSection() {
         section("7. Cleanup")
         text("Untouched takes move to Trash, then Trash empties. Kept takes are never removed. Using ${takes.totalBytes() / 1_048_576} MB.")
@@ -507,5 +548,8 @@ class VaultActivity : Activity() {
         private const val PICK_PHOTO = 7
         /** Used by the emulator smoke test: open with the try-it box focused so the keyboard appears. */
         const val EXTRA_FOCUS_TRY = "focusTry"
+        /** Used by the emulator test: open on the keyboard test and have the robot type this sentence. */
+        const val EXTRA_ROBOT = "robot"
+        const val EXTRA_ROBOT_GAP = "robotGapMs"
     }
 }
