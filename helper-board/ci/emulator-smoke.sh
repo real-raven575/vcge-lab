@@ -84,6 +84,7 @@ for i in $(seq 1 30); do
   sleep 2
 done
 shot 4-robot
+adb shell dumpsys input_method | tr -d '\r' | grep -E "mCurFocusedWindow|privateImeOptions|mInputShown|mCurrentInput|packageName=" | head -12 || true
 adb logcat -d -s HBTEST:I | tr -d '\r' | sed 's/^.*HBTEST: //' || true
 echo "Robot result: $RESULT"
 [[ -n "$RESULT" ]] || { echo "::error::The robot typing test never reported."; exit 1; }

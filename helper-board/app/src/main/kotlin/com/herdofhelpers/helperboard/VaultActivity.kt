@@ -110,6 +110,7 @@ class VaultActivity : Activity() {
         intent.getStringExtra(EXTRA_ROBOT)?.let { sentence ->
             intent.removeExtra(EXTRA_ROBOT)
             TypingTest.robotRequest = sentence to intent.getIntExtra(EXTRA_ROBOT_GAP, 80)
+            android.util.Log.i("HBTEST", "page: robot asked for \"$sentence\"")
             testSection(); return
         }
 
@@ -454,6 +455,7 @@ class VaultActivity : Activity() {
             box.requestFocus()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(box, InputMethodManager.SHOW_IMPLICIT); imm.restartInput(box)
+            android.util.Log.i("HBTEST", "page: test box focused=${box.isFocused}")
         }
         val results = TextView(this).apply { textSize = 15f; setTextColor(pal.text); setPadding(0, dp(6), 0, dp(6)) }
         fun show(lines: List<String>) { results.text = lines.joinToString("\n") }

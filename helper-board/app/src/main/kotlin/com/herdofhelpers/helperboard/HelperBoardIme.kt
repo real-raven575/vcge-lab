@@ -128,6 +128,7 @@ class HelperBoardIme : InputMethodService() {
         updateAutoCap()
         render()
         if (testing) startTypingTest()
+        if (TypingTest.robotRequest != null) android.util.Log.i("HBTEST", "keyboard: robot waiting; this box is the test box: $testing (${info.privateImeOptions})")
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -985,6 +986,7 @@ class HelperBoardIme : InputMethodService() {
      */
     private fun runRobot(sentence: String, gapMs: Int) {
         val frame = frameView ?: return
+        android.util.Log.i("HBTEST", "keyboard: robot starts, ${letterViews.size} letter keys")
         TypingTest.log.clear()
         val boxes = keyBoxes().also { TypingTest.keys = it }
         data class Step(val at: Long, val down: Boolean, val id: Int, val x: Float, val y: Float)
