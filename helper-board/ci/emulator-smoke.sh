@@ -73,7 +73,7 @@ adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --es
 sleep 3
 adb shell uiautomator dump /sdcard/ui.xml >/dev/null
 TBOX=$(adb shell cat /sdcard/ui.xml | tr -d '\r' | tr '>' '\n' | grep 'content-desc="Typing test box"' | head -1 \
-  | grep -o 'bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' | tr -c '0-9\n' ' ')
+  | grep -o 'bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' | tr -c '0-9\n' ' ' || true)
 echo "Test box bounds: $TBOX (the page also focuses it itself)"
 read -r X1 Y1 X2 Y2 <<<"${TBOX:-}"
 if [[ -n "${Y2:-}" ]]; then adb shell input tap $(((X1+X2)/2)) $(((Y1+Y2)/2)); fi
