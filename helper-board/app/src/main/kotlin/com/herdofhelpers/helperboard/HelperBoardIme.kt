@@ -75,6 +75,8 @@ class HelperBoardIme : InputMethodService() {
 
     private var recorder: TakeRecorder? = null
     private var recordingTake: Take? = null
+    private var live: LiveTranscriber? = null
+    private var liveInsert = true
     private var notice: String? = null
 
     override fun onCreate() {
@@ -199,7 +201,11 @@ class HelperBoardIme : InputMethodService() {
         val row = suggestionRow ?: return
         row.removeAllViews()
         notice?.let { row.addView(chip(it, false) { notice = null; refreshSuggestions() }); return }
-        if (recorder != null) { row.addView(chip("⏺ Recording. Tap 🎙 to stop. Saved every second.", true) {}); return }
+        if (recorder != null) {
+            val label = if (live != null) "⏺ ${meter()}  Live: words appear as you talk. Tap 🎙 to stop."
+            else "⏺ Recording. Tap 🎙 to stop. Saved every second."
+            row.addView(chip(label, true) {}); return
+        }
         if (policy.isPrivate && !prefs.allowPrivateSaving) {
             row.addView(chip("🔒 Private box: nothing here is learned or saved", false) {}); return
         }
@@ -804,6 +810,13 @@ class HelperBoardIme : InputMethodService() {
         rec.start()
         rec.error?.let { notice = "🎙 $it"; render(); return }
         recorder = rec; recordingTake = take
+        // Live voice: text appears while you talk; the whole take is still saved first, as always.
+        val tr = Transcriber(this)
+        if (prefs.liveVoice && tr.available()) {
+            liveInsert = true
+            live = LiveTranscriber(tr, takes.audio(take.id), take.language) { text -> insertDictation(text, liveInsert) }
+                .also { it.start() }
+        }
         render()
         tick()
     }
@@ -811,7 +824,26 @@ class HelperBoardIme : InputMethodService() {
     private fun tick() {
         val rec = recorder ?: return
         micLabel?.text = "⏹ ${rec.dataBytes / 32_000}s"
-        main.postDelayed({ tick() }, 500)
+        refreshSuggestions()
+        main.postDelayed({ tick() }, 250)
+    }
+
+    /** A rough loudness meter, like the Claude app's: how loud you (and the room) are right now. */
+    private fun meter(): String {
+        val lvl = live?.level ?: 0
+        val bars = "▁▂▃▄▅▆▇█"
+        val n = ((Math.log10(maxOf(lvl, 1).toDouble()) - 2.0) / 2.0 * 8).toInt().coerceIn(0, 8)
+        return (0 until 8).joinToString("") { if (it < n) bars[it].toString() else "·" }
+    }
+
+    /** Dictated text starts a new word: add a space if it would run into the word before it. */
+    private fun insertDictation(text: String, insert: Boolean) {
+        if (!insert) return
+        forgetWord()
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(1, 0)
+        val gap = if (!before.isNullOrEmpty() && !before.last().isWhitespace()) " " else ""
+        ic.commitText(gap + text + " ", 1)
     }
 
     private fun stopRecording(insert: Boolean) {
@@ -821,6 +853,26 @@ class HelperBoardIme : InputMethodService() {
         recorder = null; recordingTake = null
         main.removeCallbacksAndMessages(null)
         val audio = takes.audio(take.id)
+
+        val lt = live
+        if (lt != null) {
+            live = null
+            // Text already went in as you talked. Read the last part, then save the take's text. If live voice heard
+            // nothing at all, fall back to reading the whole take.
+            liveInsert = insert
+            notice = "✍ Finishing the last words…"
+            if (policy.saveTakes) { take.status = Take.STATUS_TRANSCRIBING; takes.save(take) }
+            lt.finish { text ->
+                if (text == null) { transcribeAndInsert(take, audio, insert, keep = policy.saveTakes); return@finish }
+                if (policy.saveTakes) {
+                    take.text = text; take.status = Take.STATUS_DONE; takes.save(take); takes.applyRetention(prefs)
+                } else audio.delete()
+                notice = if (lt.emptyParts > 0) "⚠ ${lt.emptyParts} of ${lt.parts} parts had no text. Play the take or tap Re-listen." else null
+                render()
+            }
+            render()
+            return
+        }
 
         if (!policy.saveTakes) {
             // Private box: text only, and the audio is removed as soon as it has been read.
@@ -848,12 +900,7 @@ class HelperBoardIme : InputMethodService() {
                 else -> "💾 $reason"
             }
             forgetWord()
-            if (text != null && insert) {
-                // Dictated text starts a new word: add a space if it would run into the word before it.
-                val before = currentInputConnection?.getTextBeforeCursor(1, 0)
-                val gap = if (!before.isNullOrEmpty() && !before.last().isWhitespace()) " " else ""
-                currentInputConnection?.commitText(gap + text + " ", 1)
-            }
+            if (text != null) insertDictation(text, insert)
             render()
         }
     }

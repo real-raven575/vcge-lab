@@ -76,6 +76,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("swipeTrail", true)
         set(v) = sp.edit().putBoolean("swipeTrail", v).apply()
 
+    /** Live voice: words appear while you talk (offline), instead of after you stop. */
+    var liveVoice: Boolean
+        get() = sp.getBoolean("liveVoice", true)
+        set(v) = sp.edit().putBoolean("liveVoice", v).apply()
+
     var swipeTyping: Boolean
         get() = sp.getBoolean("swipeTyping", true)
         set(v) = sp.edit().putBoolean("swipeTyping", v).apply()

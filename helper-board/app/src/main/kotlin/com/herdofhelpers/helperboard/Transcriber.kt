@@ -95,7 +95,7 @@ class Transcriber(private val context: Context) {
      * Uses the engine's segmented mode, the mode that worked on the first phone test (build 8); the plain mode gave no
      * text at all on that phone (build 9).
      */
-    private fun recognize(audio: File, bytes: LongRange, language: String, done: (String?, Int?) -> Unit) {
+    internal fun recognize(audio: File, bytes: LongRange, language: String, done: (String?, Int?) -> Unit) {
         if (Build.VERSION.SDK_INT < 33) { done(null, null); return }
         val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
         val pipe = ParcelFileDescriptor.createPipe()

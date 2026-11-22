@@ -91,6 +91,22 @@ object Pauses {
         return out
     }
 
+    /**
+     * Live voice (raven575, 11-21): while a take is still recording, the talking parts that are finished, so their
+     * text can be made while the person keeps talking. A part is finished once [pauseMs] of quiet follows it (or it
+     * hit the length limit). Only parts after frame [from] are returned, clipped to start there; with [final] = true
+     * (recording stopped) every remaining part counts as finished.
+     */
+    fun finishedParts(levels: IntArray, from: Int, final: Boolean = false, pauseMs: Int = 700, maxPartMs: Int = 12_000): List<IntRange> {
+        val pause = pauseMs / FRAME_MS
+        val pad = 300 / FRAME_MS
+        return speechParts(levels, pauseMs = pauseMs, maxPartMs = maxPartMs)
+            .filter { it.last >= from }
+            .map { maxOf(it.first, from)..it.last }
+            .filter { final || it.last + pause - pad <= levels.lastIndex || it.last - it.first + 1 >= maxPartMs / FRAME_MS }
+            .filter { it.last - it.first + 1 >= 4 }
+    }
+
     /** Byte range in the PCM data (after the WAV header) for a frame range. */
     fun byteRange(frames: IntRange, dataBytes: Long): LongRange =
         frames.first * FRAME_BYTES.toLong() until minOf(dataBytes, (frames.last + 1) * FRAME_BYTES.toLong())

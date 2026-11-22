@@ -247,6 +247,7 @@ class VaultActivity : Activity() {
         toggle("Autocorrect: fix clear slips when I press space (⌫ undoes it)", prefs.autocorrect) { prefs.autocorrect = it }
         text("Autocorrect never touches dictation, passwords, or web and email addresses. Word lists: wordfreq by Robyn Speer, CC BY-SA 4.0.")
         toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }
+        toggle("Live voice: words appear as I talk (offline)", prefs.liveVoice) { prefs.liveVoice = it }
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
         toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }
         slider("Recent emoji to show", com.herdofhelpers.helperboard.core.EmojiBook.MIN_RECENT,

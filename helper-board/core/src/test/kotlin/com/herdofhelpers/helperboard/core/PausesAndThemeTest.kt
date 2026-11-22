@@ -264,3 +264,22 @@ class WordsTest {
         assertTrue(en.complete("hel").contains("help"))
     }
 }
+
+class LiveVoiceTest {
+    private fun take(vararg spans: Pair<Int, Boolean>) = spans.flatMap { (frames, loud) -> List(frames) { if (loud) 4000 else 50 } }.toIntArray()
+
+    @Test fun aPartIsReadyOnceAPauseFollowsIt() {
+        // 1.5 s talking, 0.9 s quiet, then still talking: only the first part is finished.
+        val levels = take(50 to true, 30 to false, 40 to true)
+        val ready = Pauses.finishedParts(levels, from = 0)
+        assertEquals(1, ready.size)
+        assertTrue(ready[0].last < 80)
+        // When recording stops, the rest counts too, starting after what was already sent.
+        val rest = Pauses.finishedParts(levels, from = ready[0].last + 1, final = true)
+        assertEquals(1, rest.size); assertTrue(rest[0].first > ready[0].last)
+    }
+
+    @Test fun nothingIsReadyWhileStillTalking() {
+        assertTrue(Pauses.finishedParts(take(10 to false, 60 to true), from = 0).isEmpty())
+    }
+}
