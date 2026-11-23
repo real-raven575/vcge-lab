@@ -69,8 +69,9 @@ shot 3-after-taps
 step "6 of 7: robot typing test (two fast thumbs, 12 keys a second; raven575 11-22: fast typing dropped keys)"
 SENTENCE="the quick brown fox jumps over the lazy dog"
 adb logcat -c
-adb shell am start -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --es robot "'$SENTENCE'" --ei robotGapMs 80
-sleep 3
+adb shell am start -S -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --es robot "'$SENTENCE'" --ei robotGapMs 80
+sleep 4
+adb logcat -d -s HBTEST:I ActivityTaskManager:I | tr -d '\r' | grep -E "HBTEST|VaultActivity" | tail -5 || true
 adb shell uiautomator dump /sdcard/ui.xml >/dev/null
 TBOX=$(adb shell cat /sdcard/ui.xml | tr -d '\r' | tr '>' '\n' | grep 'content-desc="Typing test box"' | head -1 \
   | grep -o 'bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' | tr -c '0-9\n' ' ' || true)

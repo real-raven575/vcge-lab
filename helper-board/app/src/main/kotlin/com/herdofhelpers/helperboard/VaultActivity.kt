@@ -452,6 +452,8 @@ class VaultActivity : Activity() {
         // The emulator test: put the box on screen and type into it, so the robot can start.
         if (TypingTest.robotRequest != null) box.post {
             (page.parent as? ScrollView)?.scrollTo(0, 0)
+            window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or
+                android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             box.requestFocus()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(box, InputMethodManager.SHOW_IMPLICIT); imm.restartInput(box)
