@@ -130,7 +130,7 @@ class HelperBoardIme : InputMethodService() {
         updateAutoCap()
         render()
         if (testing) startTypingTest()
-        if (TypingTest.robotRequest != null) android.util.Log.i("HBTEST", "keyboard: robot waiting; this box is the test box: $testing (${info.privateImeOptions})")
+        android.util.Log.i("HBTEST", "keyboard: started in a box; test box: $testing")
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -1023,9 +1023,10 @@ class HelperBoardIme : InputMethodService() {
             stallWatch = cb
             android.view.Choreographer.getInstance().postFrameCallback(cb)
         }
-        TypingTest.robotRequest?.let { (sentence, gapMs) ->
-            TypingTest.robotRequest = null
-            main.postDelayed({ runRobot(sentence, gapMs) }, 1200)
+        // The Settings page starts the robot once this keyboard is up in the test box.
+        TypingTest.startRobot = { sentence, gapMs ->
+            val laidOut = (letterViews.values.firstOrNull()?.width ?: 0) > 0
+            if (testing && laidOut && frameView != null) { runRobot(sentence, gapMs); true } else false
         }
     }
 

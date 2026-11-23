@@ -458,6 +458,7 @@ class VaultActivity : Activity() {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(box, InputMethodManager.SHOW_IMPLICIT); imm.restartInput(box)
             android.util.Log.i("HBTEST", "page: test box focused=${box.isFocused}")
+            startRobotWhenReady(box, 0)
         }
         val results = TextView(this).apply { textSize = 15f; setTextColor(pal.text); setPadding(0, dp(6), 0, dp(6)) }
         fun show(lines: List<String>) { results.text = lines.joinToString("\n") }
@@ -472,10 +473,21 @@ class VaultActivity : Activity() {
             TypingTest.robotRequest = TypingTest.SENTENCE to 80
             box.requestFocus()
             (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).restartInput(box)
+            startRobotWhenReady(box, 0)
             results.text = "The robot starts in a moment. Keep your fingers off the keyboard, then press Show robot results."
         }
         button("Show robot results") { show(TypingTest.robotResult.ifEmpty { listOf("No robot run yet.") }) }
         page.addView(results)
+    }
+
+    /** Waits (up to 15 s) for the keyboard to come up in the test box, then lets the robot type. */
+    private fun startRobotWhenReady(box: View, tries: Int) {
+        val (sentence, gap) = TypingTest.robotRequest ?: return
+        if (TypingTest.startRobot?.invoke(sentence, gap) == true) {
+            TypingTest.robotRequest = null; android.util.Log.i("HBTEST", "page: robot started after $tries tries"); return
+        }
+        if (tries < 15) box.postDelayed({ startRobotWhenReady(box, tries + 1) }, 1000)
+        else android.util.Log.i("HBTEST", "page: the keyboard never came up in the test box")
     }
 
     private fun cleanupSection() {

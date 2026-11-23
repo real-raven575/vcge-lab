@@ -17,6 +17,8 @@ object TypingTest {
 
     /** A robot run the Settings page asked for: the sentence and the time between key presses. */
     @Volatile var robotRequest: Pair<String, Int>? = null
+    /** Set by the keyboard while it is up in the test box: starts the robot, false if it can't right now. */
+    @Volatile var startRobot: ((String, Int) -> Boolean)? = null
     /** The last robot run's report lines, for the Settings page. */
     @Volatile var robotResult: List<String> = emptyList()
 
