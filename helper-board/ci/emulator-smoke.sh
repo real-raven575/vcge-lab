@@ -69,8 +69,8 @@ shot 3-after-taps
 step "6 of 7: robot typing test (two fast thumbs, 12 keys a second; raven575 11-22: fast typing dropped keys)"
 SENTENCE="the quick brown fox jumps over the lazy dog"
 adb logcat -c
-adb shell am start -S -W -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --es robot "'$SENTENCE'" --ei robotGapMs 80
-# Stopping the app can make Android fall back to its own keyboard; choose Helper Board again.
+adb shell am start -W -f 0x10008000 -n "$PKG/com.herdofhelpers.helperboard.VaultActivity" --es robot "'$SENTENCE'" --ei robotGapMs 80
+# Make sure Helper Board is still the chosen keyboard.
 adb shell ime enable "$IME" >/dev/null; adb shell ime set "$IME"
 echo "Current keyboard: $(adb shell settings get secure default_input_method | tr -d '\r')"
 sleep 4
