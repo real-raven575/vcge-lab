@@ -920,9 +920,12 @@ class HelperBoardIme : InputMethodService() {
         if (!insert) return
         forgetWord()
         val ic = currentInputConnection ?: return
-        val before = ic.getTextBeforeCursor(1, 0)
-        val gap = if (!before.isNullOrEmpty() && !before.last().isWhitespace()) " " else ""
-        ic.commitText(gap + text + " ", 1)
+        val before = ic.getTextBeforeCursor(60, 0) ?: ""
+        // Each part arrives capitalised as if it began a sentence, and edges can repeat a word: tidy the seam.
+        val clean = com.herdofhelpers.helperboard.core.DictationJoin.clean(text, before)
+        if (clean.isEmpty()) return
+        val gap = if (before.isNotEmpty() && !before.last().isWhitespace()) " " else ""
+        ic.commitText(gap + clean + " ", 1)
     }
 
     private fun stopRecording(insert: Boolean) {
