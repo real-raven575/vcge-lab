@@ -221,9 +221,15 @@ class HelperBoardIme : InputMethodService() {
         row.removeAllViews()
         notice?.let { row.addView(chip(it, false) { notice = null; refreshSuggestions() }); return }
         if (recorder != null) {
-            val label = if (live != null) "⏺ ${meter()}  Live: words appear as you talk. Tap 🎙 to stop."
-            else "⏺ Recording. Tap 🎙 to stop. Saved every second."
-            row.addView(chip(label, true) {}); return
+            // The flowing wave shows you being heard; the strip stays the same view while you talk, so it never
+            // restarts (raven575, 11-23: signal bars looked like phone reception).
+            val wave = waveView ?: VoiceWaveView(this) { recorder?.wave }.also { waveView = it }
+            wave.color = KeyLook.palette(this, prefs).accent
+            (wave.parent as? ViewGroup)?.removeView(wave)
+            val strip = (row.parent as? View)?.width ?: resources.displayMetrics.widthPixels
+            row.addView(wave, LinearLayout.LayoutParams((strip * 0.62f).toInt(), KeyLook.dp(this, 28)))
+            row.addView(chip(if (live != null) "Live · tap 🎙 to stop" else "Saving · tap 🎙 to stop", true) {})
+            return
         }
         if (policy.isPrivate && !prefs.allowPrivateSaving) {
             row.addView(chip("🔒 Private box: nothing here is learned or saved", false) {}); return
@@ -271,6 +277,7 @@ class HelperBoardIme : InputMethodService() {
     }
 
     private var suggestionAsk = 0
+    private var waveView: VoiceWaveView? = null
     /** The autocorrect answer for the word being typed, worked out in the background: (word, fix or null). */
     private var fixReady: Pair<String, String?>? = null
     private val suggester = java.util.concurrent.Executors.newSingleThreadExecutor()
@@ -904,17 +911,8 @@ class HelperBoardIme : InputMethodService() {
 
     private fun tick() {
         val rec = recorder ?: return
-        micLabel?.text = "⏹ ${rec.dataBytes / 32_000}s"
-        refreshSuggestions()
+        micLabel?.text = "⏹ ${rec.dataBytes / 32_000}s"   // the wave above the keys draws itself every frame
         main.postDelayed({ tick() }, 250)
-    }
-
-    /** A rough loudness meter, like the Claude app's: how loud you (and the room) are right now. */
-    private fun meter(): String {
-        val lvl = live?.level ?: 0
-        val bars = "▁▂▃▄▅▆▇█"
-        val n = ((Math.log10(maxOf(lvl, 1).toDouble()) - 2.0) / 2.0 * 8).toInt().coerceIn(0, 8)
-        return (0 until 8).joinToString("") { if (it < n) bars[it].toString() else "·" }
     }
 
     /** Dictated text starts a new word: add a space if it would run into the word before it. */

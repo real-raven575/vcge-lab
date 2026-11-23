@@ -10,6 +10,8 @@ import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
+import com.herdofhelpers.helperboard.core.Pauses
+import com.herdofhelpers.helperboard.core.VoiceWave
 import com.herdofhelpers.helperboard.core.Wav
 import java.io.File
 import java.io.RandomAccessFile
@@ -27,6 +29,8 @@ class TakeRecorder(private val context: Context, private val file: File, private
     private var focus: AudioFocusRequest? = null
     @Volatile var dataBytes: Long = 0; private set
     @Volatile var error: String? = null; private set
+    /** How loud each 30 ms has been, for the flowing wave above the keys. */
+    val wave = VoiceWave()
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
@@ -74,7 +78,7 @@ class TakeRecorder(private val context: Context, private val file: File, private
     }
 
     private fun loop(record: AudioRecord) {
-        val buf = ByteArray(3_200) // 0.1 s
+        val buf = ByteArray(Pauses.FRAME_BYTES * 2) // 60 ms: small reads keep the wave smooth
         try {
             RandomAccessFile(file, "rw").use { raf ->
                 raf.setLength(0)
@@ -82,7 +86,7 @@ class TakeRecorder(private val context: Context, private val file: File, private
                 var lastSync = System.currentTimeMillis()
                 while (running) {
                     val n = record.read(buf, 0, buf.size)
-                    if (n > 0) { raf.write(buf, 0, n); dataBytes += n }
+                    if (n > 0) { raf.write(buf, 0, n); dataBytes += n; wave.add(Pauses.levels(buf, n)) }
                     val now = System.currentTimeMillis()
                     if (now - lastSync >= 1_000) { writeHeader(raf); raf.fd.sync(); lastSync = now }
                 }
