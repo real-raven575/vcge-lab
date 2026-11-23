@@ -67,7 +67,9 @@ class HelperBoardIme : InputMethodService() {
     private var lastFix: Pair<String, String>? = null
     // Swipe typing: the finger's path over the letter keys, and the other words the last swipe could have been.
     private val letterViews = HashMap<Char, View>()
+    private val keyViews = ArrayList<Pair<Key, KeyText>>()
     private val swipePath = ArrayList<Pt>()
+    private val swipeOrigin = IntArray(2)
     private var swiping = false
     private var swipeAlternatives: List<String> = emptyList()
     private var lastSwiped: String? = null
@@ -146,7 +148,7 @@ class HelperBoardIme : InputMethodService() {
     private fun render() {
         val r = root ?: return
         hidePreview(); hideAlternates()
-        letterViews.clear(); spaceView = null
+        letterViews.clear(); spaceView = null; keyViews.clear()
         r.removeAllViews()
         r.background = KeyLook.background(this, prefs)
         // The phone's bar under the keyboard takes the keyboard's own colour, so it doesn't read as a black gap.
@@ -215,6 +217,7 @@ class HelperBoardIme : InputMethodService() {
 
     private fun refreshSuggestions() {
         val row = suggestionRow ?: return
+        suggestionAsk++  // any answer still being worked out is for an older word now
         row.removeAllViews()
         notice?.let { row.addView(chip(it, false) { notice = null; refreshSuggestions() }); return }
         if (recorder != null) {
@@ -237,21 +240,38 @@ class HelperBoardIme : InputMethodService() {
         val word = PersonalDictionary.currentWord(currentInputConnection?.getTextBeforeCursor(40, 0) ?: "")
         if (word.isEmpty()) return
         val list = words
-        // With autocorrect on, show the fix that space would make, so it's never a surprise.
-        if (prefs.autocorrect && autocorrectAllowed() && typed.toString() == word) {
-            list?.let { Autocorrect.fix(word, it, known = { w -> dict.isKnown(w) }, english = wordsLang == "en") }
-                ?.takeIf { it != word }?.let { fix -> row.addView(chip("→ $fix", true) { replaceCurrentWord(word, fix) }) }
-        }
-        val shown = HashSet<String>()
-        for (s in dict.complete(word) + (list?.complete(word) ?: emptyList()).map { WordList.matchCase(word, it) }) {
-            if (shown.add(s.lowercase()) && shown.size <= 4) row.addView(chip(s, false) { replaceCurrentWord(word, s) })
-        }
-        if (!dict.isKnown(word) && list?.isKnown(word) != true && word.length > 1) {
-            row.addView(chip("＋ save \"$word\"", false) {
-                dict.approve(word); prefs.saveDictionary(dict); refreshSuggestions()
-            })
+        val wantFix = prefs.autocorrect && autocorrectAllowed() && typed.toString() == word
+        val english = wordsLang == "en"
+        // Looking through 25,000 words takes too long to do between two key presses, so it happens off the main
+        // thread; only the newest word's answer is shown (raven575, 11-22: fast typing froze).
+        val ask = ++suggestionAsk
+        suggester.execute {
+            val found = runCatching {
+                // With autocorrect on, show the fix that space would make, so it's never a surprise.
+                val fix = if (wantFix && list != null)
+                    Autocorrect.fix(word, list, known = { w -> dict.isKnown(w) }, english = english)?.takeIf { it != word } else null
+                val picks = (dict.complete(word) + (list?.complete(word) ?: emptyList()).map { WordList.matchCase(word, it) })
+                    .distinctBy { it.lowercase() }.take(4)
+                val unknown = !dict.isKnown(word) && list?.isKnown(word) != true && word.length > 1
+                Triple(fix, picks, unknown)
+            }.getOrNull() ?: return@execute
+            main.post {
+                if (ask != suggestionAsk || suggestionRow !== row) return@post
+                val (fix, picks, unknown) = found
+                if (wantFix) fixReady = word to fix
+                fix?.let { row.addView(chip("→ $it", true) { replaceCurrentWord(word, it) }) }
+                for (s in picks) row.addView(chip(s, false) { replaceCurrentWord(word, s) })
+                if (unknown) row.addView(chip("＋ save \"$word\"", false) {
+                    dict.approve(word); prefs.saveDictionary(dict); refreshSuggestions()
+                })
+            }
         }
     }
+
+    private var suggestionAsk = 0
+    /** The autocorrect answer for the word being typed, worked out in the background: (word, fix or null). */
+    private var fixReady: Pair<String, String?>? = null
+    private val suggester = java.util.concurrent.Executors.newSingleThreadExecutor()
 
     private fun takesDrawer(): View {
         val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -381,6 +401,37 @@ class HelperBoardIme : InputMethodService() {
         else -> k.label
     }
 
+    private fun keyColors(k: Key, p: com.herdofhelpers.helperboard.core.HerdPalette): Pair<Int, Int> {
+        val capsOn = (k.kind == KeyKind.SHIFT && shift.state != Shift.OFF) ||
+            (k.kind == KeyKind.CAPS_LOCK && shift.state == Shift.LOCKED)
+        return when {
+            k.kind == KeyKind.MIC && recorder != null -> p.stop to p.onStop
+            k.kind == KeyKind.MIC -> p.accent to p.onAccent
+            capsOn -> p.good to p.onGood
+            k.kind == KeyKind.CHAR || k.kind == KeyKind.SPACE -> p.surface to p.text
+            else -> p.sunk to p.text
+        }
+    }
+
+    /**
+     * After a key press: change the letters (shift) and the suggestions in place. Rebuilding every key here is what
+     * froze fast typing and dropped keys (raven575, 11-22): a thumb already down on an old key lost its press.
+     */
+    private fun refresh() {
+        if (root == null) return
+        val p = KeyLook.palette(this, prefs)
+        for ((k, tv) in keyViews) {
+            val label = labelFor(k)
+            if (tv.text.toString() != label) tv.text = label
+            if (k.kind == KeyKind.SHIFT || k.kind == KeyKind.CAPS_LOCK || k.kind == KeyKind.MIC) {
+                val (c, ink) = keyColors(k, p)
+                tv.setTextColor(ink)
+                if (!tv.isPressed) tv.background = KeyLook.keyBackground(this, c, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
+            }
+        }
+        refreshSuggestions()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun keyView(k: Key): TextView {
         val tv = KeyText(this)
@@ -390,21 +441,14 @@ class HelperBoardIme : InputMethodService() {
         tv.textSize = if (k.label.length > 2) 14f else 20f
         tv.typeface = KeyLook.typeface(prefs)
         val p = KeyLook.palette(this, prefs)
-        val capsOn = (k.kind == KeyKind.SHIFT && shift.state != Shift.OFF) ||
-            (k.kind == KeyKind.CAPS_LOCK && shift.state == Shift.LOCKED)
-        val (color, ink) = when {
-            k.kind == KeyKind.MIC && recorder != null -> p.stop to p.onStop
-            k.kind == KeyKind.MIC -> p.accent to p.onAccent
-            capsOn -> p.good to p.onGood
-            k.kind == KeyKind.CHAR || k.kind == KeyKind.SPACE -> p.surface to p.text
-            else -> p.sunk to p.text
-        }
+        val (_, ink) = keyColors(k, p)
+        keyViews += k to tv
         tv.setTextColor(ink)
         // A small mark in the corner shows what holding the key types (! over 1, ( over 9), so people know it's there.
         if (prefs.holdHints && (k.kind == KeyKind.CHAR) && emojiQuery == null) {
             tv.holdMark = Alternates.hint(k.label); tv.hintColor = p.muted
         }
-        tv.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
+        tv.background = KeyLook.keyBackground(this, keyColors(k, p).first, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
         tv.contentDescription = when (k.kind) {
             KeyKind.SPACE -> "space"; KeyKind.BACKSPACE -> "delete"; KeyKind.ENTER -> "enter"
             KeyKind.MIC -> "voice typing"; KeyKind.SHIFT -> "shift"; KeyKind.UNDO -> "undo"
@@ -420,27 +464,30 @@ class HelperBoardIme : InputMethodService() {
             if (altOptions.isNotEmpty()) {
                 when (e.actionMasked) {
                     MotionEvent.ACTION_MOVE -> pickAlternate(e.rawX)
-                    MotionEvent.ACTION_UP -> { v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); commitAlternate() }
-                    MotionEvent.ACTION_CANCEL -> { v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); hideAlternates() }
+                    MotionEvent.ACTION_UP -> { v.background = KeyLook.keyBackground(this, keyColors(k, p).first, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); commitAlternate() }
+                    MotionEvent.ACTION_CANCEL -> { v.background = KeyLook.keyBackground(this, keyColors(k, p).first, prefs.bubble, gradient = prefs.keyGradient, edge = p.border); hideAlternates() }
                 }
                 return@setOnTouchListener true
             }
             // Swipe typing: once the finger travels more than half a key, this press is a swipe, not a tap.
             if (canSwipe) when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { swipePath.clear(); swipePath.add(Pt(e.rawX, e.rawY)); swiping = false }
+                MotionEvent.ACTION_DOWN -> { v.getLocationOnScreen(swipeOrigin); swipePath.clear(); swipePath.add(Pt(swipeOrigin[0] + e.x, swipeOrigin[1] + e.y)); swiping = false }
                 MotionEvent.ACTION_MOVE -> {
                     // Every touch point since the last event, so the ink line is smooth even on fast swipes.
-                    val ox = e.rawX - e.x; val oy = e.rawY - e.y
+                    // Screen place = the key's place + the touch's place on the key. (Not rawX: with two thumbs down,
+                    // Android can hand a key the other thumb's raw place, which looked like a swipe.)
+                    val ox = swipeOrigin[0].toFloat(); val oy = swipeOrigin[1].toFloat()
+                    val sx = ox + e.x; val sy = oy + e.y
                     for (h in 0 until e.historySize) swipePath.add(Pt(e.getHistoricalX(h) + ox, e.getHistoricalY(h) + oy))
-                    swipePath.add(Pt(e.rawX, e.rawY))
-                    if (swiping && prefs.swipeTrail) trail?.add(e.rawX, e.rawY)
+                    swipePath.add(Pt(sx, sy))
+                    if (swiping && prefs.swipeTrail) trail?.add(sx, sy)
                     if (!swiping) {
-                        val dx = e.rawX - swipePath[0].x; val dy = e.rawY - swipePath[0].y
+                        val dx = sx - swipePath[0].x; val dy = sy - swipePath[0].y
                         if (Math.hypot(dx.toDouble(), dy.toDouble()) > v.width * 0.6) {
                             swiping = true; v.cancelLongPress(); v.isPressed = false; hidePreview()
                             if (testing) TypingTest.log.becameSwipe()
                             if (prefs.swipeTrail) trail?.let { t -> t.color = p.accent; t.clear(); swipePath.forEach { pt -> t.add(pt.x, pt.y) } }
-                            v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
+                            v.background = KeyLook.keyBackground(this, keyColors(k, p).first, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
                         }
                     }
                     if (swiping) return@setOnTouchListener true
@@ -450,7 +497,7 @@ class HelperBoardIme : InputMethodService() {
             }
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, pressed = true, edge = p.border)
+                    v.background = KeyLook.keyBackground(this, keyColors(k, p).first, prefs.bubble, gradient = prefs.keyGradient, pressed = true, edge = p.border)
                     buzz(v)
                     if (testing && (k.kind == KeyKind.CHAR || k.kind == KeyKind.SPACE)) {
                         val at = inFrame(v)
@@ -460,7 +507,7 @@ class HelperBoardIme : InputMethodService() {
                     if (repeats) startRepeat(k)
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    v.background = KeyLook.keyBackground(this, color, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
+                    v.background = KeyLook.keyBackground(this, keyColors(k, p).first, prefs.bubble, gradient = prefs.keyGradient, edge = p.border)
                     hidePreview()
                     if (repeats) stopRepeat()
                 }
@@ -470,7 +517,7 @@ class HelperBoardIme : InputMethodService() {
         tv.setOnClickListener { onKey(k) }
         tv.setOnLongClickListener {
             when (k.kind) {
-                KeyKind.SHIFT -> { shift.lock(); render(); true }
+                KeyKind.SHIFT -> { shift.lock(); refresh(); true }
                 KeyKind.MODE_NUMBERS, KeyKind.SETTINGS -> { openSettings(); true }
                 KeyKind.CHAR, KeyKind.MULTI -> {
                     val upper = shift.state != Shift.OFF
@@ -540,19 +587,19 @@ class HelperBoardIme : InputMethodService() {
                 swipeAlternatives = emptyList(); lastSwiped = null
                 ic.commitText(" ", 1)
                 if (testing) TypingTest.log.typed("space", SystemClock.uptimeMillis())
-                updateAutoCap(); render()
+                updateAutoCap(); refresh()
             }
-            KeyKind.BACKSPACE -> { sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL); updateAutoCap(); render() }
+            KeyKind.BACKSPACE -> { sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL); updateAutoCap(); refresh() }
             KeyKind.ENTER -> {
                 val action = currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
                 val multiLine = ((currentInputEditorInfo?.inputType ?: 0) and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE) != 0
                 if (!multiLine && action != EditorInfo.IME_ACTION_NONE && action != EditorInfo.IME_ACTION_UNSPECIFIED) {
                     ic.performEditorAction(action)
                 } else sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
-                updateAutoCap(); render()
+                updateAutoCap(); refresh()
             }
-            KeyKind.SHIFT -> { shift.tap(SystemClock.uptimeMillis()); render() }
-            KeyKind.CAPS_LOCK -> { if (shift.state == Shift.LOCKED) shift.tap(0) else shift.lock(); render() }
+            KeyKind.SHIFT -> { shift.tap(SystemClock.uptimeMillis()); refresh() }
+            KeyKind.CAPS_LOCK -> { if (shift.state == Shift.LOCKED) shift.tap(0) else shift.lock(); refresh() }
             KeyKind.LEFT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_LEFT)
             KeyKind.RIGHT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_RIGHT)
             KeyKind.UNDO -> {
@@ -611,7 +658,7 @@ class HelperBoardIme : InputMethodService() {
         main.removeCallbacksAndMessages(repeatToken)
         // Redraw after the touch is finished, never inside it. Rebuilding the keys while Android is still
         // handing out this touch is what crashed the keyboard after fast or held ⌫ presses (video 11-20, 0:38).
-        main.post { updateAutoCap(); render() }
+        main.post { updateAutoCap(); refresh() }
     }
 
     // ---------- Key preview: the letter pops up above your thumb ----------
@@ -706,7 +753,7 @@ class HelperBoardIme : InputMethodService() {
 
     private var lastShiftDrawn = Shift.OFF
     private fun rerenderKeysIfShiftChanged() {
-        if (shift.state != lastShiftDrawn) { lastShiftDrawn = shift.state; render() } else refreshSuggestions()
+        lastShiftDrawn = shift.state; refresh()
     }
 
     private fun updateAutoCap() {
@@ -723,7 +770,7 @@ class HelperBoardIme : InputMethodService() {
         val word = PersonalDictionary.currentWord(trimmed)
         val n = (before.length - trimmed.length) + word.length
         ic.deleteSurroundingText(if (n == 0) 1 else n, 0)
-        if (redraw) { updateAutoCap(); render() }
+        if (redraw) { updateAutoCap(); refresh() }
     }
 
     // ---------- Word list, autocorrect, swipe ----------
@@ -749,7 +796,10 @@ class HelperBoardIme : InputMethodService() {
         val before = PersonalDictionary.currentWord(ic.getTextBeforeCursor(40, 0) ?: "")
         if (before != word) return // the word wasn't all typed by keys just now (dictation, paste, cursor moved)
         val list = words ?: return
-        val fix = Autocorrect.fix(word, list, known = { dict.isKnown(it) }, english = wordsLang == "en") ?: return
+        // The suggestion bar usually worked this out already, off the main thread; reuse it rather than look again.
+        val ready = fixReady?.takeIf { it.first == word }
+        val fix = (if (ready != null) ready.second
+            else Autocorrect.fix(word, list, known = { dict.isKnown(it) }, english = wordsLang == "en")) ?: return
         if (fix == word) return
         ic.deleteSurroundingText(word.length, 0)
         ic.commitText(fix, 1)
@@ -766,7 +816,7 @@ class HelperBoardIme : InputMethodService() {
         ic.deleteSurroundingText(before.length, 0)
         ic.commitText(original, 1)
         typed.clear()
-        main.post { updateAutoCap(); render() }
+        main.post { updateAutoCap(); refresh() }
         return true
     }
 
@@ -798,7 +848,7 @@ class HelperBoardIme : InputMethodService() {
                 lastSwiped = word
                 swipeAlternatives = found.drop(1).map { style(it) }
                 if (shift.state == com.herdofhelpers.helperboard.core.Shift.ONCE) shift.afterLetter()
-                updateAutoCap(); render()
+                updateAutoCap(); refresh()
             }
         }.start()
     }
@@ -808,14 +858,14 @@ class HelperBoardIme : InputMethodService() {
         val before = ic.getTextBeforeCursor(swiped.length, 0)?.toString()
         if (before == swiped) { ic.deleteSurroundingText(swiped.length, 0); ic.commitText(with, 1) }
         lastSwiped = null; swipeAlternatives = emptyList()
-        updateAutoCap(); render()
+        updateAutoCap(); refresh()
     }
 
     private fun replaceCurrentWord(word: String, with: String) {
         val ic = currentInputConnection ?: return
         ic.deleteSurroundingText(word.length, 0)
         ic.commitText("$with ", 1)
-        updateAutoCap(); render()
+        updateAutoCap(); refresh()
     }
 
     /** With learning on (opt-in), a finished word the dictionary doesn't know waits for the user's okay. */
