@@ -51,7 +51,18 @@ class VaultActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             val p = dp(16); setPadding(p, p, p, p)
         }
-        setContentView(ScrollView(this).apply { addView(page) })
+        // Android 15 draws apps edge to edge, so adjustResize no longer shrinks the page for the keyboard
+        // (raven575 11-23 phone shots: the test box sat under the keyboard). Pad the page by the keyboard
+        // and system bars ourselves; the focused box then scrolls into view above the keys.
+        setContentView(ScrollView(this).apply {
+            addView(page)
+            if (android.os.Build.VERSION.SDK_INT >= 30) setOnApplyWindowInsetsListener { v, insets ->
+                val t = android.view.WindowInsets.Type.ime() or android.view.WindowInsets.Type.systemBars()
+                val i = insets.getInsets(t)
+                v.setPadding(i.left, i.top, i.right, i.bottom)
+                insets
+            }
+        })
     }
 
     // A second "open" while the page is already up arrives here, not in onCreate; keep it so build() sees it.
