@@ -234,6 +234,8 @@ class HelperBoardIme : InputMethodService() {
             return
         }
         lastSwiped?.let { swiped ->
+            // The typed best guess comes first (lit), then the other choices; tapping one swaps it in.
+            if (swipeAlternatives.isNotEmpty()) row.addView(chip("✓ $swiped", true) { lastSwiped = null; swipeAlternatives = emptyList(); refreshSuggestions() })
             for (alt in swipeAlternatives) row.addView(chip(alt, false) { replaceSwiped(swiped, alt) })
             if (swipeAlternatives.isNotEmpty()) return
         }
@@ -834,7 +836,7 @@ class HelperBoardIme : InputMethodService() {
         val keyWidth = widths / centres.size
         val caps = shift.state != com.herdofhelpers.helperboard.core.Shift.OFF
         Thread {
-            val found = runCatching { SwipeDecoder(centres, keyWidth, list).decode(path) }.getOrDefault(emptyList())
+            val found = runCatching { SwipeDecoder(centres, keyWidth, list).decode(path, max = 6) }.getOrDefault(emptyList())  // best word + 5 others to pick from (raven575 11-23)
             main.post {
                 if (testing) TypingTest.log.swiped(found)
                 val ic = currentInputConnection ?: return@post
