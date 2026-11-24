@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Helper Board prototype. There is deliberately NO android.permission.INTERNET here: the app cannot go online.
+  CI fails the build if the finished app asks for the internet permission.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- The key buzz (strength set by the user). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_buddy"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault">
+
+        <activity
+            android:name=".VaultActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Share a take: hands one take's audio to the app you pick, read-only, one share at a time. -->
+        <provider
+            android:name=".TakeShare"
+            android:authorities="${applicationId}.takes"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
+        <!-- App icon menu (Settings > Look): one alias per icon by Team Creative, exactly one enabled. See AppIcons.kt. -->
+        <activity-alias
+            android:name=".IconBuddy"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_buddy"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconIris"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_iris"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconPeek"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_peek"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconOwl"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_owl"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconTap"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tap"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconPaw"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_paw"
+            android:targetActivity=".VaultActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <service
+            android:name=".HelperBoardIme"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+    </application>
+</manifest>

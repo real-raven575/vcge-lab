@@ -260,6 +260,33 @@ class TestBench(unittest.TestCase):
                 else:
                     self.assertRegex(i['ci']['repo'], tb.REPO_RE.pattern)
 
+    def test_layouts_save_open_list_replace_and_bin(self):
+        here = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(here, '..', '..', 'helper-board', 'core', 'src', 'test', 'resources', 'lab-standard.json')) as f:
+            std = json.load(f)
+        self.assertEqual(call(self.base, 'GET', '/testbench/api/layouts'), (200, {'layouts': []}))
+        self.assertEqual(call(self.base, 'PUT', '/testbench/api/layout?id=working', {'name': 'Big thumbs', 'layout': std})[0], 200)
+        code, rec = call(self.base, 'GET', '/testbench/api/layout?id=working')
+        self.assertEqual((code, rec['name'], rec['layout']), (200, 'Big thumbs', std))
+        std2 = json.loads(json.dumps(std)); std2['rows'][0]['h'] = 60
+        call(self.base, 'PUT', '/testbench/api/layout?id=big-thumbs', {'name': 'Big thumbs', 'layout': std})
+        call(self.base, 'PUT', '/testbench/api/layout?id=big-thumbs', {'name': 'Big thumbs', 'layout': std2})
+        d = os.path.join(tb.ROOT, 'layouts')
+        self.assertTrue(os.path.exists(os.path.join(d, 'big-thumbs.prev.json')))   # the last version is kept
+        self.assertEqual(sorted(x['id'] for x in call(self.base, 'GET', '/testbench/api/layouts')[1]['layouts']),
+                         ['big-thumbs', 'working'])
+        self.assertEqual(call(self.base, 'DELETE', '/testbench/api/layout?id=big-thumbs')[0], 200)
+        self.assertEqual(len(os.listdir(os.path.join(d, 'bin'))), 1)   # moved to the bin, not erased
+        self.assertEqual(call(self.base, 'GET', '/testbench/api/layout?id=big-thumbs')[0], 404)
+
+    def test_bad_layouts_are_refused(self):
+        bad = {'format': 'helper-board-layout', 'rows': [{'h': 48, 'keys': [{'l': 'a', 'o': 'a', 'k': 'CHAR', 'w': 1, 'g': 0}]}]}
+        code, out = call(self.base, 'PUT', '/testbench/api/layout?id=x', {'name': 'x', 'layout': bad})
+        self.assertEqual((code, out['error']), (400, 'the layout needs a BACKSPACE key'))
+        self.assertEqual(call(self.base, 'PUT', '/testbench/api/layout?id=../up', {'name': 'x', 'layout': bad})[0], 400)
+        self.assertEqual(call(self.base, 'PUT', '/testbench/api/layout?id=x', {'layout': {'format': 'other'}})[0], 400)
+        self.assertFalse(os.path.exists(os.path.join(tb.ROOT, 'layouts', 'x.json')))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

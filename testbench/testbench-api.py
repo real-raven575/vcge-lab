@@ -13,6 +13,9 @@ result rides in with a seed update). Every call names its bench with ?bench= (de
 lives in --root (TESTBENCH_ROOT, outside the web root and every git repo):
     <root>/<bench>/state.json            statuses, step results, notes, evidence list, CI results, tests added on the page
     <root>/<bench>/evidence/<id>/<sha>   the photos and screenshots, by their sha256
+Helper Board Layout Lab layouts (not tied to a bench) live in <root>/layouts/<id>.json, with "working" as the copy the
+page keeps saving while you edit, so another device opens the same work. A replaced layout keeps its last version as
+<id>.prev.json; a deleted one moves to <root>/layouts/bin/ (never erased).
 Runs as the lab user on 127.0.0.1 (default 8771); Caddy forwards /vcge/testbench/api/* to it. Logs carry the method
 and path only. The only outside call is a read of public GitHub Actions results (api.github.com), every 15 minutes.
 """
@@ -54,6 +57,83 @@ def image_kind(data):
     if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
         return 'webp', 'image/webp'
     return next((v for k, v in IMAGE_TYPES.items() if data.startswith(k)), None)
+
+
+# ---------- Helper Board Layout Lab ----------
+LAYOUT_ID_RE = re.compile(r'^[a-z0-9][a-z0-9-]{0,39}$')
+LAYOUT_KINDS = {'CHAR', 'MULTI', 'SHIFT', 'BACKSPACE', 'ENTER', 'SPACE', 'MIC', 'LEFT', 'RIGHT', 'UNDO', 'CAPS_LOCK',
+                'MODE_NUMBERS', 'MODE_SYMBOLS', 'MODE_EMOJI', 'MODE_TAKES', 'SETTINGS'}
+MAX_LAYOUTS = 200
+
+
+def layouts_dir():
+    return os.path.join(ROOT, 'layouts')
+
+
+def check_layout(l):
+    """The same rules the app uses (core LabLayout): an error in plain words, or None."""
+    if not isinstance(l, dict) or l.get('format') != 'helper-board-layout':
+        return "that isn't Layout Lab code"
+    rows = l.get('rows')
+    if not isinstance(rows, list) or not 0 < len(rows) <= 10:
+        return 'a layout needs 1 to 10 rows'
+    kinds = set()
+    for r in rows:
+        keys = r.get('keys') if isinstance(r, dict) else None
+        if not isinstance(keys, list) or not 0 < len(keys) <= 20:
+            return 'each row needs 1 to 20 keys'
+        for k in keys:
+            if not isinstance(k, dict) or k.get('k') not in LAYOUT_KINDS:
+                return 'a key has a kind Helper Board does not know'
+            if not all(isinstance(k.get(f, ''), str) for f in ('l', 'o')) or \
+                    not all(isinstance(k.get(f, 0), (int, float)) for f in ('w', 'g')):
+                return 'a key is broken'
+            kinds.add(k['k'])
+    missing = [n for n in ('BACKSPACE', 'ENTER', 'SPACE') if n not in kinds]
+    return 'the layout needs a %s key' % missing[0] if missing else None
+
+
+def layout_list():
+    d = layouts_dir()
+    out = []
+    for f in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        if f.endswith('.json') and not f.endswith('.prev.json') and LAYOUT_ID_RE.match(f[:-5]):
+            try:
+                with open(os.path.join(d, f), encoding='utf-8') as h:
+                    rec = json.load(h)
+                out.append({'id': f[:-5], 'name': rec.get('name', f[:-5]), 'savedAt': rec.get('savedAt', '')})
+            except (OSError, ValueError):
+                continue
+    return out
+
+
+def layout_path(i):
+    return os.path.join(layouts_dir(), i + '.json')
+
+
+def save_layout(i, name, layout):
+    d = layouts_dir()
+    os.makedirs(d, exist_ok=True)
+    p = layout_path(i)
+    if not os.path.exists(p) and len(layout_list()) >= MAX_LAYOUTS:
+        return 'the lab already holds %d layouts; delete one first' % MAX_LAYOUTS
+    if os.path.exists(p) and i != 'working':
+        os.replace(p, os.path.join(d, i + '.prev.json'))
+    tmp = p + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump({'name': name, 'savedAt': now(), 'layout': layout}, f, ensure_ascii=False)
+    os.replace(tmp, p)
+    return None
+
+
+def bin_layout(i):
+    p = layout_path(i)
+    if not os.path.exists(p):
+        return False
+    b = os.path.join(layouts_dir(), 'bin')
+    os.makedirs(b, exist_ok=True)
+    os.replace(p, os.path.join(b, '%s-%s.json' % (i, time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()))))
+    return True
 
 
 def audio_kind(data):
@@ -291,10 +371,55 @@ class Handler(BaseHTTPRequestHandler):
         b = q.get('bench', 'vcge')
         return u.path, q, (b if BENCH_RE.match(b) and b in benches() else None)
 
+    def reply(self, code, obj):
+        self.send_json(code, obj)
+        return True
+
+    def layout_call(self, path, q):
+        """Layout Lab routes: True once answered, None when the path is not one of them."""
+        if path == '/testbench/api/layouts' and self.command == 'GET':
+            with LOCK:
+                return self.reply(200, {'layouts': layout_list()})
+        if path != '/testbench/api/layout':
+            return None
+        i = q.get('id', '')
+        if not LAYOUT_ID_RE.match(i):
+            return self.reply(400, {'error': 'a layout id is lower-case letters, digits and dashes'})
+        if self.command == 'GET':
+            try:
+                with LOCK, open(layout_path(i), encoding='utf-8') as f:
+                    return self.reply(200, json.load(f))
+            except FileNotFoundError:
+                return self.reply(404, {'error': 'no such layout'})
+        if self.command == 'PUT':
+            req = self.read_json()
+            if req is None:
+                return self.reply(400, {'error': 'send JSON'})
+            err = check_layout(req.get('layout'))
+            name = clean_text(req.get('name'), 40) or 'My layout'
+            if err:
+                return self.reply(400, {'error': err})
+            with LOCK:
+                err = save_layout(i, name, req['layout'])
+            return self.reply(400, {'error': err}) if err else self.send_json(200, {'ok': True, 'savedAt': now()})
+        if self.command == 'DELETE':
+            with LOCK:
+                gone = bin_layout(i)
+            return self.reply(200, {'ok': True}) if gone else self.send_json(404, {'error': 'no such layout'})
+        return self.reply(405, {'error': 'not allowed'})
+
+    def do_DELETE(self):
+        path, q, _ = self.route()
+        if not self.layout_call(path, q):
+            self.send_json(404, {'error': 'unknown'})
+
     def do_GET(self):
         path, q, b = self.route()
         if path == '/testbench/api/health':
             return self.send_json(200, {'ok': True})
+        if path.startswith('/testbench/api/layout'):
+            if self.layout_call(path, q):
+                return None
         if not b:
             return self.send_json(404, {'error': 'no such bench'})
         if path == '/testbench/api/items':
@@ -371,6 +496,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         path, q, b = self.route()
+        if path == '/testbench/api/layout':
+            self.layout_call(path, q)
+            return None
         if not b:
             return self.send_json(404, {'error': 'no such bench'})
         with LOCK:

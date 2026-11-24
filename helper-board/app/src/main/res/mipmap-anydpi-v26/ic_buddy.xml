@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Helper Board app icon "01-keycap-buddy" by Team Creative (icon menu pack, 11-22). -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_buddy_background" />
+    <foreground android:drawable="@drawable/ic_buddy_foreground" />
+    <monochrome android:drawable="@drawable/ic_buddy_monochrome" />
+</adaptive-icon>

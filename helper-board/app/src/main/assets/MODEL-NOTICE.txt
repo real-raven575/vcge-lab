@@ -1,0 +1,4 @@
+Helper Board's laughter markers use YAMNet, an audio classifier by Google, with the TensorFlow Lite runtime.
+Both are licensed under the Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+YAMNet model file: MediaPipe audio_classifier/yamnet/float32/1 (sha256 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf).
+The model runs only on this phone. Helper Board has no internet permission.

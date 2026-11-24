@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Helper Board app icon "02-iris-lynx" by Team Creative (icon menu pack, 11-22). -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_iris_background" />
+    <foreground android:drawable="@drawable/ic_iris_foreground" />
+    <monochrome android:drawable="@drawable/ic_iris_monochrome" />
+</adaptive-icon>
