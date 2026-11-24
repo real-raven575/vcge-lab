@@ -15,13 +15,17 @@ import java.nio.ByteOrder
  * If the model file is missing, or anything fails, it simply hears no laughter.
  */
 class LaughDetector(context: Context) {
+    /** Why the model isn't running, for the notice above the keys (null when it is). */
+    var loadError: String? = null; private set
     private val interpreter: org.tensorflow.lite.Interpreter? = runCatching {
         val bytes = context.assets.open(MODEL).use { it.readBytes() }
         val buf = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).apply { put(bytes); rewind() }
         org.tensorflow.lite.Interpreter(buf, org.tensorflow.lite.Interpreter.Options().setNumThreads(2))
-    }.getOrNull()
+    }.onFailure { loadError = "${it.javaClass.simpleName}: ${it.message}".take(120) }.getOrNull()
 
     val available get() = interpreter != null
+    /** The strongest laughing score in the last [listen] (0..1), shown when nothing counted, for tuning. */
+    @Volatile var lastPeak = 0f; private set
 
     /** Laugh kind for each window of the PCM byte [range] (after the WAV header) of [audio]. Call off the main thread. */
     @Synchronized
@@ -35,6 +39,7 @@ class LaughDetector(context: Context) {
         }.getOrNull() ?: return emptyList()
         val samples = pcm.size / 2
         val out = ArrayList<LaughMarks.Kind?>()
+        var peak = 0f
         var start = 0
         while (true) {
             val input = FloatArray(WINDOW) { i ->
@@ -45,6 +50,8 @@ class LaughDetector(context: Context) {
             val scores = Array(1) { FloatArray(521) }
             runCatching { model.run(input, scores) }.onFailure { return out }
             out += LaughMarks.kind(scores[0])
+            peak = maxOf(peak, LaughMarks.score(scores[0]))
+            lastPeak = peak
             start += HOP
             if (start + WINDOW / 2 >= samples) break
         }

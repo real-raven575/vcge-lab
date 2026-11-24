@@ -1006,7 +1006,7 @@ class HelperBoardIme : InputMethodService() {
                 take.text = text.orEmpty()
                 take.status = if (text != null) Take.STATUS_DONE else Take.STATUS_SAVED
                 takes.save(take)
-            } else audio.delete()
+            } else if (text != null) audio.delete()   // with no words, laughOnly listens first, then deletes it
             notice = when {
                 text != null && reason != null -> "⚠ $reason"
                 text != null && insert -> null
@@ -1014,9 +1014,34 @@ class HelperBoardIme : InputMethodService() {
                 else -> "💾 $reason"
             }
             forgetWord()
-            if (text != null) insertDictation(text, insert)
-            render()
+            if (text != null) { insertDictation(text, insert); render() }
+            else laughOnly(take, audio, insert, keep) { render() }
         }
+    }
+
+    /**
+     * No words came back (raven575's 11-24 test: a laugh gave "engine code 7"). If laughter markers are on, listen to
+     * the whole take for laughing and type the marker instead. Otherwise, or if no laugh is heard, the notice stays,
+     * with the strongest laughing score so the setting can be tuned.
+     */
+    private fun laughOnly(take: Take, audio: java.io.File, insert: Boolean, keep: Boolean, then: () -> Unit) {
+        fun finish() { if (!keep) audio.delete(); then() }
+        val words = com.herdofhelpers.helperboard.core.LaughMarks.STYLES.getOrNull(prefs.laughStyle)?.second ?: return finish()
+        val det = laughDetector ?: LaughDetector(this).also { laughDetector = it }
+        if (!det.available) { notice = "$notice (Laughter model not loaded: ${det.loadError})"; return finish() }
+        Thread {
+            val bytes = (audio.length() - com.herdofhelpers.helperboard.core.Wav.HEADER_BYTES).coerceAtLeast(0)
+            val heard = runCatching { det.listen(audio, 0 until bytes) }.getOrDefault(emptyList())
+            val mark = com.herdofhelpers.helperboard.core.LaughMarks.place("", heard, words.first, words.second)
+            main.post {
+                if (mark.isNotEmpty()) {
+                    notice = null
+                    if (keep && audio.exists()) { take.text = mark; take.status = Take.STATUS_DONE; takes.save(take) }
+                    insertDictation(mark, insert)
+                } else notice = "$notice No laughing heard either (strongest ${"%.2f".format(det.lastPeak)}, needs 0.25)."
+                finish()
+            }
+        }.start()
     }
 
     // ---------- The keyboard test (Settings > 8): timing, dropped keys, where fingers land, and the robot ----------

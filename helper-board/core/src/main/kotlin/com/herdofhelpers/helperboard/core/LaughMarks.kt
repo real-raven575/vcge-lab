@@ -16,6 +16,10 @@ object LaughMarks {
     /** Marker styles for Settings: the laugh word and the giggle word. */
     val STYLES = listOf("(ha-ha) and (giggle)" to ("(ha-ha)" to "(giggle)"), "(laughs)" to ("(laughs)" to "(laughs)"), "😂 and 🤭" to ("😂" to "🤭"))
 
+    /** The strongest laughing score of any kind in one window. */
+    fun score(scores: FloatArray): Float =
+        listOf(LAUGHTER, BABY_LAUGHTER, GIGGLE, SNICKER, BELLY_LAUGH, CHUCKLE).maxOf { scores.getOrElse(it) { 0f } }
+
     /** One ~1 s window's scores (521 classes) to a laugh kind, or null when no laughing was heard. */
     fun kind(scores: FloatArray, threshold: Float = 0.25f): Kind? {
         fun s(i: Int) = scores.getOrElse(i) { 0f }
