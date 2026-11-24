@@ -14,6 +14,8 @@ android {
         targetSdk = 35
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
         versionName = "0.1.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}-proto"
+        // Phones (arm64) and the CI emulator (x86_64) only, to keep the model runtime from quadrupling the APK.
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
     buildTypes {
@@ -34,6 +36,8 @@ kotlin {
 }
 
 dependencies {
-    // No other libraries: only the Android framework and our own core rules. Nothing that could reach the internet.
+    // Our own core rules, plus the TensorFlow Lite runtime (Apache-2.0) for the offline laughter model (raven575,
+    // 11-24). Nothing here can reach the internet; CI fails any build that asks for the internet permission.
     implementation(project(":core"))
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 }

@@ -288,6 +288,8 @@ class HelperBoardIme : InputMethodService() {
     private data class SpellNote(val now: String, val other: String, val sure: Boolean)
     private var spellNotes: List<SpellNote> = emptyList()
     private var waveView: VoiceWaveView? = null
+    /** The laughter model, loaded the first time it is needed and kept while the keyboard lives. */
+    private var laughDetector: LaughDetector? = null
     /** The autocorrect answer for the word being typed, worked out in the background: (word, fix or null). */
     private var fixReady: Pair<String, String?>? = null
     private val suggester = java.util.concurrent.Executors.newSingleThreadExecutor()
@@ -922,7 +924,9 @@ class HelperBoardIme : InputMethodService() {
         val tr = Transcriber(this)
         if (prefs.liveVoice && tr.available()) {
             liveInsert = true
-            live = LiveTranscriber(tr, takes.audio(take.id), take.language) { text -> insertDictation(text, liveInsert) }
+            val laughWords = com.herdofhelpers.helperboard.core.LaughMarks.STYLES.getOrNull(prefs.laughStyle)?.second
+            val laugh = laughWords?.let { w -> (laughDetector ?: LaughDetector(this).also { laughDetector = it }) to w }
+            live = LiveTranscriber(tr, takes.audio(take.id), take.language, { text -> insertDictation(text, liveInsert) }, laugh)
                 .also { it.start() }
         }
         render()

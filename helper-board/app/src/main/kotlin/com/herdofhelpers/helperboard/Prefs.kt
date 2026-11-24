@@ -60,6 +60,11 @@ class Prefs(context: Context) {
             ?: com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI
         set(v) = sp.edit().putString("multiKeyItems", v.joinToString("\n")).apply()
 
+    /** Laughter markers style (index into core LaughMarks.STYLES), or -1 for off. On by default (raven575, 11-24). */
+    var laughStyle: Int
+        get() = sp.getInt("laughStyle", 0)
+        set(v) = sp.edit().putInt("laughStyle", v).apply()
+
     /** "Say it, spell it once": lines "sounds like = spelled" (core SpellOnce). Stays on the phone with My words. */
     var spellOnce: String
         get() = sp.getString("spellOnce", "") ?: ""

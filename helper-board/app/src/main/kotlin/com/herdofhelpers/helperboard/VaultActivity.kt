@@ -273,6 +273,11 @@ class VaultActivity : Activity() {
             "and the SUBTLEX word lists by Marc Brysbaert et al. (SUBTLEX is freely available data). Full notice: WORDS-NOTICE.txt in the app.")
         toggle("Show the letter above my thumb", prefs.keyPreview) { prefs.keyPreview = it }
         toggle("Live voice: words appear as I talk (offline)", prefs.liveVoice) { prefs.liveVoice = it }
+        choice("Mark laughter in live voice (offline sound model)",
+            listOf("Off" to -1) + com.herdofhelpers.helperboard.core.LaughMarks.STYLES.mapIndexed { i, st -> st.first to i },
+            prefs.laughStyle) { prefs.laughStyle = it }
+        text("Laughter is heard by YAMNet (Google) running in TensorFlow Lite, both Apache-2.0, on this phone only. " +
+            "Full notice: MODEL-NOTICE.txt in the app.")
         toggle("Use Bluetooth mic (car, headset)", prefs.useBluetoothMic) { prefs.useBluetoothMic = it }
         toggle("Show the 😀 emoji tab", prefs.showEmoji) { prefs.showEmoji = it }
         slider("Recent emoji to show", com.herdofhelpers.helperboard.core.EmojiBook.MIN_RECENT,

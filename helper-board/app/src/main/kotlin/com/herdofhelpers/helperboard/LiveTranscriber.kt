@@ -20,7 +20,10 @@ class LiveTranscriber(
     private val audio: File,
     private val language: String,
     private val onText: (String) -> Unit,
+    /** Laughter markers: the detector and the (laugh, giggle) words, or null when turned off. */
+    private val laughs: Pair<LaughDetector, Pair<String, String>>? = null,
 ) {
+    private val listener = java.util.concurrent.Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     @Volatile private var stopping = false
     @Volatile var level: Int = 0; private set
@@ -79,10 +82,20 @@ class LiveTranscriber(
         }
         busy = true
         transcriber.recognize(audio, next, language) { text, _ ->
-            busy = false
-            val t = text?.trim().orEmpty()
-            if (t.isEmpty()) emptyParts++ else { texts += t; onText(t) }
-            pump()
+            val words = text?.trim().orEmpty()
+            fun done(t: String) {
+                busy = false
+                if (t.isEmpty()) emptyParts++ else { texts += t; onText(t) }
+                pump()
+            }
+            val l = laughs
+            if (l == null || !l.first.available) done(words)
+            else listener.execute {
+                // The speech engine drops laughing; the sound model listens to the same part (raven575, 11-24).
+                val heard = runCatching { l.first.listen(audio, next) }.getOrDefault(emptyList())
+                val t = com.herdofhelpers.helperboard.core.LaughMarks.place(words, heard, l.second.first, l.second.second)
+                main.post { done(t) }
+            }
         }
     }
 }

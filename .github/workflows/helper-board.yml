@@ -47,6 +47,12 @@ jobs:
       - name: Keyboard rules tests (core)
         run: gradle :core:test --console=plain
 
+      - name: Fetch the laughter model (checked by its fingerprint)
+        run: |
+          curl -fsSL -o app/src/main/assets/yamnet.tflite \
+            https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite
+          echo "4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf  app/src/main/assets/yamnet.tflite" | sha256sum -c -
+
       - name: Build the app
         run: gradle :app:assembleDebug :app:lintDebug --console=plain
 
