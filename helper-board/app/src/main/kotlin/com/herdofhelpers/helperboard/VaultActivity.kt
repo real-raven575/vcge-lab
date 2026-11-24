@@ -438,6 +438,28 @@ class VaultActivity : Activity() {
             text(d.words.joinToString(" · "))
             button("Clear all my words") { prefs.saveDictionary(com.herdofhelpers.helperboard.core.PersonalDictionary()); build() }
         }
+        spellOnceEditor()
+    }
+
+    /** "Say it, spell it once" (raven575, 11-23): teach how a name sounds and how it is spelled. */
+    private fun spellOnceEditor() {
+        page.addView(TextView(this).apply {
+            text = "🗣 Say it, spell it once. One per line: how it sounds = how it's spelled, for example \"Alex = Aleks\". " +
+                "When voice typing hears it, it types your spelling. If it only sounds close, it asks first."
+            textSize = 15f; setTextColor(pal.text); setPadding(0, dp(8), 0, 0)
+        })
+        val box = android.widget.EditText(this).apply {
+            setText(prefs.spellOnce); setTextColor(pal.text); textSize = 16f; hint = "Alex = Aleks"
+            minLines = 2; maxLines = 20; gravity = android.view.Gravity.TOP or android.view.Gravity.START
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+                android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+        page.addView(box)
+        page.addView(smallButton("Save spellings") {
+            val pairs = com.herdofhelpers.helperboard.core.SpellOnce.parse(box.text.toString())
+            prefs.spellOnce = pairs.joinToString("\n") { "${it.first} = ${it.second}" }
+            toast("Saved ${pairs.size}"); build()
+        })
     }
 
     private fun privacySection() {

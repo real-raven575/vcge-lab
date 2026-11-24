@@ -234,6 +234,13 @@ class HelperBoardIme : InputMethodService() {
         if (policy.isPrivate && !prefs.allowPrivateSaving) {
             row.addView(chip("🔒 Private box: nothing here is learned or saved", false) {}); return
         }
+        if (spellNotes.isNotEmpty()) {
+            for (n in spellNotes) row.addView(chip(if (n.sure) "✓ ${n.now} · ↶ ${n.other}" else "Did you mean ${n.other}?", !n.sure) {
+                swapRecentWord(n.now, n.other); spellNotes = spellNotes - n; refreshSuggestions()
+            })
+            row.addView(chip("✕", false) { spellNotes = emptyList(); refreshSuggestions() })
+            return
+        }
         lastFix?.let { (original, fixed) ->
             row.addView(chip("↶ $original", true) { undoFix() })
             row.addView(chip("✓ $fixed", false) { lastFix = null; refreshSuggestions() })
@@ -277,6 +284,9 @@ class HelperBoardIme : InputMethodService() {
     }
 
     private var suggestionAsk = 0
+    /** After dictation: words typed your way (tap to undo) and close ones to ask about (tap to use your spelling). */
+    private data class SpellNote(val now: String, val other: String, val sure: Boolean)
+    private var spellNotes: List<SpellNote> = emptyList()
     private var waveView: VoiceWaveView? = null
     /** The autocorrect answer for the word being typed, worked out in the background: (word, fix or null). */
     private var fixReady: Pair<String, String?>? = null
@@ -581,7 +591,7 @@ class HelperBoardIme : InputMethodService() {
             KeyKind.MULTI -> { forgetWord(); ic.commitText(k.output, 1); rerenderKeysIfShiftChanged() }
             KeyKind.CHAR -> {
                 val out = shift.apply(k.output)
-                lastFix = null; swipeAlternatives = emptyList(); lastSwiped = null
+                lastFix = null; swipeAlternatives = emptyList(); lastSwiped = null; spellNotes = emptyList()
                 if (out.length == 1 && (out[0].isLetter() || out[0] == '\'')) typed.append(out) else typed.clear()
                 ic.commitText(out, 1)
                 if (testing) TypingTest.log.typed(k.output, SystemClock.uptimeMillis())
@@ -862,6 +872,16 @@ class HelperBoardIme : InputMethodService() {
         }.start()
     }
 
+    /** Swaps the last whole-word [old] in the recent text for [new], keeping everything typed after it. */
+    private fun swapRecentWord(old: String, new: String) {
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(400, 0)?.toString() ?: return
+        val m = Regex("(?<![\\p{L}'])" + Regex.escape(old) + "(?![\\p{L}'])").findAll(before).lastOrNull() ?: return
+        val tail = before.substring(m.range.first)
+        ic.deleteSurroundingText(tail.length, 0)
+        ic.commitText(new + tail.substring(old.length), 1)
+    }
+
     private fun replaceSwiped(swiped: String, with: String) {
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(swiped.length, 0)?.toString()
@@ -922,10 +942,18 @@ class HelperBoardIme : InputMethodService() {
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(60, 0) ?: ""
         // Each part arrives capitalised as if it began a sentence, and edges can repeat a word: tidy the seam.
-        val clean = com.herdofhelpers.helperboard.core.DictationJoin.clean(text, before)
+        var clean = com.herdofhelpers.helperboard.core.DictationJoin.clean(text, before)
         if (clean.isEmpty()) return
+        // Taught spellings ("say it, spell it once"): sure matches are typed your way, close ones are asked about.
+        val spell = com.herdofhelpers.helperboard.core.SpellOnce(com.herdofhelpers.helperboard.core.SpellOnce.parse(prefs.spellOnce)).apply(clean)
+        clean = spell.text
         val gap = if (before.isNotEmpty() && !before.last().isWhitespace()) " " else ""
         ic.commitText(gap + clean + " ", 1)
+        if (spell.changed.isNotEmpty() || spell.askAbout.isNotEmpty()) {
+            spellNotes = spell.changed.map { (heard, spelled) -> SpellNote(spelled, heard, sure = true) } +
+                spell.askAbout.map { (heard, spelled) -> SpellNote(heard, spelled, sure = false) }
+            refreshSuggestions()
+        }
     }
 
     private fun stopRecording(insert: Boolean) {

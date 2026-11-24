@@ -60,6 +60,11 @@ class Prefs(context: Context) {
             ?: com.herdofhelpers.helperboard.core.Layouts.DEFAULT_MULTI
         set(v) = sp.edit().putString("multiKeyItems", v.joinToString("\n")).apply()
 
+    /** "Say it, spell it once": lines "sounds like = spelled" (core SpellOnce). Stays on the phone with My words. */
+    var spellOnce: String
+        get() = sp.getString("spellOnce", "") ?: ""
+        set(v) = sp.edit().putString("spellOnce", v).apply()
+
     /** Autocorrect (testers T2, T7 wanted it off; on for now by raven575). Never on dictation, passwords or addresses. */
     var autocorrect: Boolean
         get() = sp.getBoolean("autocorrect", true)
