@@ -95,9 +95,10 @@ object Pauses {
      * Live voice (raven575, 11-21): while a take is still recording, the talking parts that are finished, so their
      * text can be made while the person keeps talking. A part is finished once [pauseMs] of quiet follows it (or it
      * hit the length limit). Only parts after frame [from] are returned, clipped to start there; with [final] = true
-     * (recording stopped) every remaining part counts as finished.
+     * (recording stopped) every remaining part counts as finished. Nonstop talkers see text every 6 s at most
+     * (raven575, 11-24; was 12 s).
      */
-    fun finishedParts(levels: IntArray, from: Int, final: Boolean = false, pauseMs: Int = 700, maxPartMs: Int = 12_000): List<IntRange> {
+    fun finishedParts(levels: IntArray, from: Int, final: Boolean = false, pauseMs: Int = 700, maxPartMs: Int = 6_000): List<IntRange> {
         val pause = pauseMs / FRAME_MS
         val pad = 300 / FRAME_MS
         return speechParts(levels, pauseMs = pauseMs, maxPartMs = maxPartMs)

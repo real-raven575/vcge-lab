@@ -22,6 +22,13 @@
             android:exported="true"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Share a take: hands one take's audio to the app you pick, read-only, one share at a time. -->
+        <provider
+            android:name=".TakeShare"
+            android:authorities="${applicationId}.takes"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <!-- App icon menu (Settings > Look): one alias per icon by Team Creative, exactly one enabled. See AppIcons.kt. -->
         <activity-alias
             android:name=".IconBuddy"

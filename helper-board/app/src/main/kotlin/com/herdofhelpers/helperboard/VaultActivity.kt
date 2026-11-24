@@ -216,6 +216,7 @@ class VaultActivity : Activity() {
             (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("take", t.text))
             takes.touch(t); toast("Copied")
         })
+        row2.addView(smallButton("📤 Share") { takes.touch(t); startActivity(TakeShare.intent(this, t)) })
         card.addView(row2)
         page.addView(card, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             .apply { setMargins(0, dp(6), 0, dp(6)) })
