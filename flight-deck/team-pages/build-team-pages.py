@@ -194,6 +194,7 @@ TOOLS = {
     ('Photos', 'The Card Inbox', 'Drop a zip or clip of one card; every bench runs on every angle', '/vcge/inbox/', False),
     ('Testing', 'The Test Bench', 'Every open vCGE test in one list: your hands-on checks and the CI results', '/vcge/testbench/', False),
     ('Testing', 'Wipe Trials', 'Ghost\'s cross-browser wipe test range', '/vcge/testing/', False),
+    ('Testing', 'Tester Voices', 'Drop what testers told us; names become codenames before saving', '/vcge/voices/', False),
   ],
   'homelab': [
     ('Storage', 'Nextcloud', 'Herd shared storage; every team\'s folders (tailnet address on raven575\'s devices)', None, True),
@@ -231,6 +232,7 @@ TOOLS = {
     ('Windows repair', 'Auto-Fixer', 'Guided Windows 10/11 repair tool (download the zip, run AutoFix.bat)', 'https://github.com/real-raven575/auto-fix_win10-11', False),
     ('About', 'Auto-Fixer product page', '', 'https://claude.ai/artifact/XnRM8A28SPWFfXTWaDAncc', True),
     ('Testing', 'Auto-Fixer Test Bench', 'Every open PR\'s test steps, 👤 yours and 🤖 robot; saved on the lab (FIXW-0032)', '/vcge/testbench/?bench=auto-fixer', False),
+    ('Testing', 'Auto-Fixer Tester Voices', 'Drop what Auto-Fixer testers told us; names become codenames before saving', '/vcge/voices/?app=auto-fixer', False),
     ('Testing', 'Auto-Fixer Test Run checklist', '', 'https://claude.ai/artifact/XMzQ2xAjPekJDMH1iEzExN', True),
     ('Research', 'Crash Evidence Map', 'Crash causes to logs and event IDs', 'https://claude.ai/artifact/7prJVVAQh3uzdnay1fRJbB', True),
     ('How-to guides', 'Fog Light Bulb Swap', 'Picture guide', 'https://claude.ai/artifact/Na9iydTfpucESqa4TAaevu', True),
@@ -324,7 +326,7 @@ LAB = [('🐘', "The Elephant's Memory", '/vcge/'), ('🛫', 'Newest build', '/v
        ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
        ('🦎', 'The Paint Shop', '/vcge/logo-bench/'), ('🎪', 'The Funhouse', '/vcge/funhouse/'),
        ('📚', 'The Card Shelf', '/vcge/shelf/'), ('📬', 'Card Inbox', '/vcge/inbox/'), ('🧪', 'The Test Bench', '/vcge/testbench/'),
-       ('🦝', 'Wipe Trials', '/vcge/testing/')]
+       ('💬', 'Tester Voices', '/vcge/voices/'), ('🦝', 'Wipe Trials', '/vcge/testing/')]
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you are here")
   'flight-deck/www/index.html': ('/', None),
@@ -334,6 +336,7 @@ BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you ar
   'card-shelf/www/index.html': ('/vcge/shelf/', 'The Card Shelf'),
   'card-inbox/www/index.html': ('/vcge/inbox/', 'The Card Inbox'),
   'testbench/www/index.html': ('/vcge/testbench/', 'The Test Bench'),
+  'tester-voices/www/index.html': ('/vcge/voices/', 'Tester Voices'),
   'logo-bench/www/index.html': ('/vcge/logo-bench/', 'The Paint Shop'),
   'wipe-trials/www/index.html': ('/vcge/testing/', 'Wipe Trials'),
   'versions-page/vcge-lab-index.py': ('/vcge/', "The Elephant's Memory"),

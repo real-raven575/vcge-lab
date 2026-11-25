@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<title>vCGE Lab: Tester Voices</title>
+<link rel="stylesheet" href="voices.css">
+<link rel="stylesheet" href="/deckbar.css">
+</head>
+<body>
+<!-- deckbar: made by flight-deck/team-pages/build-team-pages.py, edit it there --><nav class="deckbar" aria-label="Flight Deck menu"><a class="db-home" href="/"><span aria-hidden="true">✈</span> Flight Deck</a><a href="/menu/"><span aria-hidden="true">☰</span> Menu</a><a href="/desk/"><span aria-hidden="true">📜</span> Desk</a><details><summary><span aria-hidden="true">📇</span> Teams</summary><div class="db-list"><a href="/teams/vcge/"><span aria-hidden="true">🐘</span> Team vCGE</a><a href="/teams/creative/"><span aria-hidden="true">🐼</span> Team vCGE: Creative</a><a href="/teams/marketing/"><span aria-hidden="true">🦚</span> Team vCGE: Marketing</a><a href="/teams/homelab/"><span aria-hidden="true">🐧</span> Team HomeLab</a><a href="/teams/email/"><span aria-hidden="true">🐝</span> Team eMail</a><a href="/teams/history/"><span aria-hidden="true">🐿️</span> Team History</a><a href="/teams/finance/"><span aria-hidden="true">🐜</span> Team Finance</a><a href="/teams/vault/"><span aria-hidden="true">🦏</span> Team Vault</a><a href="/teams/auto-fixer/"><span aria-hidden="true">🐒</span> Team Auto-Fixer</a><a href="/teams/9to5/"><span aria-hidden="true">🤖</span> TEAM 9to5</a><a href="/teams/never-forget/"><span aria-hidden="true">🦒</span> TEAM Never Forget</a></div></details><details><summary><span aria-hidden="true">🐘</span> vCGE lab</summary><div class="db-list"><a href="/vcge/"><span aria-hidden="true">🐘</span> The Elephant&#x27;s Memory</a><a href="/vcge/latest/"><span aria-hidden="true">🛫</span> Newest build</a><a href="/vcge/bench/"><span aria-hidden="true">🦉</span> The Reading Room</a><a href="/vcge/bench/handwriting.html"><span aria-hidden="true">✍️</span> The Scriptorium</a><a href="/vcge/edge-bench/"><span aria-hidden="true">🐈</span> The Darkroom</a><a href="/vcge/logo-bench/"><span aria-hidden="true">🦎</span> The Paint Shop</a><a href="/vcge/funhouse/"><span aria-hidden="true">🎪</span> The Funhouse</a><a href="/vcge/shelf/"><span aria-hidden="true">📚</span> The Card Shelf</a><a href="/vcge/inbox/"><span aria-hidden="true">📬</span> Card Inbox</a><a href="/vcge/testbench/"><span aria-hidden="true">🧪</span> The Test Bench</a><a href="/vcge/voices/" aria-current="page"><span aria-hidden="true">💬</span> Tester Voices</a><a href="/vcge/testing/"><span aria-hidden="true">🦝</span> Wipe Trials</a></div></details><span class="db-here">Tester Voices</span></nav><!-- /deckbar -->
+<header class="top">
+  <span class="mark" id="mark" aria-hidden="true">💬</span>
+  <div>
+    <h1><span id="appName">vCGE</span> Tester Voices</h1>
+    <p class="tag">What testers told us, in their own words. Names become codenames before anything is saved.</p>
+  </div>
+  <a class="switch" id="switchApp" href="?app=auto-fixer">🐒 Auto-Fixer's voices</a>
+</header>
+
+<main>
+<section class="panel" aria-labelledby="dropHead">
+  <h2 id="dropHead">📥 Drop a chat</h2>
+  <label class="big" for="words">Paste what the tester said</label>
+  <textarea id="words" rows="9" placeholder="Paste the chat, text or e-mail here. Long is fine."></textarea>
+
+  <details class="hide" open>
+    <summary>🙈 Names to hide <span class="note" id="swapLine"></span></summary>
+    <p class="note">One person per line. Each name becomes a codename, like <b>Jane Doe = T7</b>, or just the name and the
+    next free code is picked. These names stay on this phone: they are never sent or saved. E-mail addresses, @handles and
+    phone numbers are hidden by themselves.</p>
+    <textarea id="names" rows="3" placeholder="Jane Doe&#10;Sam = T4" autocomplete="off" spellcheck="false"></textarea>
+  </details>
+
+  <div class="grid2">
+    <label>Tester codename <input id="tester" maxlength="24" autocomplete="off"></label>
+    <label>Where it came from <select id="source"></select></label>
+    <label>When they said it <input id="said" maxlength="40" placeholder="e.g. Nov 24 evening"></label>
+  </div>
+
+  <fieldset class="tags"><legend>What kind?</legend><div id="tagPick" class="chips"></div></fieldset>
+
+  <label class="upload">📸 Add screenshots <input id="shots" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple></label>
+  <p class="warn">Screenshots can show real names and faces. They stay on the lab only and can't be cleaned, so paste the
+  words too when you can.</p>
+  <p class="note" id="shotList"></p>
+
+  <h3>👀 What will be saved</h3>
+  <pre id="preview" class="preview" aria-live="polite"></pre>
+  <div class="row">
+    <button class="btn go" id="save" type="button" disabled>💾 Save this drop</button>
+    <span id="status" class="note" role="status" aria-live="polite"></span>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="listHead">
+  <h2 id="listHead">🗂️ Dropped chats <span class="note" id="total"></span></h2>
+  <div id="filters" class="chips" role="group" aria-label="Show"></div>
+  <ol id="list" class="drops"></ol>
+  <p id="empty" class="note hidden">Nothing here yet.</p>
+</section>
+</main>
+<script type="module" src="voices.js"></script>
+</body>
+</html>
