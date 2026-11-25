@@ -16,7 +16,7 @@
     'Hangar 01, you are cleared for testing. Cornerstone has every build on file.',
     'Reminder from the tower: nothing on this deck talks to the internet. Radio silence is the rule.',
     'Glyph reports the Reading Room lamp is lit. Ghost reports the Wipe Trials range is swept.',
-    'Hangars 02 and 03 have Claude crews now: Inkwell for Creative, Banner for Marketing. Signal, Syntax and Waypoint are on vacation from the field office.',
+    'Hangars 02 and 03 have Claude crews now: Inkwell for Creative, Banner for Marketing. Signal and Syntax are on vacation, sunglasses on, waiting for new jobs. Waypoint is back and flies for Team eMail.',
     'Tower to Hangar 04: Team HomeLab, three Proxmox nodes and a TrueNAS on your board. Hangar is yours when your PM checks in.',
     'Tower to Hangar 05: Team eMail, runway swept, inbox clear. Operation Clean Slate has a hangar whenever it wants one.',
     'Tower to Hangar 06: Keepsake, the logbook is yours. Write down everything that lands here.',
