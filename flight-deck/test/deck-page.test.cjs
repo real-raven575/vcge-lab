@@ -183,3 +183,11 @@ test('the deck and Team vCGE page carry the current tagline, not the retired one
     assert.ok(!p.includes('Never Lose Contact'));
   }
 });
+
+test('text colours meet WCAG AA contrast (axe 2026-11-25: deck bay label, team mottos, Private tag)', () => {
+  const css = fs.readFileSync(path.join(www, 'portal.css'), 'utf8');
+  assert.match(css, /--yellow: #8A6700;/);
+  const team = fs.readFileSync(path.join(www, 'teams', 'team.css'), 'utf8');
+  assert.match(team, /\.motto \{[^}]*color-mix\(in srgb, var\(--tint\) 55%, var\(--ink\)\)/);
+  assert.match(team, /prefers-color-scheme: dark\) \{ \.tag\.priv/);
+});

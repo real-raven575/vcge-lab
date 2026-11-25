@@ -454,7 +454,7 @@ main { max-width: 860px; margin: auto; background: var(--panel); border: 1px sol
 .bay { font: 700 .75rem/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .18em; color: var(--dim); }
 h1 { margin: 6px 0 2px; display: flex; align-items: center; gap: 10px; font-size: 1.7rem; }
 .big { font-size: 2.6rem; }
-.motto { margin: 0 0 8px; color: var(--tint); font-weight: 600; font-style: italic; }
+.motto { margin: 0 0 8px; color: color-mix(in srgb, var(--tint) 55%, var(--ink)); font-weight: 600; font-style: italic; }
 h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); border-bottom: 2px solid color-mix(in srgb, var(--tint) 40%, transparent); padding-bottom: 4px; }
 .crew { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .card { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-left: 5px solid var(--tint); border-radius: 10px; }
@@ -470,6 +470,7 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: v
 .menu-list small { display: block; color: var(--dim); font-size: .82rem; }
 .tag { font-size: .7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
 .tag.priv { border-color: #B45309; color: #B45309; }
+@media (prefers-color-scheme: dark) { .tag.priv { border-color: #F59E0B; color: #F59E0B; } }
 @media (prefers-reduced-motion: no-preference) { .card { transition: transform .2s; } .card:hover { transform: translateY(-2px); } }
 .spot { margin-top: 14px; padding: 4px 14px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--tint) 45%, var(--line));
   background: color-mix(in srgb, var(--tint) 7%, var(--panel)); }
