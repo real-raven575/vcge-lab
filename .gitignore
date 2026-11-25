@@ -6,3 +6,6 @@ wipe-trials/vcge-lab-testing-install.sh
 __pycache__/
 # Desk: each lab keeps its own Google Client ID
 flight-deck/www/desk/config.js
+# Tester Voices: testers' words live on the lab machine only (VOICES_ROOT), never in git
+drops.json
+tester-voices/**/shots/
