@@ -206,3 +206,11 @@ test('Creative art (HQ-0398): hero with alt text, a portrait for every PM, every
   const inst = fs.readFileSync(path.join(__dirname, '..', 'install', 'deck-pages-update.sh'), 'utf8');
   for (const f of ['deck-art.css', 'hero', 'giraffe']) assert.ok(inst.includes(f), f);
 });
+
+test('portal.js radio line is current and the installer ships portal.js (2026-11-25)', () => {
+  const js = fs.readFileSync(path.join(www, 'portal.js'), 'utf8');
+  assert.ok(js.includes('Waypoint is back and flies for Team eMail.'));
+  assert.ok(!js.includes('Syntax and Waypoint are on vacation'));
+  const inst = fs.readFileSync(path.join(__dirname, '..', 'install', 'deck-pages-update.sh'), 'utf8');
+  assert.match(inst, /install -m 644 "\$HERE\/www\/portal\.js" "\$W\/portal\.js"/);
+});
