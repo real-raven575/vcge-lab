@@ -196,6 +196,16 @@ TOOLS = {
     ('Testing', 'The Test Bench', 'Every open vCGE test in one list: your hands-on checks and the CI results', '/vcge/testbench/', False),
     ('Testing', 'Wipe Trials', 'Ghost\'s cross-browser wipe test range', '/vcge/testing/', False),
     ('Testing', 'Tester Voices', 'Drop what testers told us; names become codenames before saving', '/vcge/voices/', False),
+    ('Public pages', 'vCGE app (public beta)', 'The app on GitHub Pages', 'https://real-raven575.github.io/vCGE-Master/', False),
+    ('Public pages', 'Tester page', 'How testers join, and the update page', 'https://real-raven575.github.io/vCGE-Master/testers/', False),
+    ('Public pages', 'Tester code guide', 'How testers redeem their Play code', 'https://real-raven575.github.io/vCGE-Master/testers/code/', False),
+  ],
+  'creative': [
+    ('Websites', 'Herd of Helpers', 'The Herd\'s home on the web', 'https://herdofhelpers.com/', False),
+    ('Websites', 'Meet the Herd', 'Every team and its crew', 'https://herdofhelpers.com/herd/', False),
+    ('Websites', 'Comics and extras', 'Every Team vCGE comic book', 'https://herdofhelpers.com/comics/', False),
+    ('Websites', 'vCGE on Herd of Helpers', 'The app\'s page, Try vCGE and Become a tester', 'https://herdofhelpers.com/vcge/', False),
+    ('Websites', 'raven575.com', 'raven575\'s own site', 'https://raven575.com/', False),
   ],
   'homelab': [
     ('Storage', 'Nextcloud', 'Herd shared storage; every team\'s folders (tailnet address on raven575\'s devices)', None, True),
@@ -257,7 +267,7 @@ TOOLS = {
     ('Reports', 'W45 reflection', 'PDF', 'https://drive.google.com/file/d/1AR3TGMCm9loMbWzjrJeBoS3p9e5Wlbu_/view', True),
   ],
 }
-OWED = ('creative',)   # lists not in yet (HQ-0294)
+OWED = ()   # lists not in yet (HQ-0294). Creative's public websites added 2026-11-25; Creative can add its tools on a card.
 
 
 def menu_page():
