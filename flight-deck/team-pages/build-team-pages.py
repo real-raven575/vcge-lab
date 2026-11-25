@@ -13,7 +13,7 @@ OUT = os.path.join(os.path.dirname(__file__), '..', 'www', 'teams')
 # Each crew row: (emoji, name, animal, call sign, job). Keep facts here only.
 TEAMS = [
   dict(slug='vcge', bay='01', icon='🐘', name='Team vCGE', tint='#E0B43A', room='vcge/',
-    motto='Operation: Never Lose Contact.',
+    motto='Scan a card once. Keep the person for good.',
     does='Builds vCGE, the app that turns a photo of a business card into a phone contact, entirely on the device. Headquarters of the Herd; owns every app build and upload, and this lab\'s tools.',
     crew=[('🐘','Cornerstone','Elephant','PM-vCGE-00','Project manager and Herd headquarters'),
           ('🐢','Shutout','Box Turtle','MOD01','Shell, egress lock, theme, layout'),
@@ -25,8 +25,9 @@ TEAMS = [
           ('🦓','Checkers','Zebra','MOD07','QR codes'),
           ('🦅','Airlock','Falcon','MOD08','Export, the one hatch'),
           ('🐹','Tally','Hamster','BNK01','Banker')],
-    plan=['vCGE 0.8.1 is live on GitHub Pages (released Sat 2026-11-07).',
-          'Next: 0.8 bug fixes, the plain-edition merge, and translations wave 1 (es, pt-BR, fr, de, id).',
+    plan=['vCGE 0.8.1 is live on GitHub Pages (released Sat 2026-11-07) and in the Google Play closed test.',
+          'Testers have their own page: real-raven575.github.io/vCGE-Master/testers/ (mirror herdofhelpers.com/vcge/testers/).',
+          'Next: OCR font bench, the Quick Scan button, and translations (Spanish is in; Brazilian Portuguese is next).',
           'A themeable look, built with Creative\'s colour tokens.',
           'vcge.app goes up after HomeLab is ready.'],
     access=['Repos vCGE-Master and vcge-lab', 'This lab server (VM steps only on a raven575 card)',
@@ -194,6 +195,16 @@ TOOLS = {
     ('Testing', 'The Test Bench', 'Every open vCGE test in one list: your hands-on checks and the CI results', '/vcge/testbench/', False),
     ('Testing', 'Wipe Trials', 'Ghost\'s cross-browser wipe test range', '/vcge/testing/', False),
     ('Testing', 'Tester Voices', 'Drop what testers told us; names become codenames before saving', '/vcge/voices/', False),
+    ('Public pages', 'vCGE app (public beta)', 'The app on GitHub Pages', 'https://real-raven575.github.io/vCGE-Master/', False),
+    ('Public pages', 'Tester page', 'How testers join, and the update page', 'https://real-raven575.github.io/vCGE-Master/testers/', False),
+    ('Public pages', 'Tester code guide', 'How testers redeem their Play code', 'https://real-raven575.github.io/vCGE-Master/testers/code/', False),
+  ],
+  'creative': [
+    ('Websites', 'Herd of Helpers', 'The Herd\'s home on the web', 'https://herdofhelpers.com/', False),
+    ('Websites', 'Meet the Herd', 'Every team and its crew', 'https://herdofhelpers.com/herd/', False),
+    ('Websites', 'Comics and extras', 'Every Team vCGE comic book', 'https://herdofhelpers.com/comics/', False),
+    ('Websites', 'vCGE on Herd of Helpers', 'The app\'s page, Try vCGE and Become a tester', 'https://herdofhelpers.com/vcge/', False),
+    ('Websites', 'raven575.com', 'raven575\'s own site', 'https://raven575.com/', False),
   ],
   'homelab': [
     ('Storage', 'Nextcloud', 'Herd shared storage; every team\'s folders (tailnet address on raven575\'s devices)', None, True),
@@ -255,7 +266,7 @@ TOOLS = {
     ('Reports', 'W45 reflection', 'PDF', 'https://drive.google.com/file/d/1AR3TGMCm9loMbWzjrJeBoS3p9e5Wlbu_/view', True),
   ],
 }
-OWED = ('creative',)   # lists not in yet (HQ-0294)
+OWED = ()   # lists not in yet (HQ-0294). Creative's public websites added 2026-11-25; Creative can add its tools on a card.
 
 
 OUTSIDE = ('<small>(outside the lab)</small>' if PLAIN else '<span aria-label="opens outside the lab">&#8599;</span>')
@@ -443,7 +454,7 @@ main { max-width: 860px; margin: auto; background: var(--panel); border: 1px sol
 .bay { font: 700 .75rem/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .18em; color: var(--dim); }
 h1 { margin: 6px 0 2px; display: flex; align-items: center; gap: 10px; font-size: 1.7rem; }
 .big { font-size: 2.6rem; }
-.motto { margin: 0 0 8px; color: var(--tint); font-weight: 600; font-style: italic; }
+.motto { margin: 0 0 8px; color: color-mix(in srgb, var(--tint) 55%, var(--ink)); font-weight: 600; font-style: italic; }
 h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); border-bottom: 2px solid color-mix(in srgb, var(--tint) 40%, transparent); padding-bottom: 4px; }
 .crew { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .card { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-left: 5px solid var(--tint); border-radius: 10px; }
@@ -459,6 +470,7 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: v
 .menu-list small { display: block; color: var(--dim); font-size: .82rem; }
 .tag { font-size: .7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
 .tag.priv { border-color: #B45309; color: #B45309; }
+@media (prefers-color-scheme: dark) { .tag.priv { border-color: #F59E0B; color: #F59E0B; } }
 @media (prefers-reduced-motion: no-preference) { .card { transition: transform .2s; } .card:hover { transform: translateY(-2px); } }
 .spot { margin-top: 14px; padding: 4px 14px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--tint) 45%, var(--line));
   background: color-mix(in srgb, var(--tint) 7%, var(--panel)); }
@@ -478,7 +490,7 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: v
 @media (max-width: 560px) { .spot-row { flex-direction: column; } }
 '''
 CSS_PLAIN = '''html { color-scheme: light dark; }
-body { margin: 0; padding: 16px; font: 15px/1.5 system-ui, sans-serif; }
+body { margin: 0; padding: 16px; font: 15px/1.5 system-ui, sans-serif; background: Canvas; color: CanvasText; }
 .teams { display: flex; flex-wrap: wrap; gap: 10px; font-size: .9rem; margin-bottom: 12px; }
 .teams a[aria-current] { font-weight: 700; }
 main { max-width: 860px; }
