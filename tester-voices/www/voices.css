@@ -13,7 +13,8 @@ p { margin: .3rem 0; }
 .note, .tag { color: var(--dim); font-size: .9rem; }
 .warn { color: var(--warn); font-size: .9rem; }
 .top { display: flex; gap: .8rem; align-items: center; padding: 12px 16px; background: var(--panel); border-bottom: 3px solid var(--accent); flex-wrap: wrap; }
-.mark { font-size: 2.2rem; }
+.mark { width: 64px; height: 64px; flex: none; }
+.empty { display: flex; align-items: center; gap: .8rem; }
 .switch { margin-left: auto; color: var(--accent); text-decoration: none; border: 1px solid var(--accent); border-radius: 10px; padding: 8px 12px; }
 main { max-width: 900px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }

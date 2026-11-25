@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Elephant helper listening, with a speech bubble"><defs><filter id="tvvc" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="2.4" numOctaves="1" seed="9" result="g"/><feColorMatrix in="g" type="matrix" values="0.3 0 0 0 0.74 0.3 0 0 0 0.74 0.3 0 0 0 0.74 0 0 0 0 1" result="m"/><feBlend in="d" in2="m" mode="multiply" result="b"/><feComposite in="b" in2="d" operator="in"/></filter><clipPath id="tvvk"><circle cx="32" cy="32" r="30.4"/></clipPath></defs><g filter="url(#tvvc)"><circle cx="32" cy="32" r="31" fill="#fbf3e4" stroke="#e3d3b8" stroke-width="1.2"/><g clip-path="url(#tvvk)"><path d="M53 25.5 q3 4.5 1.5 9.5 M57.5 24 q4 6.5 1.8 13" fill="none" stroke="#e9a93a" stroke-width="1.5" stroke-linecap="round"/><g transform="translate(-5 4)"><path d="M43 7 h14 a5 5 0 0 1 5 5 v6 a5 5 0 0 1 -5 5 h-7 l-5 4.5 l.8 -4.5 h-2.8 a5 5 0 0 1 -5 -5 v-6 a5 5 0 0 1 5 -5 z" fill="#ffffff" stroke="#7d8fbf" stroke-width="1.3"/>
+<circle cx="45.5" cy="15" r="1.4" fill="#6d84c4"/><circle cx="50" cy="15" r="1.4" fill="#6d84c4"/><circle cx="54.5" cy="15" r="1.4" fill="#6d84c4"/></g><g transform="translate(-2 2)">
+<ellipse cx="15" cy="35" rx="10" ry="12" fill="#b9c1ca" stroke="#e9a93a" stroke-width="2.4"/>
+<ellipse cx="15.5" cy="35.5" rx="6" ry="7.5" fill="#d9c3c8" opacity=".7"/>
+<ellipse cx="45" cy="35" rx="10" ry="12" fill="#b9c1ca" stroke="#e9a93a" stroke-width="2.4"/>
+<ellipse cx="44.5" cy="35.5" rx="6" ry="7.5" fill="#d9c3c8" opacity=".7"/>
+<circle cx="30" cy="37" r="12.5" fill="#97a0ab" stroke="#5f6874" stroke-width="1.4"/>
+<path d="M27 43 Q25.5 52 30 55.5 Q34.5 57.5 35.5 53" fill="none" stroke="#5f6874" stroke-width="7" stroke-linecap="round"/>
+<path d="M27 43 Q25.5 52 30 55.5 Q34.5 57.5 35.5 53" fill="none" stroke="#97a0ab" stroke-width="4.4" stroke-linecap="round"/>
+<path d="M21 31 q4 -2.5 7 -.5 M32 30.5 q3 -2 7 .5" fill="none" stroke="#6f7884" stroke-width=".9" stroke-linecap="round" opacity=".7"/>
+<circle cx="25" cy="36" r="1.7" fill="#2e2830"/><circle cx="25.6" cy="35.4" r="0.55" fill="#fff"/><circle cx="35" cy="36" r="1.7" fill="#2e2830"/><circle cx="35.6" cy="35.4" r="0.55" fill="#fff"/>
+<ellipse cx="21.5" cy="40.5" rx="2.4" ry="1.5" fill="#f2a0a6" opacity=".8"/>
+<ellipse cx="38.5" cy="40.5" rx="2.4" ry="1.5" fill="#f2a0a6" opacity=".8"/>
+<path d="M28 41.8 q2 1.2 4 0" fill="none" stroke="#4c5460" stroke-width="1" stroke-linecap="round"/>
+</g></g></g></svg>
