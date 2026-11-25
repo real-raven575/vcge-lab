@@ -175,3 +175,11 @@ test('every team hangar taps through to its PM chat from the one link list', () 
   assert.match(pm.label({ ...pm.pmFor('marketing'), href: null }), /not pasted yet/);
   assert.equal(pm.pmFor('nobody'), null);
 });
+
+test('the deck and Team vCGE page carry the current tagline, not the retired one (HMLB-0082, 2026-11-25)', () => {
+  const vcge = fs.readFileSync(path.join(www, 'teams', 'vcge', 'index.html'), 'utf8');
+  for (const p of [page, vcge]) {
+    assert.ok(p.includes('Scan a card once. Keep the person for good.'));
+    assert.ok(!p.includes('Never Lose Contact'));
+  }
+});

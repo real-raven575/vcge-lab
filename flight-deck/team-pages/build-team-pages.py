@@ -13,7 +13,7 @@ OUT = os.path.join(os.path.dirname(__file__), '..', 'www', 'teams')
 # Each crew row: (emoji, name, animal, call sign, job). Keep facts here only.
 TEAMS = [
   dict(slug='vcge', bay='01', icon='🐘', name='Team vCGE', tint='#E0B43A', room='vcge/',
-    motto='Operation: Never Lose Contact.',
+    motto='Scan a card once. Keep the person for good.',
     does='Builds vCGE, the app that turns a photo of a business card into a phone contact, entirely on the device. Headquarters of the Herd; owns every app build and upload, and this lab\'s tools.',
     crew=[('🐘','Cornerstone','Elephant','PM-vCGE-00','Project manager and Herd headquarters'),
           ('🐢','Shutout','Box Turtle','MOD01','Shell, egress lock, theme, layout'),
@@ -25,8 +25,9 @@ TEAMS = [
           ('🦓','Checkers','Zebra','MOD07','QR codes'),
           ('🦅','Airlock','Falcon','MOD08','Export, the one hatch'),
           ('🐹','Tally','Hamster','BNK01','Banker')],
-    plan=['vCGE 0.8.1 is live on GitHub Pages (released Sat 2026-11-07).',
-          'Next: 0.8 bug fixes, the plain-edition merge, and translations wave 1 (es, pt-BR, fr, de, id).',
+    plan=['vCGE 0.8.1 is live on GitHub Pages (released Sat 2026-11-07) and in the Google Play closed test.',
+          'Testers have their own page: real-raven575.github.io/vCGE-Master/testers/ (mirror herdofhelpers.com/vcge/testers/).',
+          'Next: OCR font bench, the Quick Scan button, and translations (Spanish is in; Brazilian Portuguese is next).',
           'A themeable look, built with Creative\'s colour tokens.',
           'vcge.app goes up after HomeLab is ready.'],
     access=['Repos vCGE-Master and vcge-lab', 'This lab server (VM steps only on a raven575 card)',
