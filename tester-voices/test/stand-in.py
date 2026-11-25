@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.join(HERE, '..', '..')
 spec = importlib.util.spec_from_file_location('voices', os.path.join(HERE, '..', 'voices-api.py'))
 voices = importlib.util.module_from_spec(spec); spec.loader.exec_module(voices)
-TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css'}
+TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml'}
 
 
 class Lab(voices.Handler):

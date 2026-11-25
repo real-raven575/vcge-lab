@@ -29,7 +29,7 @@ Testers are real people, so:
   `POST drop {text, tester?, tags, source, said?}`, `PUT drop?id= {tags?, status?, tester?}`, `POST note?id= {text}`,
   `PUT shot?id=` (PNG, JPEG, WebP or GIF up to 15 MB, checked by its bytes, at most 12 per drop),
   `POST delete?id= {confirm: id}`. No outside calls. Logs carry method and path only.
-- `www/`: the page (`voices-core.js` holds the cleaning and time logic, `voices.js` the screen).
+- `www/`: the page (`voices-core.js` holds the cleaning and time logic, `voices.js` the screen). Header and empty-list art (`tv-*.svg`) by 🐼 Team Creative, HQ-0396, Image Safety Check passed (CRTV-0096).
 - `vcge-lab-voices-install.sh`: folders, service, Caddy route, page. Undo lines printed; drops are never deleted by it.
 - `test/`: `test_voices_api.py` (service), `voices-core.test.mjs` (cleaning, codenames, times),
   `voices.e2e.cjs` + `stand-in.py` (the page on a phone-sized screen in Chromium; checks no real name is ever sent).

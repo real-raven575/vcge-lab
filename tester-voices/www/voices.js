@@ -6,8 +6,9 @@
 import { TAGS, STATUSES, SOURCES, parseNames, cleanWords, bothTimes, asText, counts } from './voices-core.js';
 
 const APP = new URLSearchParams(location.search).get('app') === 'auto-fixer' ? 'auto-fixer' : 'vcge';
-const LOOK = { vcge: { name: 'vCGE', mark: '💬', other: ['auto-fixer', '🐒 Auto-Fixer\'s voices'] },
-    'auto-fixer': { name: 'Auto-Fixer', mark: '🐒', other: ['vcge', '🐘 vCGE\'s voices'] } }[APP];
+// Header and empty-list art by 🐼 Team Creative (HQ-0396, 11-25), one pair per app.
+const LOOK = { vcge: { name: 'vCGE', art: 'vcge', other: ['auto-fixer', '🐒 Auto-Fixer\'s voices'] },
+    'auto-fixer': { name: 'Auto-Fixer', art: 'autofixer', other: ['vcge', '🐘 vCGE\'s voices'] } }[APP];
 const API = `${location.pathname.replace(/voices\/.*$/, '')}voices/api/`;
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => {
@@ -31,7 +32,8 @@ function setup() {
     document.body.classList.add(`app-${APP}`);
     document.title = `${LOOK.name} Lab: Tester Voices`;
     $('appName').textContent = LOOK.name;
-    $('mark').textContent = LOOK.mark;
+    $('mark').src = `tv-header-${LOOK.art}.svg`;
+    $('emptyArt').src = `tv-empty-${LOOK.art}.svg`;
     $('switchApp').href = `?app=${LOOK.other[0]}`;
     $('switchApp').textContent = LOOK.other[1];
     for (const [k, v] of Object.entries(SOURCES)) $('source').append(el('option', { value: k, textContent: v }));

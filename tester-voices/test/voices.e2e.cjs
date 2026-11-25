@@ -32,7 +32,8 @@ const SHOTS = process.env.SHOTS_DIR;   // optional: where to save screenshots fo
         if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'voices-drop.png'), fullPage: true });
         await page.click('#save');
         await page.waitForFunction(() => /Saved as T1/.test(document.getElementById('status').textContent));
-        assert.equal(await page.inputValue('#tester'), 'T2');
+        // "Saved" shows before the list reloads; the next free code comes with the reload.
+        await page.waitForFunction(() => document.getElementById('tester').value === 'T2');
         assert.equal(await page.inputValue('#words'), '');
         // The real name never left the page, and nothing was saved with it.
         assert.ok(sent.every(b => !/Jane|example\.com/.test(b)), 'a real name or address was sent');
@@ -56,6 +57,9 @@ const SHOTS = process.env.SHOTS_DIR;   // optional: where to save screenshots fo
         await page.goto(BASE + '?app=auto-fixer');
         await page.waitForFunction(() => document.getElementById('tester').value === 'T1');
         assert.equal(await page.textContent('#appName'), 'Auto-Fixer');
+        // Creative's art (HQ-0396) loads, and the Auto-Fixer pair is used here.
+        await page.waitForFunction(() => document.getElementById('mark').naturalWidth > 0 && document.getElementById('emptyArt').naturalWidth > 0);
+        assert.match(await page.getAttribute('#mark', 'src'), /tv-header-autofixer\.svg$/);
         assert.ok(await page.evaluate(() => document.body.classList.contains('app-auto-fixer')));
         if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'voices-auto-fixer.png') });
         const wide = await page.evaluate(() => document.documentElement.scrollWidth);
