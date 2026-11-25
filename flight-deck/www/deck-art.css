@@ -1,0 +1,8 @@
+/* Flight Deck refresh, 2026-11-25. Kept apart from portal.css because the live portal.css differs from git (see
+   desk-install.sh); deck-pages-update.sh installs this file. */
+/* WCAG AA: the bay label's light-mode yellow was 2.9:1 on white; this is 5.3:1. Dark mode keeps #F5C84B. */
+:root { --yellow: #8A6700; }
+@media (prefers-color-scheme: dark) { :root { --yellow: #F5C84B; } }
+/* Hero art by Team vCGE: Creative (HQ-0398). The tower sits at the centre, so a phone crop keeps it. */
+.hero { margin: 0; border-bottom: 4px solid var(--hazard); background: #8db6dc; }
+.hero img { display: block; width: 100%; height: clamp(140px, 26vw, 300px); object-fit: cover; object-position: center; }

@@ -175,3 +175,34 @@ test('every team hangar taps through to its PM chat from the one link list', () 
   assert.match(pm.label({ ...pm.pmFor('marketing'), href: null }), /not pasted yet/);
   assert.equal(pm.pmFor('nobody'), null);
 });
+
+test('the deck and Team vCGE page carry the current tagline, not the retired one (HMLB-0082, 2026-11-25)', () => {
+  const vcge = fs.readFileSync(path.join(www, 'teams', 'vcge', 'index.html'), 'utf8');
+  for (const p of [page, vcge]) {
+    assert.ok(p.includes('Scan a card once. Keep the person for good.'));
+    assert.ok(!p.includes('Never Lose Contact'));
+  }
+});
+
+test('text colours meet WCAG AA contrast (axe 2026-11-25: deck bay label, team mottos, Private tag)', () => {
+  const css = fs.readFileSync(path.join(www, 'deck-art.css'), 'utf8');
+  assert.match(css, /--yellow: #8A6700;/);
+  assert.ok(page.includes('href="deck-art.css"'));
+  const team = fs.readFileSync(path.join(www, 'teams', 'team.css'), 'utf8');
+  assert.match(team, /\.motto \{[^}]*color-mix\(in srgb, var\(--tint\) 55%, var\(--ink\)\)/);
+  assert.match(team, /prefers-color-scheme: dark\) \{ \.tag\.priv/);
+});
+
+test('Creative art (HQ-0398): hero with alt text, a portrait for every PM, every art file present and script-free', () => {
+  assert.match(page, /<figure class="hero"><img src="hero.svg" alt="The Herd at the Flight Deck[^"]+"/);
+  const pms = [...page.matchAll(/<p class="pm">(<img src="([a-z]+)\.svg" alt="")?/g)];
+  assert.equal(pms.length, 11);
+  for (const m of pms) assert.ok(m[2], 'a PM line without a portrait');
+  for (const a of ['hero', 'bee', 'rhino', 'monkey', 'robot', 'giraffe']) {
+    const svg = fs.readFileSync(path.join(www, a + '.svg'), 'utf8');
+    assert.match(svg, /<title>/);
+    assert.doesNotMatch(svg, /<script|<text|foreignObject|href="http/);   // xmlns is the only http:// allowed
+  }
+  const inst = fs.readFileSync(path.join(__dirname, '..', 'install', 'deck-pages-update.sh'), 'utf8');
+  for (const f of ['deck-art.css', 'hero', 'giraffe']) assert.ok(inst.includes(f), f);
+});
