@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<!-- Only "Send to team" talks to Google: Google's sign-in, then one row in the Flight Deck Desk Sheet (the Desk's own permission). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob:; style-src 'self' https://accounts.google.com/gsi/style; script-src 'self' https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; connect-src 'self' https://accounts.google.com/gsi/ https://oauth2.googleapis.com https://sheets.googleapis.com https://www.googleapis.com; form-action 'none'; base-uri 'none'">
 <title>vCGE Lab: Tester Voices</title>
 <link rel="stylesheet" href="voices.css">
 <link rel="stylesheet" href="/deckbar.css">
@@ -17,8 +18,12 @@
     <h1><span id="appName">vCGE</span> Tester Voices</h1>
     <p class="tag">What testers told us, in their own words. Names become codenames before anything is saved.</p>
   </div>
-  <a class="switch" id="switchApp" href="?app=auto-fixer">🐒 Auto-Fixer's voices</a>
+  <div class="teambar">
+    <label class="pick">Team <select id="team"></select></label>
+    <span id="teamChat"></span>
+  </div>
 </header>
+<p class="sendbar hidden" id="sendBar"><span id="sendWho"></span> <button class="btn small" type="button" id="signOut">Sign out of Google</button></p>
 
 <main>
 <section class="panel" aria-labelledby="dropHead">
@@ -62,6 +67,10 @@
   <p id="empty" class="note empty hidden"><img id="emptyArt" src="tv-empty-vcge.svg" alt="" width="64" height="64"> Nothing here yet.</p>
 </section>
 </main>
+<script src="/pm-links.js"></script>
+<script src="/desk/config.js"></script>
+<script src="voices-send.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <script type="module" src="voices.js"></script>
 </body>
 </html>
