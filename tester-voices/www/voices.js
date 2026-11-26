@@ -3,12 +3,11 @@
  * sort, copy and pass each drop on. All storage is the voices service (voices-api.py); this page keeps nothing, not
  * even the "Names to hide" box. ?app=auto-fixer opens Auto-Fixer's shelf (its own folder and colours).
  */
-import { TAGS, STATUSES, SOURCES, parseNames, cleanWords, bothTimes, asText, counts } from './voices-core.js';
+import { TAGS, STATUSES, SOURCES, TEAMS, parseNames, cleanWords, bothTimes, asText, counts, outRow } from './voices-core.js';
 
-const APP = new URLSearchParams(location.search).get('app') === 'auto-fixer' ? 'auto-fixer' : 'vcge';
-// Header and empty-list art by 🐼 Team Creative (HQ-0396, 11-25), one pair per app.
-const LOOK = { vcge: { name: 'vCGE', art: 'vcge', other: ['auto-fixer', '🐒 Auto-Fixer\'s voices'] },
-    'auto-fixer': { name: 'Auto-Fixer', art: 'autofixer', other: ['vcge', '🐘 vCGE\'s voices'] } }[APP];
+// One page for every team: the dropdown picks whose shelf you see, save to, and send to. ?app= keeps old links working.
+let APP = TEAMS[new URLSearchParams(location.search).get('app')] ? new URLSearchParams(location.search).get('app') : 'vcge';
+let LOOK = TEAMS[APP];
 const API = `${location.pathname.replace(/voices\/.*$/, '')}voices/api/`;
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => {
@@ -16,7 +15,7 @@ const el = (tag, props = {}, ...kids) => {
     for (const k of kids) n.append(k);
     return n;
 };
-const state = { drops: [], nextTester: 'T1', pick: new Set(), files: [], show: 'all', armed: null };
+const state = { drops: [], nextTester: 'T1', pick: new Set(), files: [], show: 'all', armed: null, sending: null };
 
 async function api(path, options = {}) {
     const sep = path.includes('?') ? '&' : '?';
@@ -29,13 +28,10 @@ const send = (method, path, obj) => api(path, { method, headers: { 'Content-Type
 const say = (t) => { $('status').textContent = t; };
 
 function setup() {
-    document.body.classList.add(`app-${APP}`);
-    document.title = `${LOOK.name} Lab: Tester Voices`;
-    $('appName').textContent = LOOK.name;
-    $('mark').src = `tv-header-${LOOK.art}.svg`;
-    $('emptyArt').src = `tv-empty-${LOOK.art}.svg`;
-    $('switchApp').href = `?app=${LOOK.other[0]}`;
-    $('switchApp').textContent = LOOK.other[1];
+    for (const [k, t] of Object.entries(TEAMS)) $('team').append(el('option', { value: k, textContent: t.team }));
+    $('team').onchange = () => switchTeam($('team').value);
+    $('signOut').onclick = () => { window.VoicesSend?.signOut(); showSignIn(); };
+    look();
     for (const [k, v] of Object.entries(SOURCES)) $('source').append(el('option', { value: k, textContent: v }));
     for (const [k, v] of Object.entries(TAGS)) {
         const b = el('button', { type: 'button', className: 'chip', textContent: v });
@@ -49,6 +45,47 @@ function setup() {
         $('shotList').textContent = state.files.length ? `${state.files.length} screenshot${state.files.length === 1 ? '' : 's'} ready` : '';
     };
     $('save').onclick = saveDrop;
+}
+
+function look() {
+    document.body.className = `app-${APP}`;
+    document.title = `${LOOK.name} Lab: Tester Voices`;
+    $('team').value = APP;
+    $('appName').textContent = LOOK.name;
+    $('mark').src = `tv-header-${LOOK.art}.svg`;
+    $('emptyArt').src = `tv-empty-${LOOK.art}.svg`;
+    const chat = window.HERD_PM?.element(document, APP, 'btn small');   // straight to the team's PM chat (pm-links.js)
+    $('teamChat').replaceChildren(...(chat ? [chat] : []));
+}
+
+async function switchTeam(key) {
+    if (!TEAMS[key] || key === APP) return;
+    APP = key; LOOK = TEAMS[key];
+    history.replaceState(null, '', key === 'vcge' ? location.pathname : `?app=${key}`);
+    state.drops = []; state.show = 'all'; state.armed = null; state.sending = null;
+    $('tester').value = '';
+    look();
+    say('');
+    await load();
+}
+
+function showSignIn() {
+    const on = !!window.VoicesSend?.signedIn();
+    $('sendBar').classList.toggle('hidden', !on);
+    $('sendWho').textContent = on ? 'Signed in to Google for sending (about 1 hour, this tab only).' : '';
+}
+
+async function sendDrop(d) {
+    const team = TEAMS[APP];
+    try {
+        if (!window.VoicesSend) throw new Error('the send part of the page did not load');
+        const row = await window.VoicesSend.send(outRow(d, APP, new Date().toISOString()));
+        const r = await send('POST', `note?id=${d.id}`, { text: `Sent to ${team.team} (Desk "Voices out" row ${row ?? '?'}); the Herd Drive thread posts it to the Mailbox.` });
+        Object.assign(d, r.drop);
+        await change(d, { status: 'sent' });
+        say(`Sent ${d.tester}'s drop to ${team.team}.`);
+    } catch (e) { say(`Not sent: ${e.message}.`); draw(); }
+    showSignIn();
 }
 
 function cleaned() {
@@ -175,6 +212,14 @@ function card(d) {
         copy.textContent = (await copyText(asText(d, LOOK.name))) ? '✅ Copied' : 'Copy blocked here';
         setTimeout(() => { copy.textContent = '📋 Copy'; }, 2000);
     };
+    const sendB = el('button', { type: 'button', className: 'btn small send' });
+    const armed = state.sending === d.id;
+    sendB.textContent = armed ? `Tap again: send to ${LOOK.name}` : (d.status === 'sent' ? '📨 Send again' : `📨 Send to ${LOOK.name}`);
+    sendB.onclick = () => {
+        if (!armed) { state.sending = d.id; return draw(); }
+        state.sending = null; sendB.disabled = true; sendB.textContent = 'Sending…';
+        sendDrop(d);
+    };
     const del = el('button', { type: 'button', className: 'btn small danger' });
     const step = state.armed?.id === d.id ? state.armed.step : 0;
     del.textContent = ['🗑 Delete', 'Tap again to delete for good', 'Are you sure? Delete now'][step];
@@ -189,7 +234,7 @@ function card(d) {
     return el('li', { className: `drop st-${d.status}` },
         el('div', { className: 'head' }, el('b', { textContent: `🧑 ${d.tester}` }), el('span', { className: 'note', textContent: `${SOURCES[d.source] || d.source} · ${bothTimes(d.added)}${d.said ? ` · said ${d.said}` : ''}` })),
         tags, more, shots, notes,
-        el('div', { className: 'row' }, status, copy, del),
+        el('div', { className: 'row' }, sendB, status, copy, del),
         el('div', { className: 'row' }, noteBox, addNote));
 }
 

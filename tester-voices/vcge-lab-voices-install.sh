@@ -21,7 +21,7 @@ PORT=${VOICES_PORT:-8772}
 C=${VCGE_CADDY:-/etc/caddy/teams/vcge.caddy}
 UNIT=/etc/systemd/system/voices-api.service
 [ "$(id -u)" = 0 ] || { echo "Run with sudo: sudo bash $0" >&2; exit 1; }
-for f in voices-api.py www/index.html www/voices.js www/voices-core.js www/voices.css www/tv-header-vcge.svg www/tv-header-autofixer.svg www/tv-empty-vcge.svg www/tv-empty-autofixer.svg; do [ -f "$HERE/$f" ] || { echo "  STOP missing $HERE/$f" >&2; exit 1; }; done
+for f in voices-api.py www/index.html www/voices.js www/voices-core.js www/voices-send.js www/voices.css www/tv-header-vcge.svg www/tv-header-autofixer.svg www/tv-empty-vcge.svg www/tv-empty-autofixer.svg; do [ -f "$HERE/$f" ] || { echo "  STOP missing $HERE/$f" >&2; exit 1; }; done
 id "$U" >/dev/null 2>&1 || { echo "  STOP no '$U' user on this machine (set LAB_USER in lab.conf)" >&2; exit 1; }
 [ -d "$WWW" ] || { echo "  STOP $WWW not found (set LAB_ROOT in lab.conf)" >&2; exit 1; }
 case "$V/" in "$WWW"/*) echo "  STOP VOICES_ROOT ($V) is inside the web root; put it outside $WWW" >&2; exit 1;; esac

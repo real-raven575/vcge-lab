@@ -87,3 +87,19 @@ export function counts(drops) {
     }
     return c;
 }
+
+/** The teams a drop can belong to and be sent to. key = the service's ?app= and the pm-links.js key. */
+export const TEAMS = {
+    vcge: { name: 'vCGE', team: 'Team vCGE', art: 'vcge' },
+    'auto-fixer': { name: 'Auto-Fixer', team: 'Team Auto-Fixer', art: 'autofixer' },
+};
+export const MAX_SEND = 40_000;   // a Sheets cell holds 50,000 characters; longer drops get split by hand
+
+/** One "Voices out" row (voices-send.js HEADER order): what leaves the lab when raven575 taps Send. */
+export function outRow(drop, teamKey, nowIso) {
+    const t = TEAMS[teamKey];
+    if (!t) throw new Error(`unknown team ${teamKey}`);
+    if (drop.text.length > MAX_SEND) throw new Error(`too long to send (${drop.text.length} characters; split it under ${MAX_SEND})`);
+    return [`'${nowIso.slice(0, 16).replace('T', ' ')}, UTC`, t.team, drop.tester, drop.tags.join(', '), drop.source,
+        drop.said || '', drop.text, drop.id, '', ''];
+}
