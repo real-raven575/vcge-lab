@@ -32,3 +32,13 @@ test('copy text and counts', () => {
     assert.match(asText(d, 'vCGE'), /^vCGE tester T3 \(💬 Chat app\) · 🐞 Bug, 💡 Idea\nDropped 02:13 UTC/);
     assert.deepEqual(counts([d, { ...d, tags: ['bug'], status: 'done' }]), { all: 2, tag: { bug: 2, idea: 1 }, status: { new: 1, done: 1 } });
 });
+
+test('send row: cleaned words only, team names, long drops refused', async () => {
+    const { outRow, TEAMS, MAX_SEND } = await import('../www/voices-core.js');
+    const d = { id: 'd20261126-050000-abcd', tester: 'T2', tags: ['bug'], source: 'chat', said: '', text: 'It froze.' };
+    assert.deepEqual(outRow(d, 'auto-fixer', '2026-11-26T05:30:12.000Z'),
+        ["'2026-11-26 05:30, UTC", 'Team Auto-Fixer', 'T2', 'bug', 'chat', '', 'It froze.', 'd20261126-050000-abcd', '', '']);
+    assert.equal(TEAMS.vcge.team, 'Team vCGE');
+    assert.throws(() => outRow(d, 'nope', 'x'), /unknown team/);
+    assert.throws(() => outRow({ ...d, text: 'x'.repeat(MAX_SEND + 1) }, 'vcge', '2026-11-26T05:30:00Z'), /too long/);
+});

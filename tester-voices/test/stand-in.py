@@ -13,8 +13,8 @@ TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 
 class Lab(voices.Handler):
     def static(self):
         path = self.path.split('?')[0]
-        if path == '/deckbar.css':
-            f = os.path.join(REPO, 'flight-deck', 'www', 'deckbar.css')
+        if path in ('/deckbar.css', '/pm-links.js'):
+            f = os.path.join(REPO, 'flight-deck', 'www', path[1:])
         elif path.startswith('/vcge/voices/'):
             f = os.path.join(HERE, '..', 'www', path[len('/vcge/voices/'):] or 'index.html')
         else:

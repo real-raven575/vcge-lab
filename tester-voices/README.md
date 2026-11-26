@@ -1,8 +1,19 @@
 # 💬 Tester Voices: what testers told us
 
-raven575 drops a chat, text or e-mail from someone who tested an app, tags it, and the team reads it later. One engine,
-one shelf per app: **vCGE** at `/vcge/voices/` and **🐒 Auto-Fixer** at `/vcge/voices/?app=auto-fixer` (its own
-folder, its own codenames, orange colours). Lab only.
+raven575 drops a chat, text or e-mail from someone who tested an app, tags it, and sends it on to the team. One page
+for every team: the **Team** dropdown (🐘 Team vCGE, 🐒 Team Auto-Fixer) picks whose shelf you see, save to and send
+to (each team has its own folder, codenames and colours; `?app=auto-fixer` still opens Auto-Fixer). Next to it, the
+team's **PM chat** button opens that team's chat on claude.ai (links from `/pm-links.js`). Lab only.
+
+## Send to team (v2, raven575's yes 05:27 UTC 2026-11-26)
+**📨 Send to <team>** on a drop takes two taps. The first time in a tab it signs in with Google the same way as the Desk
+(Google's own button flow, the Desk's Client ID from `/desk/config.js`, one permission: `drive.file`, so the page can
+open only the Sheet the Desk created). It adds one row to the **Voices out** tab of the *Flight Deck Desk* Sheet
+(made on the first send): `when_utc, to_team, tester, tags, source, said, text, lab_id, card_id, mailbox_row`.
+🐘 Cornerstone's Herd Drive thread turns each new row into a Herd Mailbox card to that team and fills in `card_id` and
+`mailbox_row`. The drop gets a note and the 📨 Sent status. What leaves the lab: the cleaned words, codename, tags,
+where and when. Never the names box, screenshots or contact data. The Google key lives in that tab's memory for about
+an hour; **Sign out of Google** throws it away. Drops over 40,000 characters are refused (split them).
 
 ## Keeping testers private
 Testers are real people, so:
@@ -28,8 +39,8 @@ Testers are real people, so:
   `voices/api/`. Every call takes `?app=` (`vcge` default, `auto-fixer`). `GET drops`, `GET shot?id=&hash=`,
   `POST drop {text, tester?, tags, source, said?}`, `PUT drop?id= {tags?, status?, tester?}`, `POST note?id= {text}`,
   `PUT shot?id=` (PNG, JPEG, WebP or GIF up to 15 MB, checked by its bytes, at most 12 per drop),
-  `POST delete?id= {confirm: id}`. No outside calls. Logs carry method and path only.
-- `www/`: the page (`voices-core.js` holds the cleaning and time logic, `voices.js` the screen).
+  `POST delete?id= {confirm: id}`. The service makes no outside calls (only the page's Send does, from raven575's browser). Logs carry method and path only.
+- `www/`: the page (`voices-core.js` holds the cleaning, time and send-row logic, `voices.js` the screen, `voices-send.js` the Google part).
 - `vcge-lab-voices-install.sh`: folders, service, Caddy route, page. Undo lines printed; drops are never deleted by it.
 - `test/`: `test_voices_api.py` (service), `voices-core.test.mjs` (cleaning, codenames, times),
   `voices.e2e.cjs` + `stand-in.py` (the page on a phone-sized screen in Chromium; checks no real name is ever sent).
