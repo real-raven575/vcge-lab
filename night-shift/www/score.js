@@ -6,7 +6,7 @@
  */
 
 export const FIELDS = ['name', 'title', 'company', 'phone', 'email', 'web', 'address'];
-export const DROP_ALERT = 0.02;      // a field 2 points worse than the build before gets flagged
+export const DROP_ALERT = 0.01;      // a field 1 point worse than the build before gets flagged (HQ-0427: Wrench, Vault)
 
 const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
 const digits = (s) => String(s || '').replace(/\D/g, '');
@@ -46,6 +46,21 @@ export function fieldsRight(read, truth) {
         out.address = +(streetOk && read.city === low(t.city) && read.state === low(t.state) && read.zip === digits(t.zip));
     } else out.address = null;
     return out;
+}
+
+/**
+ * The card's lines as printed, from its answers, labels left out (card-factory/people.py printed_lines). The robot feeds
+ * these to the field mapper on their own: the "sorter alone" score (HQ-0427, split the blame: TEAM Never Forget,
+ * TEAM 9to5, Team vCGE). If the sorter alone gets a field right but the whole trip doesn't, the reader is to blame.
+ */
+export function printedLines(t) {
+    const x = t || {};
+    const lines = [x.name, x.title, x.company, x.phone, x.mobile, x.fax, x.email, x.web].map(norm).filter(Boolean);
+    if (norm(x.street)) {
+        lines.push(norm(x.street) + (norm(x.unit) ? `, ${norm(x.unit)}` : ''));
+        lines.push(`${norm(x.city)}, ${norm(x.state)} ${norm(x.zip)}`);
+    }
+    return lines;
 }
 
 /** Levenshtein distance (characters). */
@@ -116,7 +131,7 @@ export function matchCard(readText, read, printed) {
 /** Averages per field over rows; a field a row lacks (null) is left out of that field's average. */
 export function mean(rows) {
     const out = { n: rows.length };
-    for (const k of ['chars', 'edges', 'turnedDown', ...FIELDS]) {
+    for (const k of ['chars', 'edges', 'turnedDown', 'sorterAll', ...FIELDS]) {
         const vals = rows.map(r => r.values[k]).filter(v => v != null);
         out[k] = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
     }
@@ -142,7 +157,7 @@ export function scoreboard(rows) {
 export function drops(now, before) {
     if (!before) return [];
     const out = [];
-    for (const k of ['chars', 'edges', 'allFields', ...FIELDS]) {
+    for (const k of ['chars', 'edges', 'allFields', 'sorterAll', ...FIELDS]) {
         const a = now.all[k], b = before.all[k];
         if (a != null && b != null && b - a >= DROP_ALERT) out.push({ field: k, before: b, now: a });
     }
@@ -156,6 +171,7 @@ export function scoreboardMd(board, info, dropped = []) {
     const line = (g) => `- ${g.label}: ${g.n} cards, ${pct(g.chars)} characters, every field right ${pct(g.allFields)}; ${FIELDS.map(f => `${f} ${pct(g[f])}`).join(', ')}${g.edges != null ? `, edges ${pct(g.edges)}` : ''}${g.turnedDown ? `, turned down ${pct(g.turnedDown)}` : ''}`;
     return [`Night Shift ${info.job} run: set ${info.set}, build ${info.build}, ${info.when}`,
         line({ ...board.all, label: 'every card' }),
+        ...(board.all.sorterAll != null ? [`Split the blame: the sorter alone, given each card's perfect text, gets every field right on ${pct(board.all.sorterAll)}; the whole trip on ${pct(board.all.allFields)}. The gap is the reader's.`] : []),
         dropped.length ? `⚠️ Worse than ${info.before}: ${dropped.map(d => `${d.field} ${pct(d.before)} → ${pct(d.now)}`).join(', ')}` : (info.before ? `No drop against ${info.before}.` : 'First run on this set kind; nothing to compare yet.'),
         'Hardest groups (10+ cards):', ...board.groups.filter(g => g.n >= 10).slice(0, 6).map(line)].join('\n');
 }
