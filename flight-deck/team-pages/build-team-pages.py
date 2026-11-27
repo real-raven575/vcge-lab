@@ -195,6 +195,7 @@ TOOLS = {
     ('Testing', 'The Test Bench', 'Every open vCGE test in one list: your hands-on checks and the CI results', '/vcge/testbench/', False),
     ('Testing', 'Wipe Trials', 'Ghost\'s cross-browser wipe test range', '/vcge/testing/', False),
     ('Testing', 'Tester Voices', 'Drop what testers told us; names become codenames before saving', '/vcge/voices/', False),
+    ('Testing', 'The Night Shift', 'The robot that scores the newest build on made-up cards every night; Print & Snap sheets', '/vcge/night-shift/', False),
     ('Public pages', 'vCGE app (public beta)', 'The app on GitHub Pages', 'https://real-raven575.github.io/vCGE-Master/', False),
     ('Public pages', 'Tester page', 'How testers join, and the update page', 'https://real-raven575.github.io/vCGE-Master/testers/', False),
     ('Public pages', 'Tester code guide', 'How testers redeem their Play code', 'https://real-raven575.github.io/vCGE-Master/testers/code/', False),
@@ -338,7 +339,7 @@ LAB = [('🐘', "The Elephant's Memory", '/vcge/'), ('🛫', 'Newest build', '/v
        ('🦉', 'The Reading Room', '/vcge/bench/'), ('🐈', 'The Darkroom', '/vcge/edge-bench/'),
        ('🦎', 'The Paint Shop', '/vcge/logo-bench/'), ('🎪', 'The Funhouse', '/vcge/funhouse/'),
        ('📚', 'The Card Shelf', '/vcge/shelf/'), ('📬', 'Card Inbox', '/vcge/inbox/'), ('🧪', 'Test Bench', '/vcge/testbench/'), ('💬', 'Tester Voices', '/vcge/voices/'),
-       ('🦝', 'Wipe Trials', '/vcge/testing/')]
+       ('🌙', 'The Night Shift', '/vcge/night-shift/'), ('🦝', 'Wipe Trials', '/vcge/testing/')]
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you are here")
   'flight-deck/www/index.html': ('/', None),
@@ -348,6 +349,7 @@ BAR_PAGES = {   # repo file: (its address on the deck, the name shown as "you ar
   'card-inbox/www/index.html': ('/vcge/inbox/', 'Card Inbox'),
   'testbench/www/index.html': ('/vcge/testbench/', 'Test Bench'),
   'tester-voices/www/index.html': ('/vcge/voices/', 'Tester Voices'),
+  'night-shift/www/index.html': ('/vcge/night-shift/', 'The Night Shift'),
   'logo-bench/www/index.html': ('/vcge/logo-bench/', 'The Paint Shop'),
   'wipe-trials/www/index.html': ('/vcge/testing/', 'Wipe Trials'),
   'versions-page/vcge-lab-index.py': ('/vcge/', "The Elephant's Memory"),
