@@ -3,7 +3,7 @@
 Every night at 02:00 Eastern a timer on the lab:
 1. copies new **Print & Snap** photos from the drop folder (`SNAP_DROP`) into `<NIGHT_ROOT>/snaps/` (the drop folder is only read),
 2. has the **Card Factory** make tonight's set `night-<YYYYMMDD>` (300 cards by default; old night sets are removed after 14 days and can be made again from their seed),
-3. opens the **robot page** in headless Chromium for the newest published build **and the one before it**, so both read the same cards,
+3. opens the **robot page** in headless Chromium for the newest **main** build **and the main build before it**, and for the newest branch build (if newer than main) **against the newest main build**, so each pair reads the same cards and a branch is never compared with another branch,
 4. saves each scoreboard under `<NIGHT_ROOT>/scores/<build>/` and writes a numbers-only summary to `NIGHT_EXPORT`
    (`night-shift-latest.md` and `night-shift-<date>.json`) for the morning reader. A field that got 2 points worse
    than the build before is flagged.

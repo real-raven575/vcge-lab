@@ -5,7 +5,8 @@ Runs as the lab user on 127.0.0.1 (NIGHT_PORT, default 8773). It never writes an
 scoreboards itself. It serves:
   /night-shift/                 the scoreboard page and the robot page (from --page)
   /night-shift/api/health       {"ok": true}
-  /night-shift/api/builds       published builds (from <www>/v/*/version.json), newest first
+  /night-shift/api/builds       published builds (from <www>/v/*/version.json), newest first; main = on the main branch
+                                (true/false), or null when no checkout of the app is found under the lab folder
   /night-shift/api/sets         Card Factory sets: name, kind, count, made
   /night-shift/api/set?name=    one set's manifest (made-up cards and their answers)
   /night-shift/api/image?set=&file=   one picture of a set
@@ -18,7 +19,7 @@ It logs paths only, never what a card says.
 
     night-shift-api --www <LAB_ROOT>/www --factory <FACTORY_ROOT> --snaps <NIGHT_ROOT>/snaps --scores <NIGHT_ROOT>/scores --page <dir> [--port 8773]
 """
-import argparse, json, mimetypes, os, re, sys
+import argparse, glob, json, mimetypes, os, re, subprocess, sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, parse_qs, unquote
 
@@ -39,8 +40,26 @@ def inside(base, rel):
     return p if p == base or p.startswith(base + os.sep) else None
 
 
+def main_commits():
+    """Full hashes on the main branch (first parent), from a checkout under the lab folder, like the versions page; set() if none."""
+    lab, www = os.path.dirname(os.path.abspath(CFG['www'])), os.path.realpath(CFG['www'])
+    found = [g for p in ('.git', '*/.git', '*/*/.git', '*/*/*/.git', '*.git', '*/*.git', '*/*/*.git') for g in glob.glob(os.path.join(lab, p))]
+    for repo in sorted({os.path.dirname(g) if os.path.basename(g) == '.git' else g for g in found}):
+        if os.path.realpath(repo).startswith(www + os.sep):
+            continue
+        for ref in ('origin/' + CFG.get('main', 'main'), CFG.get('main', 'main')):
+            try:
+                r = subprocess.run(['git', '-c', 'safe.directory=*', '-C', repo, 'rev-list', '--first-parent', ref], capture_output=True, text=True, timeout=20)
+            except (OSError, subprocess.SubprocessError):
+                continue
+            if r.returncode == 0 and r.stdout.strip():
+                return set(r.stdout.split())
+    return set()
+
+
 def builds():
     out, vdir = [], os.path.join(CFG['www'], 'v')
+    mains = main_commits()
     for short in os.listdir(vdir) if os.path.isdir(vdir) else []:
         try:
             with open(os.path.join(vdir, short, 'version.json')) as f:
@@ -48,7 +67,9 @@ def builds():
         except (OSError, ValueError):
             continue
         src = os.path.isfile(os.path.join(vdir, short, 'src', 'modules', 'mod04-ocr', 'ocrWorker.js'))
-        out.append({'short': m.get('short', short), 'date': m.get('date', ''), 'subject': m.get('subject', ''), 'source': src})
+        sh = m.get('short', short)
+        on_main = any(c.startswith(sh) for c in mains) if mains else None
+        out.append({'short': sh, 'date': m.get('date', ''), 'subject': m.get('subject', ''), 'source': src, 'main': on_main})
     out.sort(key=lambda m: m['date'], reverse=True)
     return out
 
@@ -188,6 +209,7 @@ def main(argv=None):
     ap.add_argument('--port', type=int, default=8773)
     a = ap.parse_args(argv)
     CFG.update({k: os.path.abspath(getattr(a, k)) for k in ('www', 'factory', 'snaps', 'scores', 'page')})
+    CFG['main'] = os.environ.get('VCGE_MAIN_BRANCH', 'main')
     srv = ThreadingHTTPServer(('127.0.0.1', a.port), Handler)
     print('night-shift-api on 127.0.0.1:%d' % a.port); sys.stdout.flush()
     srv.serve_forever()
