@@ -37,8 +37,11 @@ if curl -fsS "http://127.0.0.1:$PORT/" >/dev/null 2>&1 && ! curl -fsS "http://12
 fi
 
 echo "1. folders (private to the lab user)"
-for d in "$N" "$N/snaps" "$N/scores" "$N/export" "$N/browsers" "$F"; do install -d -o "$U" -g "$U" -m 750 "$d"; done
-echo "  OK   $N and $F"
+for d in "$N" "$N/snaps" "$N/scores" "$N/browsers" "$F"; do install -d -o "$U" -g "$U" -m 750 "$d"; done
+# The morning summary is numbers only, so other lab users may read it: export 755, and its parent may be passed through (751, no listing)
+chmod 751 "$N"; install -d -o "$U" -g "$U" -m 755 "$N/export"
+[ -d "${NIGHT_EXPORT:-$N/export}" ] || install -d -o "$U" -g "$U" -m 755 "${NIGHT_EXPORT:-$N/export}"
+echo "  OK   $N and $F (export readable)"
 
 echo "2. Node and Playwright"
 if ! command -v node >/dev/null 2>&1 || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 18 ]; then

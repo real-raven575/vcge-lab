@@ -92,8 +92,10 @@ async function main() {
     }
     fs.mkdirSync(EXPORT, { recursive: true });
     const day = stamp().slice(0, 10);
-    fs.writeFileSync(path.join(EXPORT, `night-shift-${day}.json`), JSON.stringify({ made_utc: stamp(), runs: exported }, null, 1));
-    fs.writeFileSync(path.join(EXPORT, 'night-shift-latest.md'), `# 🌙 Night Shift ${day}\n\nScores only: no photos, no card text.\n\n${lines.join('\n\n')}\n`);
+    // Numbers only, so readable by the other lab users who carry it to the morning reader (mode 644)
+    const put = (f, text) => { const p = path.join(EXPORT, f); fs.writeFileSync(p, text, { mode: 0o644 }); fs.chmodSync(p, 0o644); };
+    put(`night-shift-${day}.json`, JSON.stringify({ made_utc: stamp(), runs: exported }, null, 1));
+    put('night-shift-latest.md', `# 🌙 Night Shift ${day}\n\nScores only: no photos, no card text.\n\n${lines.join('\n\n')}\n`);
     const alerts = exported.filter(e => e.drops.length);
     console.log(alerts.length ? `ALERT: ${alerts.length} run(s) got worse; see ${path.join(EXPORT, 'night-shift-latest.md')}` : 'No drops.');
 }
