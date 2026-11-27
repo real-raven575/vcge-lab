@@ -6,7 +6,7 @@
  * imported from /v/<build>/src/... Results go to window.robotDone as rows of numbers and labels; what a card says is
  * never kept. The Night Shift runner (night-shift.mjs) waits for robotDone and saves the scoreboard.
  */
-import { readFields, fieldsRight, charsRight, cornerMiss, matchCard } from './score.js';
+import { readFields, fieldsRight, charsRight, cornerMiss, matchCard, printedLines } from './score.js';
 
 const FINDER_MAX_SIDE = 1200;            // same as MOD03 cropEditor.js
 const EDGE_OK = 0.05;                    // corners within 5% of the card's diagonal count as found
@@ -68,6 +68,15 @@ async function readPicture(m, url) {
     return r;
 }
 
+/** The field mapper alone on the card's perfect printed lines (HQ-0427, split the blame): 1 when every field is right. */
+function sorterAll(m, card) {
+    try {
+        if (!card.truth || !m.mapper) return null;
+        const f = fieldsRight(readFields(m.mapper.buildFields(m.mapper.classifyLines(printedLines(card.truth).map(text => ({ text, icon: null })))).fields), card.truth);
+        return Object.values(f).every(v => v == null || v === 1) ? 1 : 0;
+    } catch (e) { return null; }
+}
+
 function row(card, r, extra = {}) {
     const read = readFields(r.fields);
     const f = r.outcome === 'read' ? fieldsRight(read, card.truth) : Object.fromEntries(Object.entries(fieldsRight(readFields(null), card.truth)).map(([k, v]) => [k, v == null ? null : 0]));
@@ -75,7 +84,7 @@ function row(card, r, extra = {}) {
     return {
         n: card.n, font: card.font, group: card.group, layout: card.layout, nameStyle: / the /.test(card.truth?.name || '') ? 'Herd style (X the Animal)' : 'everyday', effects: card.effects || {}, ms: r.ms, ...extra,
         values: { chars: r.outcome === 'read' ? charsRight(r.text, card.truth) : 0, edges: card.corners ? +(miss != null && miss <= EDGE_OK) : null,
-            turnedDown: r.outcome !== 'read' && r.outcome !== 'error' ? 1 : 0, ...f }
+            turnedDown: r.outcome !== 'read' && r.outcome !== 'error' ? 1 : 0, sorterAll: r.sorterAll ?? null, ...f }
     };
 }
 
@@ -86,6 +95,7 @@ async function factory(m) {
     for (let i = 0; i < cards.length; i++) {
         status(`${setName}: card ${i + 1} of ${cards.length}`);
         const r = await readPicture(m, `${API}image?set=${encodeURIComponent(setName)}&file=${encodeURIComponent(cards[i].file)}`);
+        r.sorterAll = sorterAll(m, cards[i]);
         rows.push(row(cards[i], r));
     }
     return { rows, unmatched: [] };

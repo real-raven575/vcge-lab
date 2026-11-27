@@ -1,7 +1,7 @@
 // Night Shift scoring tests: node --test night-shift/test/score.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFields, fieldsRight, charsRight, cornerMiss, matchCard, scoreboard, drops, scoreboardMd, editDistance } from '../www/score.js';
+import { readFields, fieldsRight, charsRight, cornerMiss, matchCard, scoreboard, drops, scoreboardMd, editDistance, printedLines, DROP_ALERT } from '../www/score.js';
 
 const truth = { name: 'Glyph the Owl', title: 'Owner', company: 'Reading Room Supply LLC', phone: '(419) 555-0142', mobile: '', fax: '419-555-0199',
     email: 'glyph@vcge.app', web: 'www.vcge.app', street: '12 Flight Deck Way', unit: '', city: 'Toledo', state: 'OH', zip: '43604' };
@@ -53,4 +53,20 @@ test('scoreboard groups and drops', () => {
     const md = scoreboardMd(now, { job: 'factory', set: 'night-1', build: 'abc1234', when: 'x', before: 'def5678' }, d);
     assert.match(md, /Worse than def5678/);
     assert.doesNotMatch(md, /Glyph|vcge\.app/);   // numbers and labels only
+});
+
+test('split the blame: the printed lines come from the answers, in card order (HQ-0427)', () => {
+    assert.deepEqual(printedLines(truth), ['Glyph the Owl', 'Owner', 'Reading Room Supply LLC', '(419) 555-0142', '419-555-0199', 'glyph@vcge.app', 'www.vcge.app', '12 Flight Deck Way', 'Toledo, OH 43604']);
+    assert.deepEqual(printedLines({ ...truth, unit: 'Hangar 01', street: '' }).slice(-1), ['www.vcge.app']);
+});
+test('split the blame: the sorter-alone share is scored, shown and watched for drops', () => {
+    const rows = [0, 1].map(i => ({ group: 'sans', layout: 'left', effects: {}, values: { chars: 1, sorterAll: i, name: 1 } }));
+    const board = scoreboard(rows);
+    assert.equal(board.all.sorterAll, 0.5);
+    assert.match(scoreboardMd(board, { job: 'factory', set: 's', build: 'abc1234', when: 'now' }), /sorter alone/);
+    assert.equal(drops({ all: { sorterAll: 0.9 } }, { all: { sorterAll: 0.95 } }).length, 1);
+});
+test('a field one point worse is flagged (HQ-0427: block a merge on any 1-point drop)', () => {
+    assert.equal(DROP_ALERT, 0.01);
+    assert.equal(drops({ all: { name: 0.88 } }, { all: { name: 0.895 } }).length, 1);
 });
