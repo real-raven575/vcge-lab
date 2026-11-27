@@ -22,6 +22,14 @@ class Api(unittest.TestCase):
         open(os.path.join(t, 'www', 'v', 'abc1234', 'src', 'modules', 'mod04-ocr', 'ocrWorker.js'), 'w').write('export {}')
         json.dump({'short': 'abc1234', 'date': '2026-11-26T00:00:00Z', 'subject': 'test'}, open(os.path.join(t, 'www', 'v', 'abc1234', 'version.json'), 'w'))
         open(os.path.join(t, 'secret.txt'), 'w').write('outside')
+        # A checkout of the app beside www: its first commit is on main, a branch commit is not
+        g = lambda *a: subprocess.run(['git', '-C', os.path.join(t, 'app'), '-c', 'user.name=t', '-c', 'user.email=t@vcge.app', *a], capture_output=True, text=True, check=True).stdout.strip()
+        os.makedirs(os.path.join(t, 'app')); g('init', '-q', '-b', 'main'); g('commit', '-q', '--allow-empty', '-m', 'm')
+        cls.on_main = g('rev-parse', '--short', 'HEAD'); g('checkout', '-q', '-b', 'side'); g('commit', '-q', '--allow-empty', '-m', 'b')
+        cls.on_branch = g('rev-parse', '--short', 'HEAD'); g('checkout', '-q', 'main')
+        for sh in (cls.on_main, cls.on_branch):
+            os.makedirs(os.path.join(t, 'www', 'v', sh))
+            json.dump({'short': sh, 'date': '2026-11-25T00:00:00Z', 'subject': 't'}, open(os.path.join(t, 'www', 'v', sh, 'version.json'), 'w'))
         os.makedirs(os.path.join(t, 'factory', 'night-1'))
         json.dump({'kind': 'cards', 'made_utc': '2026-11-27T00:00:00Z', 'cards': [{'n': 1, 'file': '00001.jpg'}]}, open(os.path.join(t, 'factory', 'night-1', 'manifest.json'), 'w'))
         open(os.path.join(t, 'factory', 'night-1', '00001.jpg'), 'wb').write(b'\xff\xd8jpeg')
@@ -44,6 +52,10 @@ class Api(unittest.TestCase):
         self.assertEqual(json.loads(get('/night-shift/api/sets')[2])['sets'][0]['name'], 'night-1')
         self.assertEqual(json.loads(get('/night-shift/api/snaps')[2])['photos'][0]['name'], '2026-11-27/a1.jpg')
         self.assertEqual(json.loads(get('/night-shift/api/scoreboards')[2])['scoreboards'], [])
+
+    def test_main_or_branch(self):
+        got = {b['short']: b['main'] for b in json.loads(get('/night-shift/api/builds')[2])['builds']}
+        self.assertEqual((got[self.on_main], got[self.on_branch], got['abc1234']), (True, False, False))
 
     def test_files(self):
         self.assertEqual(get('/night-shift/api/image?set=night-1&file=00001.jpg')[:2], (200, 'image/jpeg'))
